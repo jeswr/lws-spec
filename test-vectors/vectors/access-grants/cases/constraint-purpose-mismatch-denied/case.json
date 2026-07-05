@@ -48,7 +48,7 @@
   },
   "level": "MUST",
   "operation": "evaluate-access",
-  "source": "lws-spec@048f4fe core#odrl-profile (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#odrl-profile (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a purpose constraint not matched by the request context denies"
 }

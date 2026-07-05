@@ -67,7 +67,7 @@
       "sse-subscription"
     ]
   },
-  "source": "lws-spec@048f4fe core#sse-binding (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#sse-binding (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "creating an SSE subscription returns the event-stream URL in source"
 }

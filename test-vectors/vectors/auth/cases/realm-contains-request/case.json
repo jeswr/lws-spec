@@ -13,7 +13,7 @@
   },
   "level": "MUST",
   "operation": "verify-realm-containment",
-  "source": "lws-spec@048f4fe core#authz-discovery (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#authz-discovery (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "realm containment: the originating request URI inside the presented realm verifies"
 }

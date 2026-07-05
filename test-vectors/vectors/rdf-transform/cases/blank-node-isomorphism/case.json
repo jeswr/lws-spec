@@ -15,7 +15,7 @@
   },
   "level": "MUST",
   "operation": "transform-representation",
-  "source": "lws-spec@048f4fe rdf#round-trip (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e rdf#round-trip (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "blank nodes survive transformation up to relabelling (isomorphism, not identifier stability)"
 }

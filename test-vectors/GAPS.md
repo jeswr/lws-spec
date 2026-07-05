@@ -119,7 +119,7 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
 | Clause | Requirement | Why no vector |
 |---|---|---|
 | rdf#round-trip | JSON-LD targets: a declared `@context` is reused; context-less sources serialise with a documented stable context | vectorable, deferred — needs a `transform-representation` case asserting compaction context reuse (the graph contract is pinned; the compaction shape is client-visible sugar) |
-| rdf#round-trip | A JSON-LD source declaring a **non-allowlisted remote context** is handled without fetching (expanded-form serialisation or 406) — never a network fetch | network/trust for the no-fetch half; the expanded-form-or-406 outcome is **vectorable, deferred** (a remote-context fixture) |
+| rdf#round-trip | A compacted JSON-LD source with a non-allowlisted remote context "MUST NOT resolve the context with a network fetch" | network/trust — proving the *absence* of the fetch needs an instrumented network layer; the mandatory decline is pinned (remote-context-declined-not-fetched) |
 | rdf#authoritative-bytes | Writes in a derived type flip the stored media type — accepted ONLY when the written type is itself an advertised `source` (bidirectional coverage), else 415; MUST NOT silently transcode | vectorable, deferred — gated on an implementation opting into derived-type writes; two case shapes are ready (PUT ld+json onto a ttl resource then GET without Accept; PUT in a target-only type → 415) |
 | rdf#normalizes | Read-back under `normalizes` is graph-isomorphic to what was written | partially pinned (determinism is; the write→read isomorphism needs a write + transform check in one case — **vectorable, deferred**) |
 | rdf#rdf-patch | RDF PATCH application: graph patch, atomicity, ETag rotation, N3 `?conditions` failure → 409 | vectorable, deferred — a PATCH tranche (SPARQL Update / N3 Patch fixtures) once an implementation advertises an RDF patch format; atomicity itself is stateful |
@@ -133,8 +133,10 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
   README "Provenance of verdicts"); where the spec leaves a code point open the vector
   either uses `errorOneOf`/`anyOf` (e.g. exchange-relative-resource-rejected,
   transform-off-byte-native-only) or records its interpretation in `notes` (e.g. the
-  path-segment reading of "logically contains" in the two prefix-trap cases, the RFC 8693
-  §2.2.2 `invalid_target` choice). Nothing is silently over-pinned.
+  RFC 8693 §2.2.2 `invalid_target` choice). Nothing is silently over-pinned. (The
+  path-segment reading of "logically contains" in the two prefix-trap cases began as a
+  recorded interpretation and is now the spec's own normative definition — the intended
+  lifecycle for every such note.)
 - **The client conformance class is under-vectored.** Only `verify-realm-containment`
   exercises client-scoped requirements; a client-side harness tranche is deferred.
 - **The `access` state map is an abstraction.** http-exchange cases declare effective

@@ -45,7 +45,7 @@ placeholders (Q1); nothing is minted under `w3.org`.
   uploads) vs adopted defaults.
 - **`docs/DESIGN-BRIEF.md`** — the research foundation (primary-source-cited survey of the WG,
   its drafts, minutes, issues, and the maintainer's own prior LWS artifacts).
-- **`test-vectors/`** — the **conformance test-vector suite**: 124 language-neutral
+- **`test-vectors/`** — the **conformance test-vector suite**: 125 language-neutral
   (input, operation, expected-outcome) cases across 9 suites in the
   `agentic-solid-conformance` format, each pinning normative clauses by spec section id;
   JSON cases with Turtle/JSON-LD/N-Quads fixtures plus real signed EdDSA at+jwt and RFC 9421

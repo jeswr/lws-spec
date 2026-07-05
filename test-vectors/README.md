@@ -30,7 +30,9 @@ nothing of anyone.
 `agentic-solid-conformance` *extracted* its verdicts by executing pinned reference
 implementations. **No reference implementation of JLWS exists yet**, so the expected
 outcomes here are **derived directly from the normative text** of the two specs at commit
-`048f4fe` (each case's `source` field records the clause it was derived from; `notes`
+`deb310e` — the commit the suite was last **reconciled** against; whenever the spec's
+normative text changes, the pin is bumped and every affected vector re-derived in the same
+change (each case's `source` field records the clause it was derived from; `notes`
 records any interpretation applied, e.g. the path-segment reading of "logically contains").
 That inversion is deliberate — these vectors are the **conformance target the first
 implementation builds to** (the planned `solid-server-rs` `feat/lws` branch) — and it has a
@@ -43,7 +45,7 @@ manifests ↔ cases ↔ clause ids ↔ fixtures ↔ signatures).
 
 ## Suites
 
-124 cases across 9 suites (see [`manifest.json`](./manifest.json) for the machine-readable
+125 cases across 9 suites (see [`manifest.json`](./manifest.json) for the machine-readable
 index):
 
 | Suite | Cases | Spec | Surface |
@@ -55,7 +57,7 @@ index):
 | [`vectors/auth/`](./vectors/auth/) | 31 | core | 401 challenge shape, realm containment, RFC 8693 exchange, RFC 9068 single-audience at+jwt validation (13 signed fixtures), Bearer baseline / PoP opt-in, RFC 9396 narrowing |
 | [`vectors/access-grants/`](./vectors/access-grants/) | 17 | core | strict-ODRL document validation, default-deny grant evaluation, action inclusion, typed targets, constraints, public assignee |
 | [`vectors/notifications/`](./vectors/notifications/) | 12 | core | subscription authorization, SSE/WebSocket binding shapes, content-free envelope, RFC 9421 webhook signature verification (5 signed fixtures) |
-| [`vectors/rdf-transform/`](./vectors/rdf-transform/) | 16 | rdf-1 | capability consistency, graph-isomorphic round-trips, no-inference, base resolution, authoritative bytes + per-representation ETags, `normalizes`, unparseable-source degradation, opt-in-OFF behaviour |
+| [`vectors/rdf-transform/`](./vectors/rdf-transform/) | 17 | rdf-1 | capability consistency, graph-isomorphic round-trips, no-inference, base resolution, remote-context decline (no fetch), authoritative bytes + per-representation ETags, `normalizes`, unparseable-source degradation, opt-in-OFF behaviour |
 | [`vectors/errors/`](./vectors/errors/) | 4 | core | RFC 9457 problem details everywhere, 404-for-hidden, hidden ≡ missing, 403-for-partial-access |
 
 ## Vector schema
@@ -79,7 +81,7 @@ case, and — where the suite ships shared fixtures — a `keyring/` directory.
   "expected": { … },                            // operation-specific
   "exchanges": [ … ],                           // http-exchange multi-request form
   "notes": "…",                                 // any interpretation applied
-  "source": "lws-spec@048f4fe core#rs-validation (spec-derived; …)"
+  "source": "lws-spec@deb310e core#rs-validation (spec-derived; …)"
 }
 ```
 
@@ -302,13 +304,17 @@ against the body bytes else `CONTENT_DIGEST_MISMATCH`.
 ### 11. `transform-representation` — the rdf-1 round-trip contract (rdf#round-trip)
 
 ```
-transform-representation(source, sourceMediaType, targetMediaType, base)
-    → output in targetMediaType
+transform-representation(source, sourceMediaType, targetMediaType, base,
+                         allowlistedContexts?)
+    → output in targetMediaType | {ok: false, errorCode}
 ```
 
 The harness parses the implementation's output under `targetMediaType` and checks the
 resulting RDF graph is **isomorphic** (RDF 1.1 §3.6 — equal up to blank-node relabelling)
-to the graph of the case's `expected.isomorphicTo` N-Quads file.
+to the graph of the case's `expected.isomorphicTo` N-Quads file. Decline outcomes use the
+closed error codes `REMOTE_CONTEXT_DECLINED` (a compacted JSON-LD source declaring a
+remote `@context` outside `allowlistedContexts` MUST be declined, never fetched) and
+`UNPARSEABLE_SOURCE`.
 
 ## Running the suite
 

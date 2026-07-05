@@ -54,7 +54,7 @@ step they gate; the rest are adopted defaults you can correct at review.
    reserved in the core.
 
 10. **Repo shape** (brief OQ10; DECISIONS D19/D20). Adopted: one repo (`lws-spec`) holding
-    the spec docs and the now-landed `test-vectors/` suite (124 cases, self-contained under
+    the spec docs and the now-landed `test-vectors/` suite (125 cases, self-contained under
     one directory), dpop-sk-spec template. Alternative remains open: split the vectors into
     their own repo à la agentic-solid-conformance — a directory move, cheap to do on your
     steer.
@@ -69,7 +69,7 @@ step they gate; the rest are adopted defaults you can correct at review.
 - Deferred test-vector tranches (`test-vectors/GAPS.md` marks each "vectorable, deferred":
   self-signed-CID/did:key suite validation, RDF PATCH application, parser bombs, groups,
   pagination, client-side conduct) + an implementation-pinned consistency runner once the
-  first implementation passes the landed 124-case suite.
+  first implementation passes the landed 125-case suite.
 - `solid-server-rs` `feat/lws` branch (container JSON-LD + linksets + RFC 9728 challenge +
   exchange-token verification seam + storage description; lws-keycloak as the AS in IT),
   implemented TO the landed `test-vectors/` suite as its conformance target.

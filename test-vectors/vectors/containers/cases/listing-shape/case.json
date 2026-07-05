@@ -62,7 +62,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@048f4fe core#container-properties (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#container-properties (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "GET on a container returns the server-managed JSON-LD listing (id, type, totalItems, items with member descriptions)"
 }

@@ -74,7 +74,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@048f4fe core#metadata-categories (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#metadata-categories (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "attempts to modify system-managed links (up, items) are rejected with problem type system-managed-metadata"
 }

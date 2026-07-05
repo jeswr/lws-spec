@@ -56,7 +56,7 @@
       "RecursiveDelete"
     ]
   },
-  "source": "lws-spec@048f4fe core#http-delete (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#http-delete (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a server advertising RecursiveDelete MUST honour DELETE with Depth: infinity, deleting the subtree"
 }

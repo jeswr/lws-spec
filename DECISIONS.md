@@ -238,7 +238,7 @@ repository is a directory move (OQ10 stays open for the maintainer).
 
 The agentic-solid-conformance methodology extracts verdicts from a pinned reference
 implementation; JLWS has none yet, so the suite inverts the direction: every `expected` is
-derived from the normative text @ 048f4fe (per-case `source` cites the clause; `notes`
+derived from the normative text @ deb310e (per-case `source` cites the clause; `notes`
 records any interpretation, e.g. path-segment "logical containment", RFC 8693 §2.2.2
 `invalid_target`). Consequences designed in: (a) under-specified code points use
 `anyOf`/`errorOneOf` rather than silent over-pinning; (b) SHOULD-level requirements emit

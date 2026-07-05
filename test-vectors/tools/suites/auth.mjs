@@ -208,10 +208,11 @@ export default function auth(ctx) {
         title: 'realm containment is logical (path-segment) containment, not naive string prefixing',
         clauses: ['core#client-rules', 'core#authz-discovery'],
         operation: 'verify-realm-containment',
-        notes: 'The spec requires the request URI to be "logically contained" in the '
-          + 'realm. "https://storage.example/alice" is a string prefix of '
-          + '"https://storage.example/aliceevil/…" but does not logically contain '
-          + 'it: containment holds only at a path-segment boundary.',
+        notes: 'Logical containment is normatively defined (rs-validation) over '
+          + 'parsed, normalized URIs: same origin plus complete /-delimited '
+          + 'path-segment-boundary ancestry — never raw string prefixing. '
+          + '"https://storage.example/alice" is a string prefix of '
+          + '"https://storage.example/aliceevil/…" but does not logically contain it.',
         input: {
           requestUri: 'https://storage.example/aliceevil/notes/a.txt',
           realm: 'https://storage.example/alice',
@@ -365,9 +366,13 @@ export default function auth(ctx) {
         title: 'audience containment is logical (path-segment) containment: a string-prefix aud does not contain a sibling storage',
         clauses: ['core#rs-validation'],
         operation: 'validate-access-token',
-        notes: 'aud "https://storage.example/alice" is a string prefix of the target '
-          + '"https://storage.example/aliceevil/x.txt" but does not logically '
-          + 'contain it. Same trap class as realm-segment-prefix-trap-rejected.',
+        notes: 'Normative rule (rs-validation): logical containment is evaluated '
+          + 'over parsed, normalized URIs (RFC 3986 §6) — same origin, and the '
+          + 'audience path equal to or an ancestor of the target path on complete '
+          + '/-delimited segment boundaries; a raw prefix comparison would '
+          + 'authorize sibling resources. aud "https://storage.example/alice" is a '
+          + 'string prefix of "https://storage.example/aliceevil/x.txt" but does '
+          + 'not logically contain it.',
         input: tokenInput('at-aud-segment-trap.jwt', {
           targetResource: 'https://storage.example/aliceevil/x.txt',
         }),

@@ -57,7 +57,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@048f4fe core#http-general (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#http-general (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "every GET response carries ETag plus the linkset, up, type, and storage-description links"
 }

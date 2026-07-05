@@ -68,7 +68,7 @@
   },
   "level": "MUST",
   "operation": "validate-storage-description",
-  "source": "lws-spec@048f4fe core#discovery-model (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#discovery-model (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a complete CID-shaped storage description validates"
 }

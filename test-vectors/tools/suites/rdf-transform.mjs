@@ -222,6 +222,34 @@ export default function rdfTransform(ctx) {
         },
       },
       {
+        id: 'remote-context-declined-not-fetched',
+        title: 'a compacted JSON-LD source declaring a non-allowlisted remote @context MUST be declined — never resolved with a network fetch',
+        clauses: ['rdf#round-trip', 'rdf#security-privacy'],
+        operation: 'transform-representation',
+        notes: 'A compacted source cannot be interpreted as an RDF graph without '
+          + 'resolving its context, and a remote-context fetch on attacker-supplied '
+          + 'content is an SSRF primitive: the server declines the transformation '
+          + '(at the HTTP binding: 406 + problem details, as for an unparseable '
+          + 'source). The no-fetch half is only fully observable with an '
+          + 'instrumented network layer (GAPS.md); this vector pins the decline.',
+        input: {
+          source: 'source.jsonld',
+          sourceMediaType: 'application/ld+json',
+          targetMediaType: 'text/turtle',
+          base: `${NOTES}remote-ctx.jsonld`,
+          allowlistedContexts: [],
+        },
+        expected: { ok: false, errorCode: 'REMOTE_CONTEXT_DECLINED' },
+        files: {
+          'source.jsonld': `${JSON.stringify({
+            '@context': 'https://untrusted-context.example/context.jsonld',
+            '@id': 'https://storage.example/alice/notes/remote-ctx.jsonld#it',
+            '@type': 'Thing',
+            name: 'cannot be interpreted without fetching the context',
+          }, null, 2)}\n`,
+        },
+      },
+      {
         id: 'relative-iris-resolve-against-resource-uri',
         title: 'relative IRIs resolve against the resource URI as base, identically in every representation',
         clauses: ['rdf#round-trip'],

@@ -63,7 +63,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@048f4fe core#namespace (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@deb310e core#namespace (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "the w3.org/ns/lws#Container alias URI MUST be accepted in the rel=\"type\" creation link"
 }

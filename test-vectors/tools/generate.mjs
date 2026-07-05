@@ -11,8 +11,10 @@
 // tools/keys/ (generated on first run and committed; Ed25519 signatures are
 // deterministic, so regeneration is byte-stable).
 //
-// The expected verdicts are DERIVED FROM THE SPEC TEXT (lws-spec @ 048f4fe),
-// not extracted from a reference implementation — none exists yet. See
+// The expected verdicts are DERIVED FROM THE SPEC TEXT (lws-spec @ deb310e —
+// the commit the suite was last reconciled against; bump SPEC_SOURCE + rerun
+// a reconciliation pass whenever the spec's normative text changes), not
+// extracted from a reference implementation — none exists yet. See
 // test-vectors/README.md "Provenance of verdicts".
 
 import {
@@ -33,7 +35,7 @@ const KEYDIR = join(TOOLS, 'keys');
 // Shared constants (exposed to the suite modules via ctx)
 // ---------------------------------------------------------------------------
 
-export const SPEC_SOURCE = 'lws-spec@048f4fe';
+export const SPEC_SOURCE = 'lws-spec@deb310e';
 export const CORE = 'https://w3id.org/jeswr/lws/protocol/core/1.0';
 export const RDF1 = 'https://w3id.org/jeswr/lws/transform/rdf-1';
 export const PROBLEMS = 'https://w3id.org/jeswr/lws/problems/';

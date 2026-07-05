@@ -62,10 +62,13 @@ export default function errors(ctx) {
       },
       {
         id: 'no-access-hidden-as-404',
-        title: 'an agent with no permitted operation on a resource SHOULD draw 404, not 403',
+        title: 'an agent with no permitted operation on a resource (and no entitlement to learn it exists) MUST draw 404, not 403',
         clauses: ['core#oracle-freedom', 'core#rs-validation'],
-        level: 'SHOULD',
         operation: 'http-exchange',
+        notes: 'A 403 to an unentitled agent is the existence oracle the '
+          + 'error-response rule forbids. The authorized-to-know carve-out does not '
+          + 'apply here: bob can read the parent listing, but fail-closed listings '
+          + 'never disclose members he cannot read.',
         input: {
           state,
           request: { method: 'GET', target: SECRET, agent: BOB },
