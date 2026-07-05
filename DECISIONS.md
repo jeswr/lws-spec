@@ -254,3 +254,36 @@ committed TEST-ONLY private keys so regeneration is byte-stable and deterministi
 first implementation (solid-server-rs LWS) runs the suite, vector-vs-implementation
 disagreements are adjudicated against the spec text and the loser fixed; an
 implementation-pinned consistency runner is then added beside check.mjs.
+
+## D21. Sibling-spec composition verdicts (the docs/alignment set)
+
+How the maintainer's other proposed specs compose with JLWS — one verdict each, full
+rationale + edits + vectors + implementation seams in `docs/alignment/` (2026-07-05):
+
+- **AC-SPARQL** (`jeswr/solid-sparql-query`) = a **service** — the reserved
+  `SparqlQueryService` slot (`#query-services`), advertised only when the RDF transform
+  profile is on (`rdf-transform.html#indexing`); binding-profile URI
+  `https://w3id.org/jeswr/lws/query/ac-sparql-1`. Implementation gated on `jeswr/sparq#992`.
+- **DPoP-SK** (`jeswr/dpop-sk-spec`) = an **auth-layer PoP presentation profile**,
+  RFC 9728-negotiated (`pop_session` in the PRM). Alignment surfaced and fixed a real
+  spec bug: `#presentation-pop` referenced a DPoP-SK "required-member" that does not
+  exist — `dpop_bound_access_tokens_required` governs both PoP profiles because a
+  DPoP-SK session is established from a DPoP-bound token.
+- **A2A RDF extension** (`jeswr/a2a-rdf-extension`) = a **reference** (agent-layer;
+  JLWS is its document substrate — the RDFC-1.0 protocol hash is representation-stable
+  under the rdf-1 round-trip contract) plus an optional extension service
+  `…/a2a-rdf/v1#AgentInteractionService` via the registry's extension-URI mechanism.
+- **WebAuthn re-auth** (`jeswr/solid-webauthn-reauth`) = an **authentication suite** —
+  already absorbed as `#suite-webauthn` (D7); the alignment reconciles its
+  DPoP-bound-only issuance with the D9 Bearer baseline by scoping (tokens issued under
+  the profile always carry `cnf`, so rs-validation step 5 already refuses them bare).
+- **Agentic Solid Note** (`jeswr/agentic-solid-note`) = a **reference** (informative
+  umbrella; gains a substrate-portability bullet + a JLWS maturity row).
+- **agentic-solid-conformance** = the **shared conformance fabric** (this repo's
+  vectors already use its format — D20); the alignment fixes the homing rule
+  (server-surface vectors here, pure-function vectors there) and specifies ~23 new
+  composition cases across the two homes.
+
+No new core capability term was needed by any of the six — evidence the D5 registry +
+extension-URI design carries its weight. Also repointed the `[[AC-SPARQL]]` biblio to
+the published editor's draft (it predated `jeswr/solid-sparql-query`).
