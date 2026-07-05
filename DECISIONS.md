@@ -223,10 +223,32 @@ are advertisable ONLY when the profile is on. Unparseable stored bytes degrade p
 is an informative mapping section (RDF pair on; Solid-OIDC → OIDC suite + DPoP profile;
 WAC → ODRL mapping table; N3-Patch via PatchSupport), to be a full companion later.
 
-## D19. Repo shape: one repo, spec + (future) vectors; ReSpec; local-only until steered
+## D19. Repo shape: one repo, spec + vectors; ReSpec; local-only until steered
 
 Follows the dpop-sk-spec template (ReSpec `unofficial`, personal editor entry, drafting
 disclosure, DECISIONS.md, suite.json, `.roborev.toml`). Brief OQ10 (one repo vs split vectors)
 defaulted to one repo; publication itself is explicitly gated on the maintainer (OQ2) — this
 repository is local and unpushed, and `edDraftURI`/`github` are deliberately unset in the
-ReSpec configs until he decides.
+ReSpec configs until he decides. Status update: the vectors LANDED (`test-vectors/`, 124
+cases, agentic-solid-conformance format, spec-derived verdicts); the co-location remains
+reversible — the suite is self-contained under `test-vectors/` so a later split into its own
+repository is a directory move (OQ10 stays open for the maintainer).
+
+## D20. Test-vector verdicts are spec-derived, pinned by section id, honest about gaps
+
+The agentic-solid-conformance methodology extracts verdicts from a pinned reference
+implementation; JLWS has none yet, so the suite inverts the direction: every `expected` is
+derived from the normative text @ 048f4fe (per-case `source` cites the clause; `notes`
+records any interpretation, e.g. path-segment "logical containment", RFC 8693 §2.2.2
+`invalid_target`). Consequences designed in: (a) under-specified code points use
+`anyOf`/`errorOneOf` rather than silent over-pinning; (b) SHOULD-level requirements emit
+advisory `level: "SHOULD"` cases (W3C practice), optional features hide behind
+`preconditions` so skipping is conformant; (c) `GAPS.md` catalogues every normative
+statement without a vector and why (network/trust, stateful, behavioural, envelope,
+deferred); (d) `tools/check.mjs` machine-verifies internal coherence, including that every
+pinned clause id exists in the spec HTML and that the signed fixtures verify (or
+deliberately fail) exactly as their cases claim; (e) crypto fixtures are Ed25519/EdDSA with
+committed TEST-ONLY private keys so regeneration is byte-stable and deterministic. When the
+first implementation (solid-server-rs LWS) runs the suite, vector-vs-implementation
+disagreements are adjudicated against the spec text and the loser fixed; an
+implementation-pinned consistency runner is then added beside check.mjs.

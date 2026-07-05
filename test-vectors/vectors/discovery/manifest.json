@@ -1,0 +1,53 @@
+{
+  "caseCount": 6,
+  "cases": [
+    {
+      "id": "discovery/storage-description-valid",
+      "path": "cases/storage-description-valid/case.json"
+    },
+    {
+      "id": "discovery/storage-description-missing-conformsto",
+      "path": "cases/storage-description-missing-conformsto/case.json"
+    },
+    {
+      "id": "discovery/storage-description-missing-self-service",
+      "path": "cases/storage-description-missing-self-service/case.json"
+    },
+    {
+      "id": "discovery/storage-description-unknown-capability-ignored",
+      "path": "cases/storage-description-unknown-capability-ignored/case.json"
+    },
+    {
+      "id": "discovery/storage-description-link-on-get",
+      "path": "cases/storage-description-link-on-get/case.json"
+    },
+    {
+      "id": "discovery/protected-resource-metadata-document",
+      "path": "cases/protected-resource-metadata-document/case.json"
+    }
+  ],
+  "clauseIndex": {
+    "core#authz-discovery": [
+      "discovery/protected-resource-metadata-document"
+    ],
+    "core#capability-registry": [
+      "discovery/storage-description-unknown-capability-ignored"
+    ],
+    "core#discovery-binding": [
+      "discovery/storage-description-link-on-get"
+    ],
+    "core#discovery-model": [
+      "discovery/storage-description-valid",
+      "discovery/storage-description-missing-conformsto",
+      "discovery/storage-description-missing-self-service",
+      "discovery/storage-description-unknown-capability-ignored"
+    ],
+    "core#namespace": [
+      "discovery/storage-description-link-on-get"
+    ]
+  },
+  "description": "The storage description as the single feature-detection surface: REQUIRED members (id, type, conformsTo, service incl. the StorageDescription self-entry), unknown-capability forward compatibility, the storage-description Link on every resource response, and the RFC 9728 protected resource metadata document with the jlws_storage_description extension member.",
+  "schemaVersion": 1,
+  "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
+  "suite": "discovery"
+}

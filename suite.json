@@ -3,7 +3,7 @@
   "kind": "specification",
   "status": "design",
   "visibility": "local-unpublished",
-  "description": "JLWS — a personal clean-slate Linked Web Storage design: core protocol (wire-compatible superset of the LWS WG WD; RFC 9728 discovery, idempotent create, path alignment, CID-shaped storage description, SSE/WebSocket notifications, WebAuthn suite, optional negotiated PoP, strict-ODRL grants, normative SSRF/threat model) + the RDF Content Transformation opt-in profile. LOCAL ONLY; publication gated on the maintainer.",
+  "description": "JLWS — a personal clean-slate Linked Web Storage design: core protocol (wire-compatible superset of the LWS WG WD; RFC 9728 discovery, idempotent create, path alignment, CID-shaped storage description, SSE/WebSocket notifications, WebAuthn suite, optional negotiated PoP, strict-ODRL grants, normative SSRF/threat model) + the RDF Content Transformation opt-in profile + the conformance test-vector suite (test-vectors/: 124 language-neutral cases, agentic-solid-conformance format, spec-derived verdicts, GAPS.md). LOCAL ONLY; publication gated on the maintainer.",
   "conformsTo": [],
   "relatedRepos": [
     "jeswr/lws-keycloak",

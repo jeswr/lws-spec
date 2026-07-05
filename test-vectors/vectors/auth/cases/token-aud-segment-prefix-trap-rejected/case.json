@@ -1,0 +1,29 @@
+{
+  "clauses": [
+    "core#rs-validation"
+  ],
+  "expected": {
+    "accept": false,
+    "errorCode": "AUDIENCE_MISMATCH"
+  },
+  "id": "auth/token-aud-segment-prefix-trap-rejected",
+  "input": {
+    "issuerJwks": {
+      "https://as.example": "keyring/as.jwks.json",
+      "https://rogue-as.example": "keyring/rogue-as.jwks.json"
+    },
+    "maxClockSkewSeconds": 60,
+    "now": "2026-07-01T12:00:00Z",
+    "targetResource": "https://storage.example/aliceevil/x.txt",
+    "token": "keyring/at-aud-segment-trap.jwt",
+    "trustedIssuers": [
+      "https://as.example"
+    ]
+  },
+  "level": "MUST",
+  "notes": "aud \"https://storage.example/alice\" is a string prefix of the target \"https://storage.example/aliceevil/x.txt\" but does not logically contain it. Same trap class as realm-segment-prefix-trap-rejected.",
+  "operation": "validate-access-token",
+  "source": "lws-spec@048f4fe core#rs-validation (spec-derived; no reference implementation yet)",
+  "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
+  "title": "audience containment is logical (path-segment) containment: a string-prefix aud does not contain a sibling storage"
+}

@@ -434,15 +434,20 @@
 </section>
 
 <section id="conformance-vectors" class="appendix informative">
-  <h2>Test-vector families (planned)</h2>
+  <h2>Test-vector families</h2>
   <p>
-    Planned vectors for the shared suite ([[JLWS-CORE]] Appendix, <em>Test-vector index</em>):
-    graph round-trip (Turtle → JSON-LD → N-Triples → isomorphism check); ETag rotation matrix
-    across representations on write; If-Match acceptance with the derived representation's ETag;
-    <code>normalizes</code> determinism; unparseable-source degradation (stored bytes still
-    readable); RDF-PATCH-off rejection (415 / no Accept-Patch advertisement without the profile);
-    bounded-parser rejection of depth/size bombs; the WAC→ODRL mapping table as executable
-    assertions.
+    This profile's vectors ship in the shared suite ([[JLWS-CORE]] Appendix,
+    <em>Test-vector index</em>; repository <code>test-vectors/vectors/rdf-transform/</code>,
+    16 cases): capability/<code>conformsTo</code> consistency; graph round-trips
+    (Turtle ↔ JSON-LD, blank-node isomorphism, no-inference, resource-URI base resolution);
+    the ETag rotation matrix across representations on write; If-Match acceptance with the
+    derived representation's ETag; <code>normalizes</code> determinism; unparseable-source
+    degradation (stored bytes still readable); RDF-PATCH-off rejection (415, no Accept-Patch
+    advertisement without the profile); and the byte-native behaviour with the opt-in off.
+    Still deferred (recorded in the suite's <code>GAPS.md</code> with reasons): bounded-parser
+    rejection of depth/size bombs, declared-context reuse in JSON-LD compaction, derived-type
+    writes, the RDF PATCH application tranche, and the WAC→ODRL mapping table as executable
+    assertions (a Solid-on-JLWS companion deliverable).
   </p>
 </section>
 

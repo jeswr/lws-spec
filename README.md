@@ -37,24 +37,38 @@ placeholders (Q1); nothing is minted under `w3.org`.
   Solid lost-update ambiguity; a `normalizes` flag for parse-on-ingest stores; RDF PATCH only
   when the profile is on; the index/query enrichment hook; and the informative
   **Solid-on-JLWS** mapping (Solid as a profile on top of the substrate).
-- **`DECISIONS.md`** — the four adopted steer defaults + every WD divergence (D1–D19), each
-  with rationale and primary-source citations, for the maintainer's review/correction.
+- **`DECISIONS.md`** — the four adopted steer defaults + every WD divergence and repo-shape
+  decision (D1–D20), each with rationale and primary-source citations, for the maintainer's
+  review/correction.
 - **`docs/OPEN-QUESTIONS.md`** — the 10 open questions carried from the research brief,
   split UNANSWERED/GATING (name+namespace, publication, container-as-data-resource, resumable
   uploads) vs adopted defaults.
 - **`docs/DESIGN-BRIEF.md`** — the research foundation (primary-source-cited survey of the WG,
   its drafts, minutes, issues, and the maintainer's own prior LWS artifacts).
+- **`test-vectors/`** — the **conformance test-vector suite**: 124 language-neutral
+  (input, operation, expected-outcome) cases across 9 suites in the
+  `agentic-solid-conformance` format, each pinning normative clauses by spec section id;
+  JSON cases with Turtle/JSON-LD/N-Quads fixtures plus real signed EdDSA at+jwt and RFC 9421
+  webhook fixtures; a `GAPS.md` inventorying the un-vectorable normative statements. The
+  expected verdicts are spec-derived (no reference implementation exists yet — see the suite
+  README's provenance note); this suite is the conformance target the first implementation
+  (the planned `solid-server-rs` LWS work) builds to.
 
 Companion specs planned (slots reserved in the core): query services (TypeIndex/TypeSearch +
-access-controlled SPARQL), versioning (RFC 5829 + Memento), the full Solid-on-JLWS profile, and
-the test-vector suite (agentic-solid-conformance format).
+access-controlled SPARQL), versioning (RFC 5829 + Memento), and the full Solid-on-JLWS
+profile.
 
 ## Gate
 
-Spec-only repo: no build. The gate is HTML well-formedness of the two ReSpec docs:
+Spec-only repo: no build. The gate is HTML well-formedness of the two ReSpec docs plus the
+test-vector consistency check (manifests ↔ cases ↔ clause pins ↔ fixtures ↔ signatures; the
+vectors are generator output — edit `test-vectors/tools/suites/*.mjs` and regenerate, never
+the emitted files):
 
 ```sh
 node tools/check-html.mjs index.html rdf-transform.html
+node test-vectors/tools/check.mjs
+node test-vectors/tools/generate.mjs   # regenerate; git diff must stay clean
 ```
 
 (stdlib-only tag-balance + structure check; Node ≥ 20). Plus roborev on every commit
