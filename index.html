@@ -1228,8 +1228,14 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
       <li><strong>Issuer</strong> — <code>iss</code> MUST match a member of the storage server's
         explicit trusted-issuer allowlist (<a href="#security-considerations"></a>).</li>
       <li><strong>Audience</strong> — <code>aud</code> MUST contain exactly one value, an
-        absolute URI that logically contains the target resource. Under path alignment,
-        containment is URI-prefix containment. Multi-tenant deployments MUST scope acceptance to
+        absolute URI that logically contains the target resource. Logical containment is
+        evaluated over parsed, normalized URIs ([[!RFC3986]] Section 6) — never by raw string
+        prefix: the audience and the target MUST have the same origin (scheme, host, port),
+        and the audience's path MUST equal the target's path or be an ancestor of it on
+        complete <code>/</code>-delimited segment boundaries. (An audience of
+        <code>…/alice/</code> contains <code>…/alice/notes/x</code> but NOT
+        <code>…/alicemalicious</code>; a raw prefix comparison would authorize sibling
+        resources.) Multi-tenant deployments MUST scope acceptance to
         the current storage (the tenant-replay rule, <code>spec/authz.md</code> §7.5.1).</li>
       <li><strong>Temporal</strong> — <code>exp</code> in the future, <code>nbf</code> (if
         present) passed, <code>iat</code> not in the future; clock skew tolerance of at most 60
@@ -1853,10 +1859,13 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
   <section id="oracle-freedom">
     <h3>Oracle freedom (normative)</h3>
     <ul>
-      <li>If an agent has no permitted operation on a resource, the server SHOULD respond
-        <code>404</code> (not <code>403</code>) to avoid disclosing existence; <code>403</code>
-        is for agents with partial access (jeswr/lws-keycloak <code>spec/authz.md</code>
-        §7.12).</li>
+      <li>If an agent has no permitted operation on a resource — and is not otherwise
+        authorized to learn that it exists (e.g. through a readable parent listing) — the
+        server MUST respond <code>404</code> (not <code>403</code>), indistinguishable from a
+        genuinely absent resource: a <code>403</code> here is precisely the existence oracle
+        the error-response rule below forbids. <code>403</code> is reserved for agents with
+        partial access, i.e. agents already entitled to know the resource exists
+        (jeswr/lws-keycloak <code>spec/authz.md</code> §7.12).</li>
       <li>Container listings, <code>totalItems</code>, query results, and notification streams
         MUST expose only what the requesting agent can read
         (<a href="#membership-authorization"></a>, <a href="#query-services"></a>).</li>
@@ -2009,6 +2018,10 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
         <code>jlws:GroupService</code></td><td>Service types</td>
         <td>Access-document containers; group membership
           (<a href="#access-requests-grants"></a>)</td></tr>
+      <tr><td><code>jlws:StorageResource</code></td><td>Class (grant target matcher)</td>
+        <td>Target matcher in access documents denoting the whole storage
+          (<a href="#access-requests-grants"></a>); distinct from <code>jlws:Storage</code>,
+          the storage's own type</td></tr>
       <tr><td><code>jlws:create</code>, <code>jlws:append</code></td><td>ODRL actions</td>
         <td>Both <code>odrl:includedIn odrl:modify</code>
           (<a href="#odrl-profile"></a>)</td></tr>

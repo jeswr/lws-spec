@@ -239,14 +239,16 @@
     <li>For JSON-LD targets: when the authoritative representation is JSON-LD with a declared
       <code>@context</code>, servers MUST serialise derived JSON-LD using that context —
       subject to the no-dereference rule (<a href="#security-privacy"></a>): a remote context
-      reference is reused only when it resolves from the server's allowlisted context cache; a
-      JSON-LD source declaring a remote context outside that allowlist MUST be handled without
-      fetching, either by serialising the derived representation in <em>expanded form</em>
-      (which requires no context resolution) or by declining the transformation for that
-      resource (<code>406</code> + problem details, as for an unparseable source) — never by a
-      network fetch. When the source has no context (e.g. Turtle), the server MUST use a
-      documented, stable context or expanded form. In every case clients MUST NOT depend on
-      any particular compaction beyond the graph contract.</li>
+      reference may be used only when it resolves from the server's allowlisted context cache.
+      A <em>compacted</em> JSON-LD source declaring a remote context outside that allowlist
+      cannot even be interpreted as an RDF graph without resolving that context, so the server
+      MUST decline the transformation for that resource (<code>406</code> + problem details,
+      as for an unparseable source) — it MUST NOT resolve the context with a network fetch.
+      Only when the source is context-independent — expanded form, or all of its context
+      inline — may the server transform it without a cached context. When the source has no
+      context (e.g. Turtle), the server MUST use a documented, stable context or expanded
+      form. In every case clients MUST NOT depend on any particular compaction beyond the
+      graph contract.</li>
     <li>Blank-node identifiers are NOT stable across representations or requests; clients
       requiring stable references use IRIs.</li>
     <li>If the authoritative representation fails to parse under its stored media type, the
