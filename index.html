@@ -1,0 +1,2133 @@
+<!DOCTYPE html>
+<!-- AUTHORED-BY Claude Fable 5 — AI-assisted draft awaiting maintainer review; see SOTD + DECISIONS.md -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JLWS Core Protocol — A Clean-Slate Linked Web Storage Design</title>
+  <script src="https://www.w3.org/Tools/respec/respec-w3c" class="remove" defer></script>
+  <script class="remove">
+    var respecConfig = {
+      specStatus: "unofficial",
+      shortName: "jlws-core",
+      edDraftURI: null,
+      latestVersion: null,
+      editors: [
+        {
+          name: "Jesse Wright",
+          url: "https://jeswr.org/#me"
+        }
+      ],
+      copyrightStart: "2026",
+      maxTocLevel: 3,
+      lint: { "no-unused-dfns": false },
+      localBiblio: {
+        "LWS10-CORE": {
+          title: "Linked Web Storage Protocol 1.0",
+          href: "https://www.w3.org/TR/lws10-core/",
+          authors: ["Jesse Wright", "Erich Bremer"],
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Working Draft, 22 June 2026"
+        },
+        "LWS10-AUTHN-OPENID": {
+          title: "Linked Web Storage 1.0 Authentication Suite: OpenID Connect",
+          href: "https://www.w3.org/TR/lws10-authn-openid/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Working Draft, 9 June 2026"
+        },
+        "LWS10-AUTHN-SSI-CID": {
+          title: "Linked Web Storage 1.0 Authentication Suite: Self-signed CID",
+          href: "https://www.w3.org/TR/lws10-authn-ssi-cid/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Working Draft, 9 June 2026"
+        },
+        "LWS10-AUTHN-SSI-DID-KEY": {
+          title: "Linked Web Storage 1.0 Authentication Suite: Self-signed did:key",
+          href: "https://www.w3.org/TR/lws10-authn-ssi-did-key/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Working Draft, 9 June 2026"
+        },
+        "LWS-UCS": {
+          title: "Linked Web Storage Use Cases",
+          href: "https://www.w3.org/TR/lws-ucs/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Draft Note, 10 February 2026"
+        },
+        "LWS-NOTIFICATIONS-ED": {
+          title: "LWS Notifications",
+          href: "https://w3c.github.io/lws-protocol/lws10-notifications/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Editor's Draft (unpublished)"
+        },
+        "LWS-SEARCHINDEX-ED": {
+          title: "LWS Search Index",
+          href: "https://w3c.github.io/lws-protocol/lws10-searchindex/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Editor's Draft (unpublished)"
+        },
+        "CID-1.0": {
+          title: "Controlled Identifiers v1.0",
+          href: "https://www.w3.org/TR/cid-1.0/",
+          publisher: "W3C",
+          status: "Recommendation, 15 May 2025"
+        },
+        "ODRL-MODEL": {
+          title: "ODRL Information Model 2.2",
+          href: "https://www.w3.org/TR/odrl-model/",
+          publisher: "W3C",
+          status: "Recommendation"
+        },
+        "ODRL-VOCAB": {
+          title: "ODRL Vocabulary & Expression 2.2",
+          href: "https://www.w3.org/TR/odrl-vocab/",
+          publisher: "W3C",
+          status: "Recommendation"
+        },
+        "VC-DATA-MODEL-2.0": {
+          title: "Verifiable Credentials Data Model v2.0",
+          href: "https://www.w3.org/TR/vc-data-model-2.0/",
+          publisher: "W3C",
+          status: "Recommendation"
+        },
+        "AS2-VOCAB": {
+          title: "Activity Vocabulary",
+          href: "https://www.w3.org/TR/activitystreams-vocabulary/",
+          publisher: "W3C",
+          status: "Recommendation"
+        },
+        "SOLID-PROTOCOL": {
+          title: "Solid Protocol",
+          href: "https://solidproject.org/TR/protocol",
+          publisher: "W3C Solid Community Group",
+          status: "Version 0.11.0"
+        },
+        "DPOP-SK": {
+          title: "DPoP-SK: Negotiated Symmetric Session Keys for DPoP-Bound Requests",
+          href: "https://github.com/jeswr/dpop-sk-spec",
+          publisher: "jeswr/dpop-sk-spec",
+          status: "Unofficial editor's draft"
+        },
+        "WEBAUTHN-REAUTH": {
+          title: "Solid WebAuthn Re-Authentication (RFC 8693 passkey token-exchange wire contract)",
+          href: "https://github.com/jeswr/solid-webauthn-reauth",
+          publisher: "jeswr/solid-webauthn-reauth",
+          status: "Library + protocol contract; companion editor's draft in preparation"
+        },
+        "CLIENT-ID-METADATA": {
+          title: "OAuth Client ID Metadata Document",
+          href: "https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/",
+          publisher: "IETF OAuth Working Group",
+          status: "Internet-Draft"
+        },
+        "RESUMABLE-UPLOAD": {
+          title: "Resumable Uploads for HTTP",
+          href: "https://datatracker.ietf.org/doc/draft-ietf-httpbis-resumable-upload/",
+          publisher: "IETF HTTP Working Group",
+          status: "Internet-Draft"
+        },
+        "HTTP-QUERY": {
+          title: "The HTTP QUERY Method",
+          href: "https://www.rfc-editor.org/rfc/rfc10008",
+          publisher: "IETF",
+          status: "RFC 10008, Proposed Standard"
+        },
+        "WEBSOCKETCHANNEL2023": {
+          title: "Solid Notifications Protocol: WebSocketChannel2023",
+          href: "https://solid.github.io/notifications/websocket-channel-2023",
+          publisher: "W3C Solid Community Group",
+          status: "Draft Community Group Report"
+        },
+        "FEDREG": {
+          title: "@jeswr/federation-registry — fedreg:StorageDescription spec-version advertisement",
+          href: "https://github.com/jeswr/federation-registry",
+          publisher: "jeswr/federation-registry",
+          status: "Library (the conformsTo convention adopted by this specification)"
+        },
+        "AC-SPARQL": {
+          title: "Access-controlled SPARQL over Solid storage (design)",
+          href: "https://github.com/jeswr/solid-server-rs/blob/main/docs/design/solid-server-rs-wac.md",
+          publisher: "jeswr/solid-server-rs",
+          status: "Design document"
+        },
+        "SOLID-ODRL": {
+          title: "@jeswr/solid-odrl — ODRL 2.2 policy expression, evaluation, and delegation chains",
+          href: "https://github.com/jeswr/solid-odrl",
+          publisher: "jeswr/solid-odrl",
+          status: "Library"
+        }
+      }
+    };
+  </script>
+</head>
+<body>
+
+<section id="abstract">
+  <p>
+    This document specifies a <strong>clean-slate core protocol for Linked Web Storage</strong>:
+    a byte-native, self-describing, OAuth-2-authorised storage substrate for the Web, in which
+    data storage, entity authentication, access control, and application provider are loosely
+    coupled. It is designed as a <strong>wire-compatible superset</strong> of the W3C Linked Web
+    Storage Working Group's Working Draft [[LWS10-CORE]]: it keeps that draft's sound mechanisms
+    — opaque byte-bearing resources, containment expressed as metadata, JSON-LD container
+    representations, RFC 9264 linkset metadata with strict conditional-request discipline, and an
+    RFC 8693 token-exchange authorization chain terminating in short-lived audience-restricted
+    Bearer tokens — and diverges only where the draft has identified gaps: RFC 9728 protected
+    resource metadata replaces bespoke discovery; idempotent create is defined; containers and
+    data resources are strictly separated; URI-path alignment is guaranteed; server-to-client
+    notification bindings (SSE and WebSocket) join the signed-webhook binding; a WebAuthn
+    authentication suite joins the OIDC and self-signed suites; proof-of-possession token
+    presentation is available as an optional, negotiated profile; access requests and grants use
+    a strict ODRL profile; and a security model covering SSRF and oracle-freedom is normative.
+    RDF content transformation, query, and versioning are companion specifications advertised
+    through the storage description; the core never requires content parsing.
+  </p>
+</section>
+
+<section id="sotd">
+  <p>
+    This document is a <strong>personal, experimental design draft</strong>. It has
+    <strong>no standing whatsoever</strong>: it is not a deliverable, work item, or position of
+    the <a href="https://www.w3.org/groups/wg/lws/">W3C Linked Web Storage Working Group</a> or of
+    any other group, and is not endorsed by W3C or by anyone else. It exists to explore, in
+    complete form, a design that the Working Group's own drafts cover partially — and to be
+    offered as input to that group only if and when its editor chooses to do so.
+  </p>
+  <p>
+    This draft is currently <strong>unpublished and under review by its editor</strong>. It
+    mints no identifiers under <code>w3.org</code>; all vocabulary lives under the personal
+    namespace <code>https://w3id.org/jeswr/lws#</code> (<a href="#namespace"></a>), and the
+    working name <em>JLWS</em> is an explicit placeholder pending the editor's decision
+    (see <code>docs/OPEN-QUESTIONS.md</code>).
+  </p>
+  <p>
+    <strong>Drafting disclosure:</strong> this draft was prepared with AI assistance
+    (Claude&nbsp;Fable&nbsp;5, Anthropic), working from the Working Group's published drafts and
+    repository, the editor's own prior prototype prose
+    (<a href="https://github.com/jeswr/lws-keycloak">jeswr/lws-keycloak</a> <code>spec/authn.md</code>
+    and <code>spec/authz.md</code>), and the primary sources cited throughout, and is
+    <strong>awaiting review by its human editor</strong>. Errors introduced in drafting are the
+    tooling's, not the cited sources'. Every deliberate divergence from [[LWS10-CORE]] is marked
+    inline and registered in <a href="#divergence-register"></a> and in the repository's
+    <code>DECISIONS.md</code>.
+  </p>
+</section>
+
+<section id="introduction" class="informative">
+  <h2>Introduction</h2>
+  <p>
+    The W3C Linked Web Storage Working Group is re-standardising the Solid storage layer on a
+    byte-native, JSON-LD-described, OAuth-2-authorised basis, dropping the RDF-mandatory / LDP
+    heritage of the Solid Protocol [[SOLID-PROTOCOL]]. Its core protocol [[LWS10-CORE]] reached
+    First Public Working Draft on 31 March 2026. That draft is directionally sound, but — by the
+    Working Group's own resolutions and issue tracker — it defers or leaves open a set of
+    load-bearing questions: there is no client-facing notification channel (server-to-server
+    webhooks were resolved to come first); authorization-server discovery uses a bespoke
+    <code>as_uri</code> parameter and <code>/.well-known/lws-configuration</code> path where
+    RFC&nbsp;9728 and RFC&nbsp;8414 now provide registered equivalents; there is no idempotent
+    create; the container-as-data-resource question is unresolved; there is no delegation, group,
+    query, or versioning story against the Use Cases document's requirements [[LWS-UCS]]; and the
+    security and privacy sections are largely unwritten.
+  </p>
+  <p>
+    This document is one editor's complete answer. It is deliberately a
+    <strong>wire-compatible superset</strong> of [[LWS10-CORE]]: a client written against the
+    Working Draft's container representations, linkset metadata, operations, authentication
+    suites, and token-exchange authorization chain interoperates with a server conforming to this
+    document, because those mechanisms are adopted as-is (with their requirements cited). The
+    divergences are confined to the gaps listed above, each marked in place with a rationale and
+    collected in <a href="#divergence-register"></a>.
+  </p>
+  <section id="design-principles" class="informative">
+    <h3>Design principles</h3>
+    <ol>
+      <li><strong>Byte-native substrate.</strong> A resource is an opaque representation — bytes
+        plus a media type. Conformance to this core never requires parsing resource content. All
+        protocol-internal structure (container listings, the storage description, subscriptions,
+        access documents) is JSON-LD-profiled JSON: plain-JSON clients parse it; RDF clients get
+        triples for free.</li>
+      <li><strong>No bespoke duplicates of shipped IETF/W3C standards.</strong> Where a registered
+        mechanism exists — RFC 9110/9111 semantics and caching, RFC 8288 links, RFC 9264
+        linksets, RFC 7386 merge patch, RFC 9457 problem details, RFC 9728 protected resource
+        metadata, RFC 8414 AS metadata, RFC 8693 token exchange, RFC 9068 JWT access tokens,
+        RFC 9396 rich authorization requests, RFC 9421/9530 message signatures and digests,
+        [[CID-1.0]] identifier documents, Activity Streams 2.0 [[AS2-VOCAB]], ODRL 2.2
+        [[ODRL-MODEL]] — this specification uses it rather than minting a lookalike.</li>
+      <li><strong>Bearer-baseline authentication, proof-of-possession as a negotiated
+        profile.</strong> The default token presentation is the deliberately simple chain the
+        editor prototyped and carried into [[LWS10-CORE]]: token exchange producing an
+        audience-restricted <code>at+jwt</code> with a recommended lifetime of 300&nbsp;seconds
+        or less, presented as a Bearer token. Sender-constrained presentation (DPoP [[RFC9449]],
+        DPoP-SK [[DPOP-SK]]) is an <em>optional</em> profile negotiated through RFC 9728 resource
+        metadata — never a reversal of the baseline.</li>
+      <li><strong>Capability-advertised everything.</strong> Content transformation, PATCH
+        formats, resumable uploads, query tiers, notification channel bindings, versioning, and
+        recursive delete are feature-detected from one signed, CID-shaped storage description
+        whose <code>conformsTo</code> member carries protocol version URIs.</li>
+      <li><strong>Enforcement is internal; ODRL is the interchange.</strong> The server's policy
+        engine is out of scope; access requests, grants, and consent receipts are exchanged as a
+        strict ODRL profile.</li>
+      <li><strong>Fail closed, oracle-free.</strong> Existence is hidden from agents with no
+        access; every derived view (listings, indexes, counts) is filtered by live authorization.</li>
+      <li><strong>Strict tree with guaranteed URI-path alignment.</strong> Containment remains
+        expressed in metadata, but resource URIs are guaranteed to be path-aligned with their
+        containment position, restoring relative-URI and object-store affordances.</li>
+    </ol>
+  </section>
+  <section id="doc-map" class="informative">
+    <h3>Document family</h3>
+    <p>
+      This core document specifies the substrate only: resources and containers, metadata,
+      operations, authentication, authorization, access requests and grants, discovery, and
+      notifications. The following are <strong>companion specifications</strong>, each optional
+      and advertised through the storage description (<a href="#discovery"></a>):
+    </p>
+    <ul>
+      <li><a href="./rdf-transform.html">JLWS RDF Content Transformation Profile</a> — the opt-in
+        that makes a byte-native storage RDF-aware (drafted alongside this document);</li>
+      <li>JLWS Query Services (type index/search and access-controlled SPARQL) — planned;</li>
+      <li>JLWS Versioning — planned.</li>
+    </ul>
+  </section>
+</section>
+
+<section id="conformance">
+  <p>
+    This specification defines the following conformance classes:
+  </p>
+  <ul>
+    <li>A <dfn>JLWS server</dfn> — an HTTP server conforming to all MUST-level requirements of
+      sections <a href="#resource-model"></a> through <a href="#discovery"></a> that are not
+      scoped to an optional capability or profile.</li>
+    <li>A <dfn>JLWS client</dfn> — an HTTP client conforming to the client-scoped MUST-level
+      requirements of the same sections.</li>
+    <li>A <dfn>JLWS authorization server</dfn> — an OAuth 2.0 authorization server conforming to
+      <a href="#authorization"></a>.</li>
+    <li>A <dfn>notification server</dfn> — a JLWS server additionally conforming to
+      <a href="#notifications"></a> for at least one subscription type it advertises.</li>
+    <li>A <dfn>PoP-capable server</dfn> — a JLWS server additionally conforming to
+      <a href="#presentation-pop"></a> for at least one advertised proof-of-possession
+      presentation profile.</li>
+  </ul>
+  <p>
+    Optional features are conformant only when advertised in the storage description
+    (<a href="#discovery"></a>); a server MUST NOT advertise a capability, service, or profile it
+    does not implement.
+  </p>
+</section>
+
+<section id="terminology">
+  <h2>Terminology</h2>
+  <p>
+    The terms "authorization server", "resource server", "access token", and "client" are defined
+    by [[!RFC6749]]. The terms "controlled identifier document", "verification method", and
+    "service" are defined by [[!CID-1.0]]. The terms "policy", "permission", "prohibition",
+    "obligation", "action", "constraint", "assignee", and "target" are defined by [[!ODRL-MODEL]].
+    The term "linkset" is defined by [[!RFC9264]]. The term "problem details" is defined by
+    [[!RFC9457]].
+  </p>
+  <p>This specification defines the following terms:</p>
+  <dl>
+    <dt><dfn>storage</dfn></dt>
+    <dd>A collection of resources managed as a unit by a JLWS server, rooted at a
+      <a>storage root</a> and described by a <a>storage description resource</a>.</dd>
+    <dt><dfn>storage root</dfn></dt>
+    <dd>The top-level <a>container</a> of a <a>storage</a>. It has no parent container.</dd>
+    <dt><dfn>resource</dfn></dt>
+    <dd>An HTTP resource within a <a>storage</a>; either a <a>container</a> or a
+      <a>data resource</a>, never both (<a href="#container-vs-data"></a>).</dd>
+    <dt><dfn>container</dfn></dt>
+    <dd>A resource whose role is to aggregate member resources. Its representation is the
+      server-managed listing defined in <a href="#container-representation"></a>.</dd>
+    <dt><dfn>data resource</dfn></dt>
+    <dd>A byte-bearing resource of any media type. The server stores and returns its
+      representation without interpreting it (except under an advertised transformation
+      capability).</dd>
+    <dt><dfn>containment</dfn></dt>
+    <dd>The server-managed membership relation between a <a>container</a> and its members,
+      expressed in metadata (<a href="#containment"></a>).</dd>
+    <dt><dfn>linkset resource</dfn></dt>
+    <dd>The standalone [[!RFC9264]] resource carrying a resource's metadata links
+      (<a href="#metadata"></a>).</dd>
+    <dt><dfn>storage description resource</dfn></dt>
+    <dd>The self-describing document enumerating a storage's identity, keys, services,
+      capabilities, and protocol conformance (<a href="#discovery"></a>).</dd>
+    <dt><dfn>authentication credential</dfn></dt>
+    <dd>A tamper-evident security token asserting claims about an agent, validated under an
+      <a>authentication suite</a> (<a href="#authentication"></a>). Equivalent to the
+      "end-user credential" of [[LWS10-CORE]].</dd>
+    <dt><dfn>authentication suite</dfn></dt>
+    <dd>A defined serialization and validation mechanism for a concrete class of
+      <a>authentication credential</a>, identified by an OAuth token-type URI.</dd>
+    <dt><dfn>agent</dfn></dt>
+    <dd>The subject of an <a>authentication credential</a>: a person, organisation, or software
+      actor identified by an absolute URI.</dd>
+    <dt><dfn>storage controller</dfn></dt>
+    <dd>An agent authorised to manage access to a storage (grant, deny, revoke).</dd>
+    <dt><dfn>access request</dfn></dt>
+    <dd>An ODRL document by which an agent asks a <a>storage controller</a> for access
+      (<a href="#access-requests-grants"></a>).</dd>
+    <dt><dfn>access grant</dfn></dt>
+    <dd>An ODRL document by which a <a>storage controller</a> records granted access. A grant is
+      a record, not a token (<a href="#grants-are-records"></a>).</dd>
+    <dt><dfn>subscription</dfn></dt>
+    <dd>A registration expressing interest in notifications about resource changes
+      (<a href="#notifications"></a>).</dd>
+    <dt><dfn>notification</dfn></dt>
+    <dd>A message describing an event that occurred on a resource.</dd>
+  </dl>
+  <section id="namespace">
+    <h3>Namespace and context</h3>
+    <p>
+      The JLWS vocabulary namespace is <code>https://w3id.org/jeswr/lws#</code>, abbreviated
+      <code>jlws:</code>. The normative JSON-LD context URI is
+      <code>https://w3id.org/jeswr/lws/v1</code> (<a href="#jsonld-context"></a>). Protocol
+      conformance URIs are minted under <code>https://w3id.org/jeswr/lws/protocol/</code>.
+    </p>
+    <div class="note" title="Divergence from lws10-core: namespace">
+      [[LWS10-CORE]] uses <code>https://www.w3.org/ns/lws#</code> with context
+      <code>https://www.w3.org/ns/lws/v1</code> — which remains unpublished
+      (<a href="https://github.com/w3c/lws-protocol/issues/60">w3c/lws-protocol#60</a>). This
+      personal draft MUST NOT mint or squat identifiers in the <code>w3.org</code> namespace, so
+      it uses <code>w3id.org/jeswr/lws</code> with <em>term-identical</em> mappings: the term
+      names (<code>Container</code>, <code>DataResource</code>, <code>items</code>,
+      <code>totalItems</code>, …) and their JSON shapes match the Working Draft exactly, so a
+      future one-line context substitution restores full wire identity. Additionally, wherever
+      this specification requires a <code>https://w3id.org/jeswr/lws#</code> URI in a link
+      relation or type position, implementations MUST also accept the corresponding
+      <code>https://www.w3.org/ns/lws#</code> URI as an equivalent alias, preserving
+      interoperability with Working-Draft implementations.
+    </div>
+  </section>
+</section>
+
+<section id="resource-model">
+  <h2>Resource model</h2>
+
+  <section id="resource-classes">
+    <h3>Resource classes</h3>
+    <p>
+      Resources in a <a>storage</a> are classified as either a <a>container</a> or a
+      <a>data resource</a> ([[LWS10-CORE]], <em>Container Model</em>). A data resource is
+      byte-bearing and format-unconstrained: per [[!RFC9110]], this specification does not limit
+      the nature of a resource, and a server MUST NOT require any particular content type or
+      structure of data-resource content. A server MAY enforce media-type or size policy per
+      storage ([[LWS-UCS]] requirement 1), and MUST advertise any such restriction as problem
+      details on rejection.
+    </p>
+    <section id="container-vs-data">
+      <h4>Containers are not data resources</h4>
+      <p>
+        A resource MUST be exactly one of <a>container</a> or <a>data resource</a>. A server MUST
+        NOT serve client-authored content as the representation of a container: the only
+        representation of a container is the server-managed listing of
+        <a href="#container-representation"></a>. Descriptive content <em>about</em> a container
+        is attached through its <a>linkset resource</a> (e.g. a <code>describedby</code> link to
+        a separate data resource), keeping the container's ETag and content negotiation
+        unambiguous.
+      </p>
+      <div class="note" title="Divergence from lws10-core: strict separation (resolves the container-as-data-resource contention)">
+        Whether a container may simultaneously be a data resource is the Working Draft's most
+        persistent unresolved contention (trait/mixin vs strict separation; ETag and
+        content-negotiation ambiguity —
+        <a href="https://github.com/w3c/lws-protocol/issues/126">w3c/lws-protocol#126</a>,
+        <a href="https://www.w3.org/2026/04/27-lws-minutes.html">London F2F Day 1 minutes</a>).
+        This specification resolves it by fiat in favour of strict separation: one resource, one
+        role, one unambiguous ETag. The <code>describedby</code> linkset pattern provides the
+        trait model's expressiveness without its representation ambiguity. Recorded as
+        DECISIONS.md D3; flagged for the editor's steer in OPEN-QUESTIONS.md.
+      </div>
+    </section>
+    <section id="auxiliary-roles">
+      <h4>Auxiliary resources are roles</h4>
+      <p>
+        Auxiliary resources (a resource's linkset, description, access documents) are not a
+        distinct resource class: they are ordinary resources standing in a <em>role</em> toward
+        another resource, discoverable through typed links (<code>rel="linkset"</code>,
+        <code>rel="describedby"</code>, …). This adopts the model the Working Group resolved by
+        vote 8–0–1 on 22 June 2026
+        (<a href="https://github.com/w3c/lws-protocol/pull/167">w3c/lws-protocol#167</a>;
+        <a href="https://www.w3.org/2026/06/22-lws-minutes.html">minutes</a>).
+      </p>
+    </section>
+  </section>
+
+  <section id="containment">
+    <h3>Containment</h3>
+    <p>
+      Containment is expressed in metadata, following [[LWS10-CORE]] <em>Containment</em>:
+    </p>
+    <ul>
+      <li>Servers MUST include a <code>Link</code> header with <code>rel="up"</code> pointing to
+        the parent container in responses to GET and HEAD requests on any non-root resource.</li>
+      <li>A container's members are listed in the <code>items</code> property of its
+        representation. The <code>items</code> list is <strong>server-managed</strong>: clients
+        MUST NOT be able to modify it directly; membership changes occur only as a side effect of
+        resource creation, deletion, and (where supported) move.</li>
+    </ul>
+    <div class="note" title="Drift fix relative to lws10-core">
+      The Working Draft's <em>Logical Resource Organization</em> section states that "The server
+      manages this list; clients cannot modify it directly", while its <em>Metadata</em> section
+      lists <code>up</code> and <code>items</code> as client-manageable "Core Metadata". This
+      specification resolves the drift in favour of server management: <code>up</code> and
+      <code>items</code> are system-managed, read-only metadata (see
+      <a href="#metadata-categories"></a>). Reparenting, where offered, is the explicit
+      <a href="#op-move">move operation</a>, not a metadata edit. Recorded as DECISIONS.md D13.
+    </div>
+    <p>The server MUST maintain containment integrity at all times ([[LWS10-CORE]],
+      <em>Containment Integrity</em>):</p>
+    <ul>
+      <li><strong>Creation:</strong> when a resource is created in a container, the server MUST
+        atomically add it to that container's <code>items</code> list.</li>
+      <li><strong>Deletion:</strong> when a resource is deleted, the server MUST atomically remove
+        it from its parent container's <code>items</code> list.</li>
+      <li><strong>No orphans:</strong> every non-root resource MUST be reachable from the
+        <a>storage root</a> through the containment hierarchy.</li>
+      <li><strong>No cycles:</strong> a container MUST NOT directly or indirectly contain
+        itself.</li>
+      <li><strong>Single containment:</strong> every non-root resource has exactly one parent
+        container. (Multiple containment is out of scope, matching the Working Group's resolution
+        — <a href="https://www.w3.org/2026/04/28-lws-minutes.html">London F2F Day 2</a>,
+        <a href="https://github.com/w3c/lws-protocol/issues/135">w3c/lws-protocol#135</a>. If ever
+        introduced, it would be an advertised capability, not a core change.)</li>
+    </ul>
+  </section>
+
+  <section id="path-alignment">
+    <h3>URI-path alignment</h3>
+    <p>
+      Resource URIs MUST be path-aligned with containment:
+    </p>
+    <ul>
+      <li>The URI of every resource MUST be the URI of its parent container extended by exactly
+        one non-empty path segment (for containers, followed by a terminating
+        <code>/</code>).</li>
+      <li>Container URIs MUST end in <code>/</code>; data-resource URIs MUST NOT.</li>
+      <li>The <a>storage root</a>'s URI is the prefix of every resource URI in the storage.</li>
+    </ul>
+    <p>
+      Containment <em>semantics</em> remain carried by metadata (<code>rel="up"</code>,
+      <code>items</code>): clients discover structure through metadata, and servers still assign
+      final URIs at creation time. Path alignment guarantees that relative-URI resolution,
+      object-store key mapping, and audience/realm containment checks
+      (<a href="#authorization"></a>) behave predictably.
+    </p>
+    <div class="note" title="Divergence from lws10-core: guaranteed path alignment">
+      The Working Draft states "clients SHOULD NOT assume that URI structure reflects containment"
+      ([[LWS10-CORE]], <em>Resource Identification</em>). With multiple containment resolved out
+      of scope for 1.0, the residual value of URI-independence is small, and its costs are real:
+      loss of relative-URI affordances, ambiguous realm containment, and no object-store mapping
+      (argued in <a href="https://github.com/w3c/lws-protocol/issues/135">w3c/lws-protocol#135</a>).
+      The editor's own prototype already assumes alignment: "For LWS implementations where
+      lws:containment conforms with URI containment the <code>realm</code> will typically be an
+      lws:StorageRoot" (jeswr/lws-keycloak <code>spec/authz.md</code> §4.1). A path-aligned server
+      is wire-compatible with Working-Draft clients (they simply observe metadata that happens to
+      match paths); the guarantee only constrains servers. Recorded as DECISIONS.md D4; steer
+      question 3 in OPEN-QUESTIONS.md.
+    </div>
+  </section>
+
+  <section id="membership-authorization">
+    <h3>Container membership and authorization</h3>
+    <p>
+      If an agent has read access to a container, the complete container listing — the union of
+      the <code>items</code> arrays across all pages, when the representation is paginated
+      (<a href="#pagination"></a>) — MUST include the identifiers of all member resources
+      <em>to which that agent has access</em>; each individual paginated response carries only
+      the current page's members. The representation MUST NOT include members the agent has no
+      access to (see the oracle-freedom rules, <a href="#oracle-freedom"></a>), and
+      <code>totalItems</code> MUST count only the members visible to the requesting agent
+      (across the whole collection, not the current page).
+    </p>
+    <div class="note" title="Divergence from lws10-core: fail-closed listings">
+      The Working Draft permits listings to include identifiers of resources the client cannot
+      access ("It MAY also contain the identifiers for resources contained in that container to
+      which the client does not have access" — [[LWS10-CORE]], <em>Container Membership and
+      Authorization</em>). This specification forbids that: the searchindex Editor's Draft
+      [[LWS-SEARCHINDEX-ED]] already adopts caller-visible-only counts for its derived views, and
+      there is no reason the primary listing should be a weaker oracle than the index built over
+      it. Recorded as DECISIONS.md D12.
+    </div>
+    <p>
+      Read access to a container listing does not imply access to the listed resources, and vice
+      versa.
+    </p>
+  </section>
+</section>
+
+<section id="container-representation">
+  <h2>Container representation and pagination</h2>
+  <p>
+    This section adopts the Working Draft's container representation ([[LWS10-CORE]],
+    <em>Container Representation</em>) unchanged in shape.
+  </p>
+  <section id="container-properties">
+    <h3>Properties</h3>
+    <p>A container representation MUST include:</p>
+    <ul>
+      <li><code>id</code> — the container's URI;</li>
+      <li><code>type</code> — the value <code>"Container"</code>;</li>
+      <li><code>totalItems</code> — an integer count of members disclosable to the requesting
+        agent (<a href="#membership-authorization"></a>); SHOULD be exact, and MAY be
+        approximate only when the approximation is computed exclusively from the caller-visible
+        view — never derived from an unfiltered membership total, which would leak the
+        existence of hidden members (<a href="#oracle-freedom"></a>);</li>
+      <li><code>items</code> — a flat array of member descriptions (empty array when empty; the
+        current page only when paginated).</li>
+    </ul>
+    <p>Each member description MUST include <code>id</code> and <code>type</code>
+      (<code>"DataResource"</code> or <code>"Container"</code>, or an array containing at least
+      one of the two; additional user-defined types as URIs MAY be included). It SHOULD include
+      <code>size</code> (bytes) and <code>modified</code> (ISO 8601), and MUST include
+      <code>mediaType</code> for data resources.</p>
+    <div class="note" title="Drift fix relative to the lws10-core repository">
+      The Working Draft's published shape is the flat <code>items</code> array; the repository's
+      F2F artifact <code>container.json</code> and the searchindex Editor's Draft use an embedded
+      <code>ContainerPage</code>/<code>contains</code> shape. This specification standardises the
+      published flat shape and expresses pagination purely in <code>Link</code> headers.
+      Recorded as DECISIONS.md D13.
+    </div>
+    <pre class="example" title="Container representation">
+{
+  "@context": "https://w3id.org/jeswr/lws/v1",
+  "id": "https://storage.example/alice/notes/",
+  "type": "Container",
+  "totalItems": 2,
+  "items": [
+    {
+      "type": "DataResource",
+      "id": "https://storage.example/alice/notes/shoppinglist.txt",
+      "mediaType": "text/plain",
+      "size": 47,
+      "modified": "2026-06-24T12:00:00Z"
+    },
+    {
+      "type": "Container",
+      "id": "https://storage.example/alice/notes/archive/",
+      "modified": "2026-06-20T09:00:00Z"
+    }
+  ]
+}
+    </pre>
+  </section>
+  <section id="container-media-type">
+    <h3>Media type and content negotiation</h3>
+    <p>
+      Container representations (and the storage description) MUST be available as
+      <code>application/ld+json; profile="https://w3id.org/jeswr/lws/v1"</code>. Servers MUST
+      also answer requests for <code>application/lws+json</code>, <code>application/ld+json</code>,
+      and <code>application/json</code> with the <em>identical</em> payload bytes — only the
+      <code>Content-Type</code> header varies ([[LWS10-CORE]], <em>LWS Media Type</em>,
+      <em>Content Negotiation</em>). Servers MAY offer additional serialisations (e.g.
+      <code>text/turtle</code>) via content negotiation; the RDF Content Transformation companion
+      profile makes that support advertisable and precise.
+    </p>
+  </section>
+  <section id="pagination">
+    <h3>Pagination</h3>
+    <p>
+      Servers SHOULD paginate container listings whose membership exceeds a server-determined
+      threshold. Pagination is link-based ([[!RFC8288]]): paginated responses MUST carry
+      <code>rel="first"</code>, MUST carry <code>rel="next"</code> on all but the last page, MUST
+      omit <code>rel="next"</code> on the last page, MAY carry <code>rel="prev"</code> and
+      <code>rel="last"</code>, and page URIs are opaque — clients SHOULD NOT construct or modify
+      them. When paginated, <code>items</code> contains the current page while <code>id</code>,
+      <code>type</code>, and <code>totalItems</code> reflect the whole (visible) membership.
+      Paginated responses use status 200.
+    </p>
+  </section>
+</section>
+
+<section id="metadata">
+  <h2>Metadata</h2>
+  <p>
+    This section adopts the Working Draft's linkset metadata model ([[LWS10-CORE]],
+    <em>Metadata</em>) with the categories drift fixed.
+  </p>
+  <ul>
+    <li>All resource metadata is a set of typed links ([[!RFC8288]]) anchored at the resource.</li>
+    <li>For each resource, the server MUST make its metadata available as a standalone
+      <a>linkset resource</a> per [[!RFC9264]], available as
+      <code>application/linkset+json</code>, discoverable via a <code>Link</code> header with
+      <code>rel="linkset"</code> on GET/HEAD responses.</li>
+    <li>Linkset updates MUST be atomic with the associated resource operations.</li>
+    <li>Deleting a resource MUST delete its linkset resource.</li>
+  </ul>
+  <section id="metadata-categories">
+    <h3>Categories</h3>
+    <table class="simple">
+      <thead><tr><th>Category</th><th>Managed by</th><th>Includes</th></tr></thead>
+      <tbody>
+        <tr><td>System-managed</td><td>Server (read-only to clients)</td>
+          <td><code>linkset</code>, <code>type</code>, <code>mediaType</code>, <code>size</code>,
+            <code>modified</code>, <code>up</code>, <code>items</code></td></tr>
+        <tr><td>User-managed</td><td>Client (subject to server policy)</td>
+          <td><code>describedby</code>, <code>title</code>, <code>creator</code>, custom
+            relations</td></tr>
+      </tbody>
+    </table>
+    <div class="note" title="Drift fix relative to lws10-core">
+      The Working Draft's metadata table places <code>up</code>/<code>items</code> in a
+      client-manageable "Core Metadata" category while its resource-organization text forbids
+      client modification of <code>items</code>. This specification keeps them system-managed
+      (see <a href="#containment"></a>); the two-category model above replaces the three-category
+      one. Recorded as DECISIONS.md D13.
+    </div>
+  </section>
+  <section id="metadata-updates">
+    <h3>Updating metadata</h3>
+    <ul>
+      <li>Servers MUST support PATCH on the linkset resource with
+        <code>application/merge-patch+json</code> ([[!RFC7386]]) and MUST advertise it via
+        <code>Accept-Patch</code>; PUT and additional patch formats are OPTIONAL and MUST be
+        advertised via <code>Allow</code> / <code>Accept-Patch</code> when supported.</li>
+      <li>Linkset GET/HEAD responses MUST carry an <code>ETag</code>; successful updates MUST
+        rotate it.</li>
+      <li>A PUT or PATCH on a linkset resource without <code>If-Match</code> MUST be rejected
+        with <code>428 Precondition Required</code> ([[!RFC6585]]); a stale <code>If-Match</code>
+        MUST be rejected with <code>412 Precondition Failed</code>.</li>
+      <li>Servers MUST reject attempts to modify system-managed links (e.g. with a problem
+        details response of type
+        <code>https://w3id.org/jeswr/lws/problems/system-managed-metadata</code>).</li>
+    </ul>
+  </section>
+</section>
+
+<section id="operations">
+  <h2>Operations (abstract)</h2>
+  <p>
+    JLWS defines five abstract operations, deliberately independent of any single transport
+    binding (rationale: <a href="https://github.com/w3c/lws-protocol/issues/24">w3c/lws-protocol#24</a>;
+    loose coupling per [[LWS-UCS]] requirement 28). The HTTP binding in
+    <a href="#http-binding"></a> is the only binding defined here and is REQUIRED for
+    conformance; other bindings may be defined by companion documents.
+  </p>
+  <dl>
+    <dt><dfn>create resource</dfn></dt>
+    <dd>Adds a new resource (container or data resource) to an existing container. Inputs: the
+      target container, an optional identity hint, content and type (for data resources), or an
+      explicit target identifier (idempotent form). The server determines or validates the final
+      identifier, atomically updates membership, and initialises system metadata.</dd>
+    <dt><dfn>read resource</dfn></dt>
+    <dd>Retrieves a data resource's representation or a container's listing (filtered by
+      authorization), with metadata links.</dd>
+    <dt><dfn>update resource</dfn></dt>
+    <dd>Replaces or partially modifies a data resource's content (or a linkset's links),
+      atomically, under optimistic concurrency control.</dd>
+    <dt><dfn>delete resource</dfn></dt>
+    <dd>Removes a resource and its metadata, updating parent membership atomically. Containers
+      must be empty unless recursion is explicitly requested and supported.</dd>
+    <dt><dfn id="op-move">move resource</dfn> (OPTIONAL)</dt>
+    <dd>Reparents a resource into a different container. Under
+      <a href="#path-alignment">path alignment</a> this assigns a new URI; the operation returns
+      it. Advertised via the <code>MoveResource</code> capability. (An optional move was resolved
+      into the Working Draft's direction at the London F2F —
+      <a href="https://www.w3.org/2026/04/28-lws-minutes.html">Day 2 minutes</a>, resolving
+      <a href="https://github.com/w3c/lws-protocol/pull/83">w3c/lws-protocol#83</a>.)</dd>
+  </dl>
+</section>
+
+<section id="http-binding">
+  <h2>HTTP binding</h2>
+
+  <section id="http-general">
+    <h3>General requirements</h3>
+    <ul>
+      <li>Servers MUST implement HTTP semantics per [[!RFC9110]] and SHOULD implement caching per
+        [[!RFC9111]].</li>
+      <li>Every GET/HEAD response for a storage resource MUST carry an <code>ETag</code>, the
+        <code>rel="linkset"</code>, <code>rel="up"</code> (non-root), and <code>rel="type"</code>
+        links, and the storage-description link (<a href="#discovery-binding"></a>). These
+        entity-tags MUST be <em>strong</em> ([[!RFC9110]] Section 8.8.1): <code>If-Match</code>
+        uses strong comparison ([[!RFC9110]] Section 13.1.1), so a weak validator can never
+        satisfy the write-precondition discipline this specification mandates — a weak ETag
+        would make the required conditional updates impossible for a conforming client.</li>
+      <li>All 4xx and 5xx responses MUST carry an [[!RFC9457]] problem details body
+        (<code>application/problem+json</code>), except where HTTP semantics do not permit
+        response content — a 4xx/5xx response to <code>HEAD</code> ([[!RFC9110]]
+        Section 9.3.2) carries the same header fields (including
+        <code>Content-Type: application/problem+json</code>) that the corresponding
+        <code>GET</code> error response would, without the body; <code>304</code> is not an
+        error and carries none.
+        <span class="note-inline"></span>
+        <div class="note" title="Divergence from lws10-core: problem details REQUIRED">
+          The Working Draft SHOULDs problem details. Uniform machine-readable errors are cheap
+          for servers and load-bearing for autonomous clients; this specification requires them.
+          A registry of JLWS problem types lives at
+          <code>https://w3id.org/jeswr/lws/problems/</code>. Recorded as DECISIONS.md D17.
+        </div>
+      </li>
+      <li>Storage-quota exhaustion MUST be reported as <code>507 Insufficient Storage</code>.</li>
+      <li>Servers MUST reject request targets containing path-traversal sequences
+        (<code>..</code>, <code>%2e%2e</code>, and equivalents) before any authorization matching
+        (jeswr/lws-keycloak <code>spec/authz.md</code> §7.5).</li>
+    </ul>
+  </section>
+
+  <section id="http-create">
+    <h3>Create</h3>
+    <section id="http-create-post">
+      <h4>POST to a container (server-assigned name)</h4>
+      <p>Per [[LWS10-CORE]] <em>Create Resource</em>:</p>
+      <ul>
+        <li>Clients create a resource by POST to an existing container URI. The server assigns
+          the final URI, optionally incorporating a <code>Slug</code> header hint; the server MAY
+          decline the hint on conflict or naming policy.</li>
+        <li>To create a <strong>container</strong>, the client MUST include
+          <code>Link: &lt;https://w3id.org/jeswr/lws#Container&gt;; rel="type"</code> (the
+          <code>w3.org/ns/lws#Container</code> alias MUST be accepted —
+          <a href="#namespace"></a>). To create a <strong>data resource</strong>, the client
+          includes body content with a <code>Content-Type</code>.</li>
+        <li>Clients MAY seed user-managed metadata via <code>Link</code> headers; server-managed
+          metadata MUST be generated by the server and MUST NOT be overridable by client
+          links.</li>
+        <li>On success the server MUST return <code>201 Created</code> with the new URI in
+          <code>Location</code> and the <code>rel="up"</code>, <code>rel="linkset"</code>, and
+          <code>rel="type"</code> links. Resource, metadata, and membership creation MUST be
+          atomic.</li>
+        <li>If the target container does not exist (or must be hidden), the server responds
+          <code>404</code>; on a naming conflict the server assigns a different URI or responds
+          <code>409</code>.</li>
+      </ul>
+    </section>
+    <section id="http-create-put">
+      <h4>PUT with <code>If-None-Match: *</code> (idempotent create)</h4>
+      <p>
+        Servers MUST support creation by <code>PUT</code> to the desired resource URI carrying
+        <code>If-None-Match: *</code> ([[!RFC9110]] Section 13.1.2):
+      </p>
+      <ul>
+        <li>The target URI MUST be path-aligned under an <em>existing</em> parent container
+          (<a href="#path-alignment"></a>); the server MUST NOT auto-create intermediate
+          containers, and MUST respond <code>409 Conflict</code> (problem type
+          <code>…/problems/missing-parent</code>) when the parent does not exist.</li>
+        <li>If the target already exists, the server MUST respond
+          <code>412 Precondition Failed</code> and MUST NOT modify the resource — making retries
+          safe.</li>
+        <li>Creation via PUT MUST carry <code>If-None-Match: *</code>. An unconditional
+          <code>PUT</code> (one carrying neither <code>If-None-Match: *</code> nor
+          <code>If-Match</code>) is never a create: when its target URI does not identify an
+          existing resource, the server MUST respond <code>428 Precondition Required</code>
+          ([[!RFC6585]]) rather than create the resource. Together with the <code>428</code>
+          rule for unconditional PUT to an <em>existing</em> resource
+          (<a href="#http-update"></a>), every PUT in JLWS is explicitly conditional.</li>
+        <li>A URI ending in <code>/</code> creates a container (the request body MUST be empty);
+          otherwise a data resource is created from the body and <code>Content-Type</code>.</li>
+        <li>On success: <code>201 Created</code>, with the same links and atomicity requirements
+          as POST-create.</li>
+      </ul>
+      <div class="note" title="Divergence from lws10-core: idempotent create added">
+        The Working Draft's only create is non-idempotent POST, and it acknowledges the
+        duplicate-on-retry hazard in-spec ("POST is not idempotent. Repeating it may create
+        duplicates"); idempotent create is an open Working Group issue
+        (<a href="https://github.com/w3c/lws-protocol/issues/173">w3c/lws-protocol#173</a>).
+        <code>PUT + If-None-Match: *</code> is plain RFC 9110 — no new mechanism — and becomes
+        well-defined here because <a href="#path-alignment">path alignment</a> makes
+        client-chosen URIs meaningful. Recorded as DECISIONS.md D2.
+      </div>
+    </section>
+  </section>
+
+  <section id="http-read">
+    <h3>Read</h3>
+    <ul>
+      <li>GET on a data resource returns its stored representation with the stored media type,
+        unless the server advertises a <code>ContentNegotiation</code> capability for the stored
+        media type (<a href="#capability-registry"></a>) and the request's <code>Accept</code>
+        header selects an advertised derived target — in which case the server returns the
+        negotiated derived representation with its correct <code>Content-Type</code> and
+        <code>Vary: Accept</code>, per the transformation's declared semantics (for RDF, the
+        RDF Content Transformation companion). Absent that capability, or when
+        <code>Accept</code> selects the stored media type, the stored bytes are returned.
+        Servers MUST support range requests ([[!RFC9110]] Section 14) for data resources.</li>
+      <li>GET on a container returns the container representation
+        (<a href="#container-representation"></a>).</li>
+      <li>Servers MUST support HEAD, returning GET's headers without a body.</li>
+      <li>Servers MUST support conditional GET (<code>If-None-Match</code>;
+        <code>If-Modified-Since</code>) answering <code>304 Not Modified</code> when
+        applicable.</li>
+    </ul>
+  </section>
+
+  <section id="http-update">
+    <h3>Update</h3>
+    <ul>
+      <li><strong>PUT</strong> replaces a data resource's content. If the server supports ETags
+        for the resource (it MUST — <a href="#http-general"></a>), it MUST reject an
+        unconditional PUT to an existing resource (one carrying neither <code>If-Match</code> nor
+        <code>If-None-Match: *</code>) with <code>428 Precondition Required</code>, and a stale
+        <code>If-Match</code> with <code>412 Precondition Failed</code>. On success:
+        <code>200</code> or <code>204</code> with the new <code>ETag</code>.</li>
+      <li><strong>PATCH</strong> ([[!RFC5789]]) applies a partial modification. Servers MUST
+        support <code>application/merge-patch+json</code> ([[!RFC7386]]) for JSON-family data
+        resources and for linkset resources; support for further formats (per media type) MUST be
+        advertised via <code>Accept-Patch</code> and the <code>PatchSupport</code> capability
+        (<a href="#capability-registry"></a>). Content PATCH for non-JSON media types is
+        undefined by this core; RDF patch formats are defined by the RDF Content Transformation
+        companion and MUST NOT be advertised without it.</li>
+      <li>PUT/PATCH on a resource URI modifies content only, never the linkset, except under the
+        explicit <code>Prefer: set-linkset</code> mechanism of [[LWS10-CORE]]
+        <em>Update Resource</em>, which servers MAY implement.</li>
+    </ul>
+  </section>
+
+  <section id="http-delete">
+    <h3>Delete</h3>
+    <ul>
+      <li>DELETE removes a resource, its linkset, and its membership entry atomically; on success
+        <code>204 No Content</code>. The parent container's <code>ETag</code> MUST change.</li>
+      <li>DELETE on a non-empty container without recursion MUST be rejected with
+        <code>409 Conflict</code>. Servers MAY support recursive deletion; clients request it
+        with <code>Depth: infinity</code> ([[!RFC4918]]), and servers advertising the
+        <code>RecursiveDelete</code> capability MUST honour it, deleting the subtree
+        atomically.</li>
+      <li>Clients MAY (and SHOULD, for guarded deletes) send <code>If-Match</code>; servers MUST
+        honour it.</li>
+    </ul>
+  </section>
+
+  <section id="http-move">
+    <h3>Move (OPTIONAL)</h3>
+    <p>
+      Servers advertising the <code>MoveResource</code> capability MUST implement move as
+      follows: the client PATCHes the resource's linkset changing the <code>up</code> link target
+      to the destination container (the one system-managed link writable through this operation,
+      and only under this capability). On success the server MUST: (a) assign the resource a new
+      URI path-aligned under the destination container, preserving the final path segment unless
+      it conflicts; (b) atomically update both containers' membership; (c) respond
+      <code>200</code> with the new URI in <code>Location</code>; and (d) SHOULD answer
+      subsequent requests for the old URI with <code>308 Permanent Redirect</code> for an
+      implementation-defined period. Notifications (<a href="#notifications"></a>) for a move are
+      emitted as Delete(old)+Create(new) unless a Move activity is negotiated.
+    </p>
+  </section>
+</section>
+
+<section id="authentication">
+  <h2>Authentication</h2>
+  <p>
+    This section adopts the Working Draft's suite architecture ([[LWS10-CORE]]
+    <em>Authentication</em>; jeswr/lws-keycloak <code>spec/authn.md</code>) unchanged, ships
+    three of its four suites, and adds a WebAuthn suite.
+  </p>
+
+  <section id="credential-model">
+    <h3>Authentication credential data model</h3>
+    <p>An <a>authentication credential</a> MUST include tamper-evident claims:</p>
+    <ul>
+      <li><strong>subject</strong> (REQUIRED) — an absolute URI identifying the agent;</li>
+      <li><strong>issuer</strong> (REQUIRED) — an absolute URI identifying the issuing
+        entity;</li>
+      <li><strong>client</strong> (REQUIRED) — an identifier for the client application; SHOULD
+        be an absolute URI;</li>
+      <li><strong>audience restriction</strong> (RECOMMENDED) — a list of values that SHOULD
+        include an authorization server identifier.</li>
+    </ul>
+    <p>
+      A credential MUST be signed; asymmetric signatures are RECOMMENDED, and JWT-serialised
+      credentials MUST NOT use the <code>none</code> algorithm. Each <a>authentication suite</a>
+      MUST be associated with a token-type URI, preferably one registered in the IANA OAuth URI
+      registry; authorization servers SHOULD advertise supported suites via
+      <code>subject_token_types_supported</code> in their RFC 8414 metadata
+      (SHOULD rather than MUST for the privacy reason recorded in
+      <a href="#privacy-considerations"></a>).
+    </p>
+  </section>
+
+  <section id="identity-documents">
+    <h3>Identity documents (CID)</h3>
+    <p>
+      Agent identifiers dereference to <strong>controlled identifier documents</strong>
+      [[!CID-1.0]]. In the absence of a pre-existing trust relationship, a verifier MUST
+      dereference the credential's subject URI and obtain a valid CID whose <code>id</code>
+      equals the subject identifier; suite-specific validation then binds the credential to keys
+      (<code>verificationMethod</code>) or issuers (<code>service</code>) published in that
+      document. The OIDC issuer binding is a CID <code>service</code> entry of type
+      <code>jlws:OpenIdProvider</code> (accepting the <code>lws#OpenIdProvider</code> alias) whose
+      <code>serviceEndpoint</code> equals the credential's issuer — the analogue of Solid's
+      <code>solid:oidcIssuer</code> ([[LWS10-AUTHN-OPENID]], <em>Validation</em>).
+    </p>
+    <p>
+      All server-side dereferencing performed during validation is subject to the SSRF
+      requirements of <a href="#ssrf"></a>. Verifiers SHOULD cache CID-derived keys respecting
+      HTTP caching metadata; issuers SHOULD serve CIDs with caching headers that make such
+      caching effective (jeswr/lws-keycloak <code>spec/authn.md</code>, SSI-CID §7).
+    </p>
+  </section>
+
+  <section id="suites">
+    <h3>Authentication suites</h3>
+    <p>
+      Suites are optional, pluggable profiles; a conforming JLWS authorization server MUST
+      implement at least one. The suite definitions below are normative summaries; the OIDC,
+      self-signed-CID, and did:key suites match the corresponding Working Group suite drafts and
+      those documents' fuller text applies.
+    </p>
+    <section id="suite-oidc">
+      <h4>OpenID Connect suite</h4>
+      <p>Per [[LWS10-AUTHN-OPENID]]: the credential is a signed OIDC ID Token;
+        <code>sub</code>/<code>iss</code>/<code>azp</code> carry subject/issuer/client;
+        <code>aud</code> SHOULD include the client and any target authorization server. Validation:
+        dereference <code>sub</code> to a CID; locate the <code>jlws:OpenIdProvider</code> service
+        matching <code>iss</code>; perform OpenID Connect Discovery; validate the JWT per OpenID
+        Connect Core Section 3.1.3.7. Token type:
+        <code>urn:ietf:params:oauth:token-type:id_token</code>.</p>
+    </section>
+    <section id="suite-ssi-cid">
+      <h4>Self-signed CID suite</h4>
+      <p>Per [[LWS10-AUTHN-SSI-CID]]: a self-issued signed JWT with
+        <code>sub == iss == client_id</code> (an absolute URI), <code>aud</code> including the
+        target authorization server, and <code>exp</code>/<code>iat</code>. Validation:
+        dereference <code>sub</code> to a CID; select the verification method by the JWT
+        <code>kid</code> per [[!CID-1.0]] Section 3.3; verify per [[!RFC7515]] Section 5.2. Token
+        type: <code>urn:ietf:params:oauth:token-type:jwt</code>. This suite gives autonomous
+        agents and services first-class identity without an IdP.</p>
+    </section>
+    <section id="suite-did-key">
+      <h4>Self-signed did:key suite</h4>
+      <p>Per [[LWS10-AUTHN-SSI-DID-KEY]]: as the CID suite, but <code>sub</code> is a
+        <code>did:key</code> URI and the verification key is extracted from the identifier itself
+        (did:key Method Section 3.1.3) — no dereference. Token type:
+        <code>urn:ietf:params:oauth:token-type:jwt</code>.</p>
+    </section>
+    <section id="suite-webauthn">
+      <h4>WebAuthn suite</h4>
+      <p>
+        The credential is a WebAuthn authentication assertion over a server-issued challenge,
+        packaged for presentation as an RFC 8693 <code>subject_token</code> exactly as specified
+        by the wire contract of [[WEBAUTHN-REAUTH]] (its <code>./protocol</code> module): the
+        assertion binds the agent's registered passkey to the exchange request; the authorization
+        server validates the assertion against the credential public key registered for the
+        subject and MUST enforce challenge freshness, origin/RP-ID binding, and signature-counter
+        or device-attestation policy per WebAuthn Level 3. Subject/issuer/client claims are
+        carried in the token-exchange envelope defined there. Token type: the URI minted by that
+        contract.
+      </p>
+      <div class="note" title="Divergence from lws10-core: WebAuthn suite added; SAML suite omitted">
+        The Working Group ships a SAML 2.0 suite and no WebAuthn suite; its own drafting notes
+        already prefer direct WebAuthn ("This is the preferred use of WebAuthn with Linked Web
+        Storage — … it removes the need to trust an additional IDP server",
+        jeswr/lws-keycloak <code>spec/authn.md</code>, WebAuthn note), and OpenID-suite guidance
+        recommends providers support WebAuthn. This specification ships the passwordless suite
+        users actually deploy and leaves SAML to be defined as an external suite by whoever needs
+        it — the suite architecture makes that a profile, not a fork. Recorded as
+        DECISIONS.md D7.
+      </div>
+    </section>
+  </section>
+
+  <section id="client-identity">
+    <h3>Client identity</h3>
+    <p>
+      Client identifiers SHOULD be absolute URIs dereferencing to an <strong>OAuth Client ID
+      Metadata Document</strong> [[CLIENT-ID-METADATA]]: plain JSON, no JSON-LD context required.
+      Issuers of authentication credentials are responsible for validating client identifiers and
+      MAY use this mechanism, client ID prefixes, or OpenID Federation.
+    </p>
+    <div class="note" title="Divergence from Solid; alignment with the editor's migration notes">
+      This replaces Solid-OIDC's JSON-LD Client Identifier Documents, following the editor's
+      migration notes ("the client identifier document will respond with the content type
+      <code>application/json</code> and without the need for JSON-LD support") and his upstream
+      issue <a href="https://github.com/w3c/lws-protocol/issues/38">w3c/lws-protocol#38</a>.
+      Recorded as DECISIONS.md D8.
+    </div>
+  </section>
+</section>
+
+<section id="authorization">
+  <h2>Authorization</h2>
+  <p>
+    The authorization chain is the editor's prototyped model (jeswr/lws-keycloak
+    <code>spec/authz.md</code>), as carried into [[LWS10-CORE]] <em>Authorization</em>:
+    <em>authentication credential → RFC 8693 token exchange at a trusted authorization server →
+    audience-restricted, short-lived RFC 9068 access token → presentation to the storage
+    server</em>. The single structural divergence is discovery: RFC 9728 protected resource
+    metadata replaces the bespoke <code>as_uri</code> challenge parameter and
+    <code>/.well-known/lws-configuration</code> path.
+  </p>
+
+  <section id="authz-discovery">
+    <h3>Authorization server discovery (RFC 9728)</h3>
+    <p>
+      A storage server generating a <code>401 Unauthorized</code> response MUST send a
+      <code>WWW-Authenticate</code> challenge containing:
+    </p>
+    <ul>
+      <li><code>resource_metadata</code> (REQUIRED) — the URI of the storage server's protected
+        resource metadata document, per [[!RFC9728]] Section 5.1;</li>
+      <li><code>realm</code> (REQUIRED) — an absolute URI indicating the scope of protection.
+        This value is what the client passes as the token-exchange <code>resource</code>
+        parameter, and appears as the access token's <code>aud</code>. Under
+        <a href="#path-alignment">path alignment</a> the realm is typically the storage root.
+        A client MUST verify that the URI of the originating request is logically contained
+        within the presented <code>realm</code> before using it (jeswr/lws-keycloak
+        <code>spec/authz.md</code> §4.1, §7.5).</li>
+    </ul>
+    <pre class="example" title="401 challenge (request presented no credentials; header shown
+wrapped for display only — it is sent as a single line, without obsolete line folding)">
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="https://storage.example/alice/",
+    resource_metadata="https://storage.example/.well-known/oauth-protected-resource/alice"
+    </pre>
+    <p>
+      Per [[!RFC6750]] Section 3.1, the challenge carries an <code>error</code> parameter (e.g.
+      <code>error="invalid_token"</code>) only when the request presented an access token that
+      the server rejected; a challenge answering a request that bore no credentials — as in the
+      example above — MUST NOT include an <code>error</code> parameter.
+    </p>
+    <p>
+      The protected resource metadata document ([[!RFC9728]] Section 2) MUST include
+      <code>resource</code> and <code>authorization_servers</code> (the trusted authorization
+      servers — the storage server manages this canonical list), and MUST include the extension
+      member <code>jlws_storage_description</code>: the URI of the
+      <a>storage description resource</a>. When a proof-of-possession presentation profile is
+      offered, the relevant metadata members (e.g.
+      <code>dpop_signing_alg_values_supported</code>, and the DPoP-SK members defined by
+      [[DPOP-SK]]) appear here (<a href="#presentation-pop"></a>).
+    </p>
+    <p>
+      Authorization server metadata is served per [[!RFC8414]] at its registered well-known URI
+      (<code>/.well-known/oauth-authorization-server</code>), and SHOULD include
+      <code>subject_token_types_supported</code> listing the authentication suites accepted at
+      the token endpoint.
+    </p>
+    <div class="note" title="Divergence from lws10-core: RFC 9728 replaces as_uri / lws-configuration">
+      The Working Draft mints a bespoke <code>as_uri</code> challenge parameter and an
+      unregistered <code>/.well-known/lws-configuration</code> path with RFC 8414 shape. RFC 9728
+      (Proposed Standard, 2025) standardises exactly this pattern — a
+      <code>resource_metadata</code> challenge parameter and a registered well-known document
+      listing the resource's authorization servers. The editor's own prototype already reached
+      for the same shape (the RECOMMENDED <code>storage_metadata</code> challenge parameter,
+      jeswr/lws-keycloak <code>spec/authz.md</code> §4.1), so adopting RFC 9728 upgrades his
+      design to the shipped standard rather than diverging from it. The <code>realm</code>
+      parameter and its containment-verification rule are retained unchanged. Recorded as
+      DECISIONS.md D1.
+    </div>
+  </section>
+
+  <section id="token-exchange">
+    <h3>Token exchange</h3>
+    <p>Per [[LWS10-CORE]] <em>Authorization</em> §4.3 (verbatim in requirements):</p>
+    <ul>
+      <li>The authorization server's token endpoint MUST support
+        <code>urn:ietf:params:oauth:grant-type:token-exchange</code> [[!RFC8693]].</li>
+      <li>The <code>resource</code> parameter is REQUIRED, MUST be an absolute URI, populates the
+        access token's <code>aud</code>, and equals the challenge's <code>realm</code>. The
+        authorization server MUST reject a <code>resource</code> identifying an unknown or
+        untrusted storage.</li>
+      <li>The <code>subject_token</code> parameter is REQUIRED and carries a valid
+        <a>authentication credential</a>; <code>subject_token_type</code> names its suite. The
+        authorization server MUST validate all presented tokens before issuing.</li>
+      <li>Errors follow [[!RFC6749]] Section 5.2.</li>
+    </ul>
+  </section>
+
+  <section id="access-token">
+    <h3>Access token</h3>
+    <p>The issued access token MUST conform to [[!RFC9068]] (<code>at+jwt</code>) with:</p>
+    <ul>
+      <li><code>sub</code> — REQUIRED; absolute URI of the agent;</li>
+      <li><code>iss</code> — REQUIRED; absolute URI of the authorization server;</li>
+      <li><code>client_id</code> — REQUIRED; the client identifier;</li>
+      <li><code>aud</code> — REQUIRED; <strong>exactly one value</strong>: the absolute URI
+        supplied as <code>resource</code>. (This resolves the Working Draft's internal
+        inconsistency between "exactly one value" validation and multi-audience examples. The
+        constraint binds <em>access tokens</em> — where the replay risk lives — not
+        authentication credentials: a suite's subject token, e.g. an OIDC ID token, may carry
+        multi-valued <code>aud</code> as its suite specifies, and MUST NOT be rejected for
+        that. Recorded as DECISIONS.md D11.)</li>
+      <li><code>exp</code> — REQUIRED; lifetimes of 300 seconds or less are RECOMMENDED;</li>
+      <li><code>iat</code>, <code>jti</code> — REQUIRED.</li>
+    </ul>
+    <section id="rar">
+      <h4>Rich authorization details (OPTIONAL)</h4>
+      <p>
+        Authorization servers MAY evaluate fine-grained requests and encode the decision in an
+        <code>authorization_details</code> claim ([[!RFC9396]]) whose entries have
+        <code>type</code> equal to <code>https://w3id.org/jeswr/lws#AccessRequest</code> and
+        carry <code>locations</code> (absolute URIs within the token's <code>aud</code>),
+        <code>actions</code> (from the action set of <a href="#access-requests-grants"></a>), and
+        optionally <code>datatypes</code> and <code>purposes</code>. Two modes exist, per the
+        editor's prototype ("AS responds with either: yes, these actions are ok; OR AS responds
+        with deferred policy evaluation" — jeswr/lws-keycloak <code>spec/authz.md</code> §1):
+        <strong>approved</strong> (the AS attests the actions; the storage server enforces the
+        encoded decision <em>in addition to</em> its own policy) or <strong>deferred</strong>
+        (the AS passes the request through; the storage server evaluates it against its policy
+        layer). A storage server MUST NOT treat an <code>authorization_details</code> claim as
+        widening access beyond its own policy: the claim can only narrow.</p>
+    </section>
+  </section>
+
+  <section id="presentation">
+    <h3>Token presentation</h3>
+    <section id="presentation-bearer">
+      <h4>Bearer (baseline, REQUIRED)</h4>
+      <p>
+        Clients present the access token in the <code>Authorization</code> header with the
+        <code>Bearer</code> scheme [[!RFC6750]]. A JLWS server MUST accept Bearer presentation
+        for every realm except one it has designated proof-of-possession-required
+        (<a href="#presentation-pop"></a>); that per-realm designation — advertised in the
+        realm's resource metadata and its challenges — is the sole permitted exception to
+        Bearer acceptance. The replay exposure of bearer semantics is bounded by the mandatory
+        audience restriction and the recommended ≤300-second lifetime; the residual
+        within-lifetime replay risk is analysed in <a href="#security-considerations"></a>.
+      </p>
+    </section>
+    <section id="presentation-pop">
+      <h4>Proof-of-possession profiles (OPTIONAL, negotiated)</h4>
+      <p>
+        A server MAY additionally offer sender-constrained presentation, advertised through its
+        RFC 9728 protected resource metadata; a client discovers and opts in, and a client that
+        does not opt in is unaffected. Two profiles are defined:
+      </p>
+      <ul>
+        <li><strong>DPoP</strong> [[!RFC9449]] — advertised via
+          <code>dpop_signing_alg_values_supported</code>; the token is bound at exchange time via
+          <code>dpop_jkt</code>/<code>cnf.jkt</code> and each request carries a DPoP proof.</li>
+        <li><strong>DPoP-SK</strong> [[DPOP-SK]] — the negotiated symmetric fast path: one DPoP
+          proof establishes a short-lived session key; each request carries an RFC 9421
+          <code>hmac-sha256</code> message signature with sliding-window replay protection. Its
+          negotiation is already RFC 9728-based and composes here without change.</li>
+      </ul>
+      <p>
+        A server MAY, by deployment policy, <em>require</em> a proof-of-possession profile for a
+        designated realm (e.g. medical or financial storages — [[LWS-UCS]] use cases). The
+        signal is concrete, on both discovery surfaces: the realm's protected resource metadata
+        MUST set <code>dpop_bound_access_tokens_required: true</code> ([[!RFC9728]] Section 2 —
+        or, for DPoP-SK, the analogous required-member defined by [[DPOP-SK]]), and its
+        <code>401</code> challenges MUST list only the required profile's scheme(s) (e.g.
+        <code>WWW-Authenticate: DPoP …</code> per [[!RFC9449]] Section 7.1), omitting the
+        <code>Bearer</code> scheme. When the member is absent or <code>false</code>, Bearer is
+        accepted (with PoP optionally available per the advertised
+        <code>dpop_signing_alg_values_supported</code>) — a client can therefore always
+        distinguish <em>Bearer-accepted, PoP optional</em> from <em>PoP required</em>. By
+        default, Bearer remains accepted.
+      </p>
+      <div class="note" title="Design decision: PoP is opt-in, not a reversal of the baseline">
+        The no-DPoP baseline is the editor's deliberate design ("The use of DPoP is no longer
+        required" — jeswr/lws-keycloak <code>spec/authn.md</code>, migration notes; the Working
+        Group design likewise: "all token audiences are restricted and tokens are not sender
+        constrained (no DPoP)" — the Working Group's published design summary,
+        <a href="https://lists.w3.org/Archives/Public/public-lws-wg/2025Nov/0008.html">public-lws-wg
+        mailing list, Nov 2025</a>). This specification keeps that baseline and adds PoP only as a negotiated
+        option for deployments whose threat model needs it: within its ≤300-second lifetime a
+        stolen Bearer token replays freely against its own storage, and the Working Draft's own
+        security text enumerates theft mitigations that PoP closes. Costs nothing when off.
+        Recorded as DECISIONS.md D9 (steer default 2).
+      </div>
+    </section>
+  </section>
+
+  <section id="rs-validation">
+    <h3>Validation by the storage server</h3>
+    <p>A storage server MUST validate a presented access token by, in order (jeswr/lws-keycloak
+      <code>spec/authz.md</code> §4.4.2):</p>
+    <ol>
+      <li><strong>Signature</strong> — verify the JWT signature against the authorization
+        server's JWKS (from its RFC 8414 metadata); cache keys; support rotation; reject
+        <code>alg: none</code> and unexpected algorithms.</li>
+      <li><strong>Issuer</strong> — <code>iss</code> MUST match a member of the storage server's
+        explicit trusted-issuer allowlist (<a href="#security-considerations"></a>).</li>
+      <li><strong>Audience</strong> — <code>aud</code> MUST contain exactly one value, an
+        absolute URI that logically contains the target resource. Under path alignment,
+        containment is URI-prefix containment. Multi-tenant deployments MUST scope acceptance to
+        the current storage (the tenant-replay rule, <code>spec/authz.md</code> §7.5.1).</li>
+      <li><strong>Temporal</strong> — <code>exp</code> in the future, <code>nbf</code> (if
+        present) passed, <code>iat</code> not in the future; clock skew tolerance of at most 60
+        seconds is RECOMMENDED; tokens with <code>exp</code> more than one hour ahead MUST be
+        rejected.</li>
+      <li><strong>Proof of possession</strong> — when the token is PoP-bound
+        (<code>cnf</code> present), the corresponding proof MUST be validated per the profile in
+        use, and the token MUST NOT be accepted bare.</li>
+    </ol>
+    <p>
+      On validation failure the server responds <code>401</code> with an appropriate
+      <code>error</code> parameter. If the token is valid but the operation is not allowed:
+      <code>403</code> when the agent has <em>some</em> access to the resource, otherwise
+      <code>404</code> to avoid disclosing existence (<a href="#oracle-freedom"></a>).
+    </p>
+  </section>
+
+  <section id="client-rules">
+    <h3>Client-side rules</h3>
+    <ul>
+      <li>A client MUST verify realm containment before requesting a token for it
+        (<a href="#authz-discovery"></a>).</li>
+      <li>A client MUST NOT present a token whose <code>aud</code> does not logically contain the
+        target resource, MUST NOT present a token with more than one <code>aud</code> value, and
+        SHOULD NOT share a token with any party other than the storage server it is scoped
+        to.</li>
+      <li>A client SHOULD NOT proactively obtain tokens from an authorization server before
+        receiving a 401 challenge for a resource in that realm — preventing the colluding-RS/AS
+        probe described in <a href="#security-considerations"></a> (jeswr/lws-keycloak
+        <code>spec/authz.md</code> §7.10).</li>
+      <li>Clients SHOULD cache tokens and reuse them proactively for further resources logically
+        contained in the token's <code>aud</code> during its lifetime.</li>
+    </ul>
+  </section>
+</section>
+
+<section id="access-requests-grants">
+  <h2>Access requests and grants</h2>
+  <p>
+    Access requests and grants are the interchange interface over the server's internal policy
+    layer; the policy <em>language</em> a server enforces with is out of scope, matching the
+    Working Group's resolution (<a href="https://www.w3.org/2026/04/27-lws-minutes.html">London
+    F2F Day 1</a>;
+    <a href="https://github.com/w3c/lws-protocol/issues/143">w3c/lws-protocol#143</a>). The
+    document model is a <strong>strict ODRL profile</strong> — the design of the editor's
+    upstream <a href="https://github.com/w3c/lws-protocol/pull/109">PR #109</a>, realised.
+  </p>
+
+  <section id="odrl-profile">
+    <h3>The ODRL access profile</h3>
+    <ul>
+      <li>Documents are JSON-LD using the ODRL context plus the JLWS context, and MUST declare
+        <code>profile</code> equal to <code>https://w3id.org/jeswr/lws/access-profile/odrl-1</code>
+        (REQUIRED — per PR #109, an unprofiled ODRL document is not a conforming access
+        document).</li>
+      <li>An <a>access request</a> is an <code>odrl:Request</code>; an <a>access grant</a> is an
+        <code>odrl:Offer</code> issued by the <a>storage controller</a> (PR #109's mapping).</li>
+      <li>A document carries ODRL <strong>rules</strong>: <code>permission</code>,
+        <code>prohibition</code>, and <code>obligation</code> ([[!ODRL-MODEL]]). Each rule MUST
+        have exactly one <code>action</code> and exactly one <code>target</code> (singular per
+        rule — PR #109; compose multiple rules for multiple actions/targets).</li>
+      <li><strong>Actions:</strong> <code>odrl:read</code>, <code>odrl:modify</code>,
+        <code>odrl:delete</code>, plus <code>jlws:create</code> and <code>jlws:append</code>
+        defined by this profile with <code>odrl:includedIn odrl:modify</code>. The inclusion is
+        one-directional: a grant of <code>odrl:modify</code> also permits the narrower
+        <code>jlws:create</code> and <code>jlws:append</code> operations, but a create-only or
+        append-only grant MUST NOT be widened to modify. An enforcement layer that does not
+        understand a profile-defined action MUST NOT honour a rule granting it (fail closed —
+        an unknown action grants nothing); such a layer still permits create/append operations
+        under an <code>odrl:modify</code> grant, which is the deployment path for
+        ODRL-core-only enforcement.</li>
+      <li><strong>Targets:</strong> typed matchers — a <code>DataResource</code> (one resource),
+        a <code>Container</code> (the container and, when <code>jlws:recursive</code> is true,
+        its descendants), or a <code>StorageResource</code> (the whole storage), identified by
+        URI, path-aligned per <a href="#path-alignment"></a>.</li>
+      <li><strong>Assignee:</strong> a URI identifying the agent (or group,
+        <a href="#groups"></a>); public access is expressed with
+        <code>http://xmlns.com/foaf/0.1/Agent</code> ([[LWS10-CORE]]
+        <em>Access Requests</em>).</li>
+      <li><strong>Constraints:</strong> ODRL constraints; this profile defines the left operands
+        <code>odrl:purpose</code> (via <code>hasPurpose</code>-to-<code>odrl:purpose</code>
+        normalisation per PR #109), <code>jlws:client</code>, <code>jlws:mediaType</code>,
+        <code>jlws:resourceType</code>, and <code>odrl:dateTime</code>. When multiple constraints
+        are present, all MUST be satisfied.</li>
+    </ul>
+    <pre class="example" title="Access grant (odrl:Offer) — read access to a container for a stated purpose, expiring">
+{
+  "@context": [
+    "http://www.w3.org/ns/odrl.jsonld",
+    "https://w3id.org/jeswr/lws/v1"
+  ],
+  "@type": "Offer",
+  "uid": "https://storage.example/alice/.grants/2f6c",
+  "profile": "https://w3id.org/jeswr/lws/access-profile/odrl-1",
+  "assigner": "https://id.example/alice",
+  "permission": [{
+    "assignee": "https://id.example/bob",
+    "action": "read",
+    "target": {
+      "@type": "Container",
+      "uid": "https://storage.example/alice/notes/",
+      "recursive": true
+    },
+    "constraint": [{
+      "leftOperand": "purpose",
+      "operator": "eq",
+      "rightOperand": "https://purpose.example/collaboration"
+    }, {
+      "leftOperand": "dateTime",
+      "operator": "lt",
+      "rightOperand": { "@value": "2026-12-31T00:00:00Z", "@type": "xsd:dateTime" }
+    }]
+  }]
+}
+    </pre>
+  </section>
+
+  <section id="grant-endpoints">
+    <h3>Endpoints</h3>
+    <p>
+      Requests and grants live in ordinary JLWS containers advertised in the storage description
+      as services of type <code>AccessRequestService</code> and <code>AccessGrantService</code>
+      ([[LWS10-CORE]] <em>Access Requests</em>), each carrying <code>conformsTo</code> with the
+      profile URI. An agent files a request by POST to the request container; the storage
+      controller lists (GET), grants (POST to the grant container), and revokes (DELETE the grant
+      resource). Servers SHOULD deliver notification of new requests and of grant
+      creation/revocation to the affected agents' inboxes or subscriptions
+      (<a href="#notifications"></a>).
+    </p>
+  </section>
+
+  <section id="grants-are-records">
+    <h3>Grants are records, not tokens</h3>
+    <p>
+      An agent does not present an access grant to a server as an authorization token
+      ([[LWS10-CORE]] <em>Access Requests</em>). A grant records what the storage controller
+      decided; the server MUST realise that decision in its internal enforcement:
+    </p>
+    <ul>
+      <li>Grant creation and revocation MUST be reflected in enforcement within a bounded,
+        documented interval (SHOULD be immediate).</li>
+      <li>Derived views — container listings, type indexes, query results — MUST reflect
+        revocation immediately (the live-authorization rule of [[LWS-SEARCHINDEX-ED]],
+        generalised).</li>
+      <li>Grants are the authoritative interchange <em>record</em>; whether the server's policy
+        engine treats them as its source of truth or as a projection is an implementation choice
+        (the Working Group contention in
+        <a href="https://github.com/w3c/lws-protocol/issues/144">w3c/lws-protocol#144</a>,
+        resolved here at the interface: the record binds observable behaviour, not
+        internals).</li>
+    </ul>
+  </section>
+
+  <section id="consent-receipts">
+    <h3>Grants as verifiable credentials (OPTIONAL)</h3>
+    <p>
+      A storage controller MAY issue an access grant additionally as a W3C Verifiable Credential
+      [[VC-DATA-MODEL-2.0]] whose <code>credentialSubject</code> embeds the ODRL grant — a
+      verifiable, auditable, revocable consent receipt satisfying [[LWS-UCS]] requirement 18.
+      Revocation of the grant MUST be reflected in the credential's status mechanism.
+    </p>
+  </section>
+
+  <section id="delegation">
+    <h3>Delegation (OPTIONAL extension)</h3>
+    <p>
+      Servers MAY support <strong>delegated grants</strong>: a grant whose assignee is itself
+      authorised to issue a narrower grant, forming an ODRL delegation chain. Chain semantics —
+      monotonic narrowing (a delegated grant MUST NOT exceed its parent in actions, targets,
+      constraints, or duration), expiry/revocation propagation, and cycle rejection — follow the
+      delegation-chain model implemented in [[SOLID-ODRL]]. This serves the sub-delegation
+      requirement the Working Group's model leaves unserved ([[LWS-UCS]] requirements 6 and 14).
+    </p>
+  </section>
+
+  <section id="groups">
+    <h3>Groups (OPTIONAL extension)</h3>
+    <p>
+      Servers MAY advertise a <code>GroupService</code>: group membership documents (JSON-LD,
+      listing member agent URIs and, for hierarchies, member group URIs) that may appear as grant
+      assignees. Group resolution happens at enforcement time; membership changes MUST take
+      effect like grant changes (<a href="#grants-are-records"></a>). Cyclic group membership
+      MUST be rejected. Serves [[LWS-UCS]] requirement 5 (including hierarchies).
+    </p>
+  </section>
+</section>
+
+<section id="discovery">
+  <h2>Discovery: the storage description</h2>
+  <p>
+    Every storage publishes one self-describing document — the <a>storage description
+    resource</a> — enumerating its identity, verification keys, services, capabilities, and
+    protocol conformance. This is the feature-detection surface for everything optional in this
+    specification and its companions.
+  </p>
+
+  <section id="discovery-binding">
+    <h3>Binding</h3>
+    <p>
+      All responses to GET and HEAD requests targeting storage resources MUST include a
+      <code>Link</code> header targeting the storage description with
+      <code>rel="https://w3id.org/jeswr/lws#storageDescription"</code> (alias rule of
+      <a href="#namespace"></a> applies), and servers SHOULD include it on 401 responses to guide
+      unauthenticated clients ([[LWS10-CORE]] <em>Discovery</em>). The document MUST be readable
+      by any agent that can read the storage root, and MAY be public. When the storage
+      description is not public and the storage delivers signed webhook notifications
+      (<a href="#webhook-binding"></a>), the <code>verificationMethod</code> key material that
+      notification <code>keyid</code> values resolve to MUST nonetheless be fetchable without
+      storage credentials — either by making the storage description itself public, or by
+      publishing a public key-only [[!CID-1.0]] document and using its verification-method URIs
+      as the <code>keyid</code> values. A webhook receiver is not a storage client and cannot be
+      assumed to hold read access; a signature it cannot verify is a signature it will be
+      tempted to skip.
+    </p>
+  </section>
+
+  <section id="discovery-model">
+    <h3>Data model (CID-shaped)</h3>
+    <p>The storage description is a JSON-LD document with:</p>
+    <ul>
+      <li><code>id</code> — REQUIRED; the storage's URI;</li>
+      <li><code>type</code> — REQUIRED; includes <code>Storage</code>;</li>
+      <li><code>conformsTo</code> — REQUIRED; an array of protocol version URIs the storage
+        implements, e.g. <code>https://w3id.org/jeswr/lws/protocol/core/1.0</code> and one URI
+        per implemented companion profile. (Convention adopted from
+        <code>fedreg:StorageDescription</code> [[FEDREG]], which advertises storage spec versions
+        the same way — federations can index JLWS storages natively.)</li>
+      <li><code>verificationMethod</code> — OPTIONAL (REQUIRED for notification servers); the
+        storage's signing keys as [[!CID-1.0]] verification methods — webhook signatures resolve
+        <code>keyid</code> into this set (<a href="#webhook-binding"></a>);</li>
+      <li><code>service</code> — REQUIRED; a set of <code>{id?, type, serviceEndpoint, …}</code>
+        entries, including one of type <code>StorageDescription</code> whose
+        <code>serviceEndpoint</code> is the document's own URL;</li>
+      <li><code>capability</code> — OPTIONAL; a set of <code>{id?, type, …}</code> entries from
+        <a href="#capability-registry"></a> or extension URIs.</li>
+    </ul>
+    <p>
+      Consumers MUST ignore unrecognised capability and service types (forward compatibility).
+      The document MUST validate as a controlled identifier document when
+      <code>verificationMethod</code> is present.
+    </p>
+    <div class="note" title="Divergence from lws10-core: CID shape + conformsTo + a real registry">
+      The Working Draft's storage description has <code>capability</code>/<code>service</code>
+      but no keys, no protocol-version advertisement, and only unregistered example capability
+      types (<code>https://feature.example/…</code>). The CID remodel is the Working Group's own
+      live direction (<a href="https://github.com/w3c/lws-protocol/pull/183">w3c/lws-protocol#183</a>,
+      discussed <a href="https://www.w3.org/2026/06/29-lws-minutes.html">2026-06-29</a>; the
+      Ghent F2F artifact already has this shape, and the notifications Editor's Draft already
+      resolves webhook keys from it) — this specification simply lands it, adds
+      <code>conformsTo</code>, and mints a real capability registry. Recorded as
+      DECISIONS.md D5.
+    </div>
+    <pre class="example" title="Storage description">
+{
+  "@context": [
+    "https://w3id.org/jeswr/lws/v1",
+    "https://www.w3.org/ns/cid/v1"
+  ],
+  "id": "https://storage.example/alice/",
+  "type": "Storage",
+  "conformsTo": [
+    "https://w3id.org/jeswr/lws/protocol/core/1.0",
+    "https://w3id.org/jeswr/lws/transform/rdf-1"
+  ],
+  "verificationMethod": [{
+    "id": "https://storage.example/alice/description#key-1",
+    "type": "JsonWebKey",
+    "controller": "https://storage.example/alice/description",
+    "publicKeyJwk": { "kty": "EC", "crv": "P-256", "x": "…", "y": "…" }
+  }],
+  "capability": [{
+    "type": "PatchSupport",
+    "mediaType": {
+      "text/turtle": ["application/sparql-update"],
+      "application/linkset+json": ["application/merge-patch+json"]
+    }
+  }, {
+    "type": "ContentNegotiation",
+    "source": "text/turtle",
+    "target": ["application/ld+json", "application/n-triples"],
+    "profile": "https://w3id.org/jeswr/lws/transform/rdf-1"
+  }, {
+    "type": "RecursiveDelete"
+  }],
+  "service": [{
+    "type": "StorageDescription",
+    "serviceEndpoint": "https://storage.example/alice/description"
+  }, {
+    "type": "NotificationService",
+    "serviceEndpoint": "https://storage.example/alice/notifications",
+    "subscriptionType": ["WebhookSubscription", "SseSubscription", "WebSocketSubscription"]
+  }, {
+    "type": "AccessRequestService",
+    "serviceEndpoint": "https://storage.example/alice/.access/requests/",
+    "conformsTo": "https://w3id.org/jeswr/lws/access-profile/odrl-1"
+  }, {
+    "type": "AccessGrantService",
+    "serviceEndpoint": "https://storage.example/alice/.access/grants/",
+    "conformsTo": "https://w3id.org/jeswr/lws/access-profile/odrl-1"
+  }]
+}
+    </pre>
+  </section>
+
+  <section id="capability-registry">
+    <h3>Capability registry</h3>
+    <p>
+      Capability types below are terms in the JLWS namespace
+      (<code>jlws:PatchSupport</code> ≡ <code>https://w3id.org/jeswr/lws#PatchSupport</code>, …);
+      extension capabilities use absolute URIs.
+    </p>
+    <table class="simple">
+      <thead><tr><th>Type</th><th>Meaning</th><th>Members</th><th>Defined by</th></tr></thead>
+      <tbody>
+        <tr><td><code>PatchSupport</code></td>
+          <td>PATCH formats accepted, per media type</td>
+          <td><code>mediaType</code>: map of resource media type → array of patch media types</td>
+          <td>This document</td></tr>
+        <tr><td><code>ContentNegotiation</code></td>
+          <td>Server-side transformation between representations of a resource</td>
+          <td><code>source</code>, <code>target[]</code>, optional <code>profile</code>
+            (transformation-semantics URI), optional <code>normalizes</code></td>
+          <td>This document (hook); the
+            <a href="./rdf-transform.html">RDF Content Transformation Profile</a> (RDF
+            semantics)</td></tr>
+        <tr><td><code>ResumableUploads</code></td>
+          <td>Resumable uploads for large resources</td>
+          <td>—</td>
+          <td>[[RESUMABLE-UPLOAD]] (informative until an RFC is issued; serves [[LWS-UCS]]
+            requirement 26)</td></tr>
+        <tr><td><code>RecursiveDelete</code></td>
+          <td><code>Depth: infinity</code> DELETE honoured</td>
+          <td>—</td>
+          <td>This document (<a href="#http-delete"></a>)</td></tr>
+        <tr><td><code>MoveResource</code></td>
+          <td>The move operation is available</td>
+          <td>—</td>
+          <td>This document (<a href="#http-move"></a>)</td></tr>
+        <tr><td><code>Versioning</code></td>
+          <td>Version history via <code>rel="version-history"</code> [[!RFC5829]] and Memento
+            <code>Accept-Datetime</code> [[!RFC7089]]</td>
+          <td>—</td>
+          <td>Companion (planned); slot reserved here</td></tr>
+      </tbody>
+    </table>
+    <p>Service types registered by this document: <code>StorageDescription</code>,
+      <code>NotificationService</code> (with <code>subscriptionType</code>),
+      <code>AccessRequestService</code>, <code>AccessGrantService</code>,
+      <code>GroupService</code>, <code>TypeIndexService</code>, <code>TypeSearchService</code>,
+      <code>SparqlQueryService</code> (the latter three defined by the query companion —
+      <a href="#query-services"></a>). Extension services use absolute URIs.</p>
+  </section>
+</section>
+
+<section id="notifications">
+  <h2>Notifications</h2>
+  <p>
+    A notification server lets agents subscribe to resource changes instead of polling. The
+    subscription API and envelope adopt the Working Group's notifications Editor's Draft
+    [[LWS-NOTIFICATIONS-ED]]; the webhook binding is adopted verbatim; the SSE and WebSocket
+    bindings are added under the same subscription API.
+  </p>
+  <div class="note" title="Divergence from lws10-core: server-to-client bindings added">
+    The Working Group resolved to specify server-to-server webhooks first and defer
+    server-to-client channels to a separate work item
+    (<a href="https://www.w3.org/2026/04/28-lws-minutes.html">London F2F Day 2 resolutions</a>),
+    leaving browser clients with nothing; the Use Cases document names "real-time (e.g.,
+    push/SSE) or via queued channels" explicitly ([[LWS-UCS]] requirement 7). This specification
+    ships both deferred bindings, addressing the SSE-authentication concern raised in that
+    discussion head-on (<a href="#sse-binding"></a>). Recorded as DECISIONS.md D6; SSE-first vs
+    WebSocket-first is steer question 6 in OPEN-QUESTIONS.md (this draft ships both).
+  </div>
+
+  <section id="subscription-api">
+    <h3>Subscription API</h3>
+    <ul>
+      <li>Subscriptions are created by authenticated POST to the <code>NotificationService</code>
+        endpoint with a JSON-LD body: <code>type</code> — one of the advertised subscription
+        types; <code>topic</code> — REQUIRED array of resource URIs; <code>expires</code> —
+        OPTIONAL datetime; plus binding-specific members below.</li>
+      <li>The server MUST reject a subscription whose agent lacks read access to <em>every</em>
+        topic ([[LWS-NOTIFICATIONS-ED]]).</li>
+      <li>A subscription to a container is recursive: events for the container and all
+        descendants.</li>
+      <li>Authorization is enforced at subscription <em>and</em> delivery time: if the
+        subscriber's read access to a topic is revoked, deliveries for it MUST cease
+        immediately.</li>
+      <li>The response returns the subscription resource (its URI allows GET inspection and
+        DELETE cancellation) and binding-specific connection details.</li>
+    </ul>
+  </section>
+
+  <section id="notification-envelope">
+    <h3>Envelope</h3>
+    <p>
+      A <a>notification</a> is a JSON-LD document of type <code>Notification</code> wrapping an
+      Activity Streams 2.0 activity [[AS2-VOCAB]] — <code>Create</code>, <code>Update</code>, or
+      <code>Delete</code> — whose <code>object</code> carries the affected resource's
+      <code>id</code> and <code>type</code> only. Notifications MUST NOT include resource
+      content. <code>published</code> is REQUIRED; <code>actor</code> MUST be omitted unless the
+      subscriber is authorised to learn it (privacy default of [[LWS-NOTIFICATIONS-ED]]).
+      Servers MAY batch multiple activities per delivery.
+    </p>
+  </section>
+
+  <section id="webhook-binding">
+    <h3>Webhook binding (<code>WebhookSubscription</code>)</h3>
+    <p>Per [[LWS-NOTIFICATIONS-ED]], adopted verbatim:</p>
+    <ul>
+      <li>The subscription carries <code>inbox</code> — the HTTPS endpoint to deliver to.
+        Delivery is HTTP POST of the envelope.</li>
+      <li>Deliveries MUST be signed with HTTP Message Signatures [[!RFC9421]] covering at least
+        <code>@method</code>, <code>@scheme</code>/<code>@authority</code>/<code>@path</code> (or
+        <code>@target-uri</code>), <code>content-type</code>, and <code>content-digest</code>
+        ([[!RFC9530]]).</li>
+      <li>The signature's <code>keyid</code> MUST be a URL-with-fragment resolving into the
+        storage description's <code>verificationMethod</code> set
+        (<a href="#discovery-model"></a>); receivers MUST verify the signature before processing,
+        fetching the storage description subject to <a href="#ssrf"></a>.</li>
+      <li>Delivery-side SSRF discipline applies to the storage server's outbound POST
+        (<a href="#ssrf"></a>): inbox URIs are untrusted input.</li>
+    </ul>
+  </section>
+
+  <section id="sse-binding">
+    <h3>SSE binding (<code>SseSubscription</code>) — added</h3>
+    <ul>
+      <li>The subscription response includes <code>source</code>: the event-stream URL. The
+        client GETs it with <code>Accept: text/event-stream</code>.</li>
+      <li><strong>Stream authentication</strong> — the server MUST support at least one of, and
+        the subscription response states which apply:
+        <ul>
+          <li><em>Header mode</em>: the stream request carries <code>Authorization</code> with a
+            valid access token for the storage (re-challenged per
+            <a href="#authorization"></a> on expiry: the server ends the stream with a terminal
+            event of type <code>reauthenticate</code>, and the client reconnects with a fresh
+            token);</li>
+          <li><em>Capability-URL mode</em> (for <code>EventSource</code> clients that cannot set
+            headers): <code>source</code> is a single-subscription, unguessable
+            (≥128 bits of entropy), expiring URL. It MUST be bound to the subscription, MUST
+            expire no later than the subscription, MUST be revoked with it, and MUST only be
+            issued over TLS. This addresses the SSE-authentication objection recorded in the
+            Working Group's channel discussion.</li>
+        </ul>
+      </li>
+      <li>Every event MUST carry an <code>id</code> field. On reconnection with
+        <code>Last-Event-ID</code>, the server MUST either replay all events after that id (it
+        MUST retain events for a documented retention window) or, when the id has aged out, send
+        a control event of type <code>reset</code> telling the client to re-synchronise state by
+        reading the topics.</li>
+      <li>Delivery-time authorization applies per event (<a href="#subscription-api"></a>).</li>
+    </ul>
+  </section>
+
+  <section id="websocket-binding">
+    <h3>WebSocket binding (<code>WebSocketSubscription</code>) — added</h3>
+    <ul>
+      <li>The subscription response includes <code>receiveFrom</code>: a <code>wss:</code> URL —
+        a capability URL with the same binding, entropy, expiry, and revocation requirements as
+        SSE capability-URL mode. The shape intentionally mirrors
+        [[WEBSOCKETCHANNEL2023]] (<code>receiveFrom</code>) so existing Solid notification
+        clients port with minimal change.</li>
+      <li>Each WebSocket message is one envelope (<a href="#notification-envelope"></a>),
+        serialised as a text frame.</li>
+      <li>Servers SHOULD ping periodically; clients re-subscribe (obtaining a fresh
+        <code>receiveFrom</code>) after close or expiry. There is no replay on this binding;
+        clients needing gapless delivery use SSE or webhooks.</li>
+    </ul>
+  </section>
+</section>
+
+<section id="content-transformation">
+  <h2>Content transformation (capability hook)</h2>
+  <p>
+    A server MAY offer server-side transformation between representations of a data resource,
+    advertised per source media type with the <code>ContentNegotiation</code> capability
+    (<a href="#capability-registry"></a>): <code>source</code> (a media type),
+    <code>target[]</code> (media types derivable from it), and optionally <code>profile</code> —
+    a URI pinning the transformation semantics — and <code>normalizes</code>. A server MUST NOT
+    perform transformation it does not advertise, and clients MUST NOT expect any transformation
+    that is not advertised: absent the capability, a data resource has exactly its stored
+    representation.
+  </p>
+  <p>
+    The stored byte stream remains authoritative regardless of any advertised transformation:
+    reads in the stored media type MUST return the stored bytes exactly (unless
+    <code>normalizes</code> is declared), and write preconditions evaluate against the
+    authoritative representation's entity-tag. The precise multi-representation ETag, precondition,
+    and round-trip rules — and the RDF transformation semantics that make a JLWS storage
+    RDF-aware — are defined by the companion
+    <a href="./rdf-transform.html">JLWS RDF Content Transformation Profile</a>
+    (<code>profile</code> URI <code>https://w3id.org/jeswr/lws/transform/rdf-1</code>). This
+    layering is the requirements-level "Personal Data Projection" of [[LWS-UCS]] requirement 33.
+  </p>
+</section>
+
+<section id="query-services">
+  <h2>Query services (service slots)</h2>
+  <p>
+    Query is out of the substrate core and defined by a companion specification (planned); this
+    section reserves the service types and fixes the invariants any query service MUST satisfy,
+    generalising [[LWS-SEARCHINDEX-ED]]:
+  </p>
+  <ul>
+    <li><code>TypeIndexService</code> — a paginated listing of the distinct resource types
+      present in the storage; <code>TypeSearchService</code> — filtered search over
+      <code>type</code> and descriptive link relations, with equivalent GET and POST forms, and
+      optionally an HTTP QUERY binding ([[HTTP-QUERY]]) as an <em>additional</em> form — QUERY
+      MUST NOT be the only binding (respecting the deployment objection recorded in the
+      <a href="https://www.w3.org/2026/06/29-lws-minutes.html">2026-06-29 minutes</a>).</li>
+    <li><code>SparqlQueryService</code> — access-controlled SPARQL over RDF-readable resources,
+      available only where the RDF Content Transformation profile is on; semantics (per-solution
+      authorization filtering) follow [[AC-SPARQL]]. This is the answer to [[LWS-UCS]]
+      requirement 15, which the type-search ceiling deliberately does not meet (content query was
+      "out of scope but not prohibited" —
+      <a href="https://www.w3.org/2025/10/08-lws-minutes.html">Ghent F2F minutes</a>).</li>
+    <li><strong>Invariants (normative for any advertised query service):</strong> results MUST be
+      filtered by the requesting agent's live authorization on every request (revocations take
+      effect immediately); counts MUST reflect only the caller-visible view; index derivation MAY
+      be eventually consistent but authorization filtering MUST NOT be; and a query service MUST
+      NOT reveal the existence of resources the agent cannot read
+      (<a href="#oracle-freedom"></a>).</li>
+  </ul>
+</section>
+
+<section id="versioning-slot">
+  <h2>Versioning (capability slot)</h2>
+  <p>
+    Versioning is a companion (planned), reserved here as the <code>Versioning</code> capability:
+    version history discovered via <code>rel="version-history"</code> ([[!RFC5829]]) and
+    point-in-time reads via Memento <code>Accept-Datetime</code> ([[!RFC7089]]) — standards-based
+    and cheap, serving [[LWS-UCS]] requirement 30. Version resources are read-only and subject to
+    the same authorization as their originals at read time.
+  </p>
+</section>
+
+<section id="security-considerations">
+  <h2>Security considerations</h2>
+  <p>
+    The recommendations of Best Current Practice for OAuth 2.0 Security [[!RFC9700]] apply to
+    this entire specification. This section adds JLWS-specific requirements; unlike its
+    Working-Draft counterpart it is normative where marked.
+  </p>
+
+  <section id="sec-transport">
+    <h3>Transport</h3>
+    <p>
+      All protocol interactions MUST use TLS; clients MUST validate server certificates
+      (service identity) per [[!RFC6125]] and follow the TLS configuration recommendations of
+      BCP 195 ([[!RFC9325]]). Tokens MUST NOT appear in URLs, browser storage accessible to
+      untrusted scripts, or logs (log truncated/hashed values if needed). Capability URLs
+      (<a href="#sse-binding"></a>) are the deliberate, constrained exception to the
+      no-secrets-in-URLs rule: single-purpose, expiring, revocable, TLS-only.
+    </p>
+  </section>
+
+  <section id="sec-tokens">
+    <h3>Token security</h3>
+    <ul>
+      <li>Bearer tokens are theft- and replay-exposed within their lifetime; the mandatory
+        mitigations are audience restriction to exactly one storage-containing URI and lifetimes
+        of ≤300 seconds (RECOMMENDED). Deployments handling high-value data SHOULD offer — and
+        MAY require — a proof-of-possession profile (<a href="#presentation-pop"></a>).</li>
+      <li>Storage servers MUST maintain an explicit allowlist of trusted authorization-server
+        issuers and reject all others: a malicious AS can otherwise mint arbitrary access.</li>
+      <li>Multi-tenant instances MUST NOT accept a token whose <code>aud</code> is scoped outside
+        the current storage (tenant-replay isolation, jeswr/lws-keycloak
+        <code>spec/authz.md</code> §7.5.1).</li>
+      <li>Servers MAY maintain a <code>jti</code> replay cache (bounded, sized against DoS) for
+        single-use token policies.</li>
+      <li>Authentication credentials with unrestricted audiences MUST NOT be presented to
+        untrusted authorization servers; clients SHOULD obtain audience-restricted credentials
+        (RFC 8707 resource indicators, or token exchange) first.</li>
+    </ul>
+  </section>
+
+  <section id="sec-collusion">
+    <h3>Colluding resource/authorization servers</h3>
+    <p>
+      A malicious storage server can advertise a realm broader than its own scope with a
+      colluding authorization server; a client that proactively fetches tokens for that realm
+      leaks its intent to access <em>other</em> storages within the over-broad scope. Hence the
+      client rules of <a href="#client-rules"></a>: verify realm containment against the
+      originating request, and do not fetch tokens before a 401 from the actual target
+      (jeswr/lws-keycloak <code>spec/authz.md</code> §7.10).
+    </p>
+  </section>
+
+  <section id="ssrf">
+    <h3>Server-side request forgery (normative)</h3>
+    <p>
+      A JLWS server and authorization server make outbound requests to attacker-influenced URLs:
+      CID/subject dereferencing (<a href="#identity-documents"></a>), JWKS and metadata fetches,
+      client-ID metadata fetches, webhook inbox delivery (<a href="#webhook-binding"></a>), and
+      storage-description fetches by webhook receivers. Every such fetch MUST apply all of the
+      following:
+    </p>
+    <ul>
+      <li><strong>Scheme:</strong> <code>https</code> only.</li>
+      <li><strong>Address policy:</strong> resolve the hostname, then reject loopback,
+        private-range, link-local, unique-local, and cloud-metadata addresses (IPv4 and IPv6,
+        including IPv4-mapped/compatible IPv6 forms) — decided on the <em>resolved address</em>,
+        not the hostname string.</li>
+      <li><strong>Rebinding:</strong> connect to the validated resolved address (DNS pinning);
+        do not re-resolve between validation and connection.</li>
+      <li><strong>Redirects:</strong> do not follow redirects automatically; if followed, each
+        hop MUST re-pass the full policy.</li>
+      <li><strong>Caps:</strong> enforce response-size and time limits; bound concurrent outbound
+        fetches per principal.</li>
+      <li><strong>No credential forwarding:</strong> outbound fetches MUST NOT attach the
+        inbound request's credentials.</li>
+    </ul>
+    <div class="note" title="Divergence from lws10-core: SSRF requirements absent there">
+      The Working Draft has no SSRF text, yet its design (CID dereference on validation, webhook
+      delivery to subscriber-supplied inboxes) is a textbook SSRF surface for a server sitting on
+      cloud metadata endpoints and internal networks. These requirements mirror the policy proven
+      across the editor's server implementations. Recorded as DECISIONS.md D10.
+    </div>
+  </section>
+
+  <section id="oracle-freedom">
+    <h3>Oracle freedom (normative)</h3>
+    <ul>
+      <li>If an agent has no permitted operation on a resource, the server SHOULD respond
+        <code>404</code> (not <code>403</code>) to avoid disclosing existence; <code>403</code>
+        is for agents with partial access (jeswr/lws-keycloak <code>spec/authz.md</code>
+        §7.12).</li>
+      <li>Container listings, <code>totalItems</code>, query results, and notification streams
+        MUST expose only what the requesting agent can read
+        (<a href="#membership-authorization"></a>, <a href="#query-services"></a>).</li>
+      <li>Servers MUST NOT enumerate, in any discovery surface, the set of link relations or
+        types they index (no discovery oracle — [[LWS-SEARCHINDEX-ED]]).</li>
+      <li>Error responses (including problem details) MUST NOT leak the existence, size, or type
+        of resources the agent cannot read.</li>
+    </ul>
+  </section>
+
+  <section id="threat-model">
+    <h3>Threat model summary</h3>
+    <p>
+      The Working Group's threat-model deliverable is unstarted
+      (<a href="https://github.com/w3c/lws-protocol/issues/177">w3c/lws-protocol#177</a>); the
+      table below is this specification's working inventory. A whole-protocol security analysis —
+      not just per-mechanism considerations — remains the right end state (as argued on the
+      Working Group list,
+      <a href="https://lists.w3.org/Archives/Public/public-lws-wg/2025May/0001.html">May 2025</a>).
+    </p>
+    <table class="simple">
+      <thead><tr><th>Threat</th><th>Vector</th><th>Countermeasure (section)</th></tr></thead>
+      <tbody>
+        <tr><td>Token theft/replay</td><td>Stolen Bearer token</td>
+          <td>Audience restriction + ≤300 s lifetime (<a href="#access-token"></a>); PoP profiles
+            (<a href="#presentation-pop"></a>); tenant isolation
+            (<a href="#sec-tokens"></a>)</td></tr>
+        <tr><td>Credential replay by malicious RS</td><td>RS forwards a received credential</td>
+          <td>Audience-restricted credentials + token exchange
+            (<a href="#token-exchange"></a>)</td></tr>
+        <tr><td>Rogue authorization server</td><td>Untrusted issuer mints tokens</td>
+          <td>Issuer allowlist (<a href="#rs-validation"></a>)</td></tr>
+        <tr><td>Colluding RS+AS intent probe</td><td>Over-broad realm advertisement</td>
+          <td>Realm containment check + no proactive token fetch
+            (<a href="#sec-collusion"></a>)</td></tr>
+        <tr><td>SSRF</td><td>CID/JWKS/inbox URLs reaching internal networks</td>
+          <td><a href="#ssrf"></a></td></tr>
+        <tr><td>Existence oracle</td><td>Status codes, counts, indexes, errors</td>
+          <td><a href="#oracle-freedom"></a></td></tr>
+        <tr><td>Forged notifications</td><td>Unsigned webhook POSTs</td>
+          <td>RFC 9421 signatures + CID key resolution
+            (<a href="#webhook-binding"></a>)</td></tr>
+        <tr><td>Notification-channel hijack</td><td>Guessed/leaked stream URL</td>
+          <td>Capability-URL entropy/expiry/revocation binding
+            (<a href="#sse-binding"></a>)</td></tr>
+        <tr><td>Lost update</td><td>Concurrent writes</td>
+          <td>Strict If-Match / 428 discipline (<a href="#http-update"></a>,
+            <a href="#metadata-updates"></a>)</td></tr>
+        <tr><td>Path traversal</td><td>Encoded <code>..</code> in targets</td>
+          <td>Reject before authorization (<a href="#http-general"></a>)</td></tr>
+        <tr><td>Privilege escalation via access documents</td>
+          <td>Grant/request containers as write surface</td>
+          <td>Grants are records realised by the server, not client-enforced tokens
+            (<a href="#grants-are-records"></a>); services are ordinary authorized
+            containers</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="sec-cors">
+    <h3>Web-platform integration</h3>
+    <p>
+      Servers supporting browser clients MUST validate <code>Origin</code> and use restrictive
+      CORS policies; wildcard credentialed CORS MUST NOT be used. Servers SHOULD emit
+      <code>X-Content-Type-Options: nosniff</code> on data-resource responses and treat stored
+      content as untrusted when serving to browsers (e.g. <code>Content-Disposition</code> or
+      sandboxing policy for active content).
+    </p>
+  </section>
+</section>
+
+<section id="privacy-considerations">
+  <h2>Privacy considerations</h2>
+  <ul>
+    <li><strong>Minimal disclosure:</strong> authorization servers SHOULD issue tokens containing
+      only what authorization needs; issuers of authentication credentials likewise
+      (jeswr/lws-keycloak <code>spec/authz.md</code> §6).</li>
+    <li><strong>Pseudonymous presentation:</strong> when pseudonymous subject identifiers are
+      used, clients SHOULD request batch issuance and use each token once, preventing the storage
+      server from correlating requests by identifier; an authorization server SHOULD NOT issue
+      the same pseudonymous identifier twice (<code>spec/authz.md</code> §6.1 — note IP-address
+      and policy-shape correlation remain).</li>
+    <li><strong>Suite advertisement:</strong> <code>subject_token_types_supported</code> is
+      SHOULD-level because a self-hosting individual may not wish to advertise their
+      authentication technology (the Working Draft's own rationale).</li>
+    <li><strong>Notifications:</strong> the envelope omits <code>actor</code> by default and
+      never carries content (<a href="#notification-envelope"></a>); webhook inboxes learn
+      activity timing — subscribers should be told this when registering third-party
+      inboxes.</li>
+    <li><strong>Logging:</strong> implementations SHOULD NOT log full tokens, credentials, or
+      capability URLs.</li>
+    <li><strong>Storage descriptions</strong> may be public; publishers should treat capability
+      and service enumeration as disclosure and MAY scope the document's readability.</li>
+  </ul>
+</section>
+
+<section id="iana-registry">
+  <h2>IANA and registry considerations</h2>
+  <p>
+    As a personal draft this document requests nothing of IANA. A standards-track successor
+    would: register the <code>jlws_storage_description</code> protected-resource-metadata member
+    ([[!RFC9728]] registry); register any suite token-type URIs not already in the OAuth URI
+    registry (the WebAuthn suite's); and register problem-type URIs. The capability and service
+    registries of <a href="#capability-registry"></a> are maintained in this document's
+    repository until then. This document deliberately does <em>not</em> register a well-known
+    URI: RFC 9728 and RFC 8414 already provide the registered discovery paths the Working Draft's
+    <code>lws-configuration</code> would duplicate.
+  </p>
+</section>
+
+<section id="jsonld-context" class="appendix">
+  <h2>JSON-LD context (sketch)</h2>
+  <p>
+    The normative context at <code>https://w3id.org/jeswr/lws/v1</code> maps the terms used in
+    container representations, storage descriptions, subscriptions, and access documents into the
+    <code>jlws:</code> namespace, reusing external vocabulary where the Working Draft's
+    vocabulary Editor's Draft does: <code>totalItems</code>, <code>items</code> →
+    Activity Streams; <code>mediaType</code> → Activity Streams; <code>size</code> →
+    <code>schema:size</code>; <code>modified</code> → <code>dcterms:modified</code>;
+    <code>conformsTo</code> → <code>dcterms:conformsTo</code>; CID terms
+    (<code>verificationMethod</code>, <code>service</code>, <code>serviceEndpoint</code>) → the
+    CID context; ODRL terms → the ODRL context. Term names are chosen to be identical to the
+    Working Draft's so a context substitution is the only change needed for wire identity
+    (<a href="#namespace"></a>). The full context document ships in this repository once the
+    w3id redirect exists.
+  </p>
+</section>
+
+<section id="vocabulary" class="appendix">
+  <h2>Vocabulary</h2>
+  <table class="simple">
+    <thead><tr><th>Term</th><th>Kind</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>jlws:Storage</code></td><td>Class</td><td>A storage</td></tr>
+      <tr><td><code>jlws:Container</code></td><td>Class</td><td>A container</td></tr>
+      <tr><td><code>jlws:DataResource</code></td><td>Class</td><td>A data resource</td></tr>
+      <tr><td><code>jlws:StorageDescription</code></td><td>Class / service type</td>
+        <td>The storage description resource</td></tr>
+      <tr><td><code>jlws:storageDescription</code></td><td>Link relation</td>
+        <td>Resource → its storage description</td></tr>
+      <tr><td><code>jlws:OpenIdProvider</code></td><td>CID service type</td>
+        <td>Subject's OIDC issuer binding</td></tr>
+      <tr><td><code>jlws:Notification</code></td><td>Class</td><td>Notification envelope</td></tr>
+      <tr><td><code>jlws:NotificationService</code></td><td>Service type</td>
+        <td>Subscription endpoint</td></tr>
+      <tr><td><code>jlws:WebhookSubscription</code>, <code>jlws:SseSubscription</code>,
+        <code>jlws:WebSocketSubscription</code></td><td>Classes</td>
+        <td>Subscription types (<a href="#notifications"></a>)</td></tr>
+      <tr><td><code>jlws:AccessRequestService</code>, <code>jlws:AccessGrantService</code>,
+        <code>jlws:GroupService</code></td><td>Service types</td>
+        <td>Access-document containers; group membership
+          (<a href="#access-requests-grants"></a>)</td></tr>
+      <tr><td><code>jlws:create</code>, <code>jlws:append</code></td><td>ODRL actions</td>
+        <td>Both <code>odrl:includedIn odrl:modify</code>
+          (<a href="#odrl-profile"></a>)</td></tr>
+      <tr><td><code>jlws:PatchSupport</code>, <code>jlws:ContentNegotiation</code>,
+        <code>jlws:ResumableUploads</code>, <code>jlws:RecursiveDelete</code>,
+        <code>jlws:MoveResource</code>, <code>jlws:Versioning</code></td><td>Capability types</td>
+        <td><a href="#capability-registry"></a></td></tr>
+      <tr><td><code>jlws:AccessRequest</code></td><td>RAR type</td>
+        <td><code>authorization_details</code> entry type (<a href="#rar"></a>)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="test-vectors" class="appendix informative">
+  <h2>Test-vector index (planned)</h2>
+  <p>
+    Conformance test vectors in the language-neutral (input, operation, expected-verdict) format
+    of <a href="https://github.com/jeswr/agentic-solid-conformance">agentic-solid-conformance</a>
+    are the planned companion suite, honouring the Working Group charter's
+    "testing from earliest drafts" success criterion and exceeding the 27 MUST-level tests of the
+    community <code>linkedwebstorage/test-suite</code>. Planned families: container listing and
+    pagination; the conditional-request matrix (<code>If-Match</code> /
+    <code>If-None-Match: *</code> / 428 / 412); idempotent-create semantics; token-exchange
+    accept/reject paths; RFC 9728 challenge parsing; DPoP and DPoP-SK profile vectors; ODRL grant
+    evaluation (reusing the solid-odrl delegation vectors); RFC 9421 webhook signature
+    verification; SSE resumption and reset.
+  </p>
+</section>
+
+<section id="divergence-register" class="appendix">
+  <h2>Divergence register</h2>
+  <p>
+    Every deliberate divergence from [[LWS10-CORE]] (and its sibling drafts), with its rationale
+    section. Full decision records with alternatives are in this repository's
+    <code>DECISIONS.md</code>.
+  </p>
+  <table class="simple">
+    <thead><tr><th>#</th><th>Working Draft position</th><th>This document</th>
+      <th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>D1</td><td>Bespoke <code>as_uri</code> +
+        <code>/.well-known/lws-configuration</code></td>
+        <td>RFC 9728 <code>resource_metadata</code> + RFC 8414 registered well-known</td>
+        <td><a href="#authz-discovery"></a></td></tr>
+      <tr><td>D2</td><td>POST-only create (duplicate-on-retry hazard acknowledged)</td>
+        <td>Idempotent <code>PUT + If-None-Match: *</code> create added</td>
+        <td><a href="#http-create-put"></a></td></tr>
+      <tr><td>D3</td><td>Container-as-data-resource unresolved (#126)</td>
+        <td>Strict separation; <code>describedby</code> for described containers</td>
+        <td><a href="#container-vs-data"></a></td></tr>
+      <tr><td>D4</td><td>URIs independent of hierarchy</td>
+        <td>Guaranteed URI-path alignment (containment still metadata)</td>
+        <td><a href="#path-alignment"></a></td></tr>
+      <tr><td>D5</td><td>Storage description without keys, versions, or a registry</td>
+        <td>CID-shaped + <code>conformsTo</code> + capability registry</td>
+        <td><a href="#discovery-model"></a></td></tr>
+      <tr><td>D6</td><td>Webhooks only; client channels deferred</td>
+        <td>SSE + WebSocket bindings added under the same subscription API</td>
+        <td><a href="#notifications"></a></td></tr>
+      <tr><td>D7</td><td>Suites: OIDC, SAML, SSI-CID, did:key</td>
+        <td>Suites: OIDC, SSI-CID, did:key, WebAuthn (SAML external)</td>
+        <td><a href="#suites"></a></td></tr>
+      <tr><td>D8</td><td>(Solid heritage: JSON-LD client documents)</td>
+        <td>OAuth Client ID Metadata Document</td>
+        <td><a href="#client-identity"></a></td></tr>
+      <tr><td>D9</td><td>Bearer only; no PoP anywhere</td>
+        <td>Bearer baseline + optional negotiated DPoP / DPoP-SK profiles</td>
+        <td><a href="#presentation-pop"></a></td></tr>
+      <tr><td>D10</td><td>No SSRF text; empty privacy sections</td>
+        <td>Normative SSRF + oracle-freedom + threat model + privacy sections</td>
+        <td><a href="#ssrf"></a>, <a href="#oracle-freedom"></a></td></tr>
+      <tr><td>D11</td><td><code>aud</code> "exactly one" vs multi-audience examples
+        (inconsistent)</td>
+        <td>Single-valued <code>aud</code> everywhere</td>
+        <td><a href="#access-token"></a></td></tr>
+      <tr><td>D12</td><td>Listings MAY name inaccessible members</td>
+        <td>Fail-closed listings; caller-visible counts</td>
+        <td><a href="#membership-authorization"></a></td></tr>
+      <tr><td>D13</td><td>Internal drift: ContainerPage vs flat items;
+        client-manageable <code>up</code>/<code>items</code> vs server-managed</td>
+        <td>Flat items; system-managed containment metadata</td>
+        <td><a href="#container-properties"></a>, <a href="#metadata-categories"></a></td></tr>
+      <tr><td>D14</td><td><code>w3.org/ns/lws</code> namespace (unpublished)</td>
+        <td><code>w3id.org/jeswr/lws</code>, term-identical, alias-accepting</td>
+        <td><a href="#namespace"></a></td></tr>
+      <tr><td>D15</td><td>Flat access object; ODRL-flavoured</td>
+        <td>Strict ODRL profile (PR #109) + VC receipts + delegation + groups</td>
+        <td><a href="#access-requests-grants"></a></td></tr>
+      <tr><td>D16</td><td>RAR only a F2F artifact</td>
+        <td>RFC 9396 <code>authorization_details</code> normative (narrowing-only), with the
+          approved/deferred duality</td>
+        <td><a href="#rar"></a></td></tr>
+      <tr><td>D17</td><td>Problem details SHOULD</td>
+        <td>Problem details MUST on all 4xx/5xx</td>
+        <td><a href="#http-general"></a></td></tr>
+      <tr><td>D18</td><td><code>ContentNegotiation</code> capability an unregistried example;
+        transformation semantics undefined</td>
+        <td>Capability term kept; <code>profile</code>/<code>normalizes</code> members +
+          RDF round-trip semantics defined by the
+          <a href="./rdf-transform.html">RDF Content Transformation companion</a></td>
+        <td><a href="#capability-registry"></a></td></tr>
+      <tr><td>D19</td><td>—(process, not wire: WG repo/publication process)</td>
+        <td>One personal repo, ReSpec <code>unofficial</code>, local-only until the
+          maintainer steers publication (DECISIONS.md D19)</td>
+        <td><a href="#sotd"></a></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="acknowledgements" class="appendix informative">
+  <h2>Acknowledgements</h2>
+  <p>
+    This design stands on the W3C Linked Web Storage Working Group's drafts and discussions —
+    the container, linkset, suite, token-exchange, ODRL-grant, and signed-webhook mechanisms
+    adopted here are that group's work, cited throughout — and on the Solid Protocol and the
+    Solid Community Group's decade of incubation. No endorsement by either group is implied, and
+    none of their participants was consulted in the drafting of this personal document.
+  </p>
+</section>
+
+</body>
+</html>

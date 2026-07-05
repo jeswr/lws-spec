@@ -1,0 +1,21 @@
+{
+  "name": "lws-spec",
+  "kind": "specification",
+  "status": "design",
+  "visibility": "local-unpublished",
+  "description": "JLWS — a personal clean-slate Linked Web Storage design: core protocol (wire-compatible superset of the LWS WG WD; RFC 9728 discovery, idempotent create, path alignment, CID-shaped storage description, SSE/WebSocket notifications, WebAuthn suite, optional negotiated PoP, strict-ODRL grants, normative SSRF/threat model) + the RDF Content Transformation opt-in profile. LOCAL ONLY; publication gated on the maintainer.",
+  "conformsTo": [],
+  "relatedRepos": [
+    "jeswr/lws-keycloak",
+    "jeswr/lws-acp",
+    "jeswr/lws-protocol",
+    "jeswr/lws-ucs",
+    "jeswr/dpop-sk-spec",
+    "jeswr/solid-webauthn-reauth",
+    "jeswr/solid-odrl",
+    "jeswr/federation-registry",
+    "jeswr/solid-server-rs",
+    "jeswr/agentic-solid-conformance"
+  ],
+  "tr": "none (personal draft; W3C contribution only on the maintainer's decision)"
+}

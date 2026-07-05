@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<!-- AUTHORED-BY Claude Fable 5 — AI-assisted draft awaiting maintainer review; see SOTD + DECISIONS.md -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JLWS RDF Content Transformation Profile</title>
+  <script src="https://www.w3.org/Tools/respec/respec-w3c" class="remove" defer></script>
+  <script class="remove">
+    var respecConfig = {
+      specStatus: "unofficial",
+      shortName: "jlws-rdf-transform",
+      edDraftURI: null,
+      latestVersion: null,
+      editors: [
+        {
+          name: "Jesse Wright",
+          url: "https://jeswr.org/#me"
+        }
+      ],
+      copyrightStart: "2026",
+      maxTocLevel: 3,
+      lint: { "no-unused-dfns": false },
+      localBiblio: {
+        "JLWS-CORE": {
+          title: "JLWS Core Protocol — A Clean-Slate Linked Web Storage Design",
+          href: "./index.html",
+          publisher: "Personal draft (this repository)",
+          status: "Unpublished personal draft"
+        },
+        "LWS10-CORE": {
+          title: "Linked Web Storage Protocol 1.0",
+          href: "https://www.w3.org/TR/lws10-core/",
+          authors: ["Jesse Wright", "Erich Bremer"],
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Working Draft, 22 June 2026"
+        },
+        "LWS-UCS": {
+          title: "Linked Web Storage Use Cases",
+          href: "https://www.w3.org/TR/lws-ucs/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Draft Note, 10 February 2026"
+        },
+        "LWS-SEARCHINDEX-ED": {
+          title: "LWS Search Index",
+          href: "https://w3c.github.io/lws-protocol/lws10-searchindex/",
+          publisher: "W3C Linked Web Storage Working Group",
+          status: "Editor's Draft (unpublished)"
+        },
+        "SOLID-PROTOCOL": {
+          title: "Solid Protocol",
+          href: "https://solidproject.org/TR/protocol",
+          publisher: "W3C Solid Community Group",
+          status: "Version 0.11.0"
+        },
+        "SOLID-OIDC": {
+          title: "Solid-OIDC",
+          href: "https://solidproject.org/TR/oidc",
+          publisher: "W3C Solid Community Group",
+          status: "Version 0.1.0"
+        },
+        "WAC": {
+          title: "Web Access Control",
+          href: "https://solidproject.org/TR/wac",
+          publisher: "W3C Solid Community Group",
+          status: "Version 1.0.0"
+        },
+        "N3-PATCH": {
+          title: "Solid Protocol §Writing Resources (N3 Patch)",
+          href: "https://solidproject.org/TR/protocol#writing-resources",
+          publisher: "W3C Solid Community Group",
+          status: "Version 0.11.0"
+        },
+        "AC-SPARQL": {
+          title: "Access-controlled SPARQL over Solid storage (design)",
+          href: "https://github.com/jeswr/solid-server-rs/blob/main/docs/design/solid-server-rs-wac.md",
+          publisher: "jeswr/solid-server-rs",
+          status: "Design document"
+        }
+      }
+    };
+  </script>
+</head>
+<body>
+
+<section id="abstract">
+  <p>
+    The JLWS core protocol [[JLWS-CORE]] is byte-native: a data resource is stored bytes plus a
+    media type, and conformance never requires content parsing. This companion profile is the
+    <strong>opt-in that makes a JLWS storage RDF-aware</strong>. A server declares, per source
+    media type, which target media types it can derive through RDF-semantics-preserving
+    transformation — advertised as <code>ContentNegotiation</code> capability entries in the
+    storage description, pinned to this profile's semantics URI
+    (<code>https://w3id.org/jeswr/lws/transform/rdf-1</code>). The profile fixes what the core
+    leaves open: the round-trip contract (RDF 1.1 abstract-syntax equivalence, no inference),
+    authoritative-bytes semantics with per-representation entity-tags and precondition rules that
+    eliminate the lost-update ambiguity of existing Solid servers, a <code>normalizes</code>
+    escape hatch for stores that cannot preserve bytes, the condition under which RDF PATCH
+    formats may be advertised, and the hook by which indexes and query services may be enriched
+    from parsed content. Finally, it defines how the Solid Protocol sits as a
+    <strong>profile on top</strong>: "Solid-on-JLWS" is this profile plus a small mapping — the
+    substrate never has to know RDF.
+  </p>
+</section>
+
+<section id="sotd">
+  <p>
+    This document is a <strong>personal, experimental design draft</strong>, companion to
+    [[JLWS-CORE]] and sharing its status: no standing, not a deliverable of any W3C group,
+    unpublished, and awaiting review by its editor. Its namespace discipline is the core's
+    (<code>w3id.org/jeswr/lws</code>; nothing minted under <code>w3.org</code>).
+  </p>
+  <p>
+    <strong>Drafting disclosure:</strong> prepared with AI assistance (Claude&nbsp;Fable&nbsp;5,
+    Anthropic) from the cited sources; awaiting review by its human editor. This document
+    realises the "Personal Data Projection" requirement of [[LWS-UCS]] (requirement 33:
+    "automatic transformation (projection) of personal data in formats consumable by non-LWS
+    applications … without duplicating underlying resources") and extends the
+    <code>ContentNegotiation</code> capability sketched in [[LWS10-CORE]] <em>Discovery</em>.
+  </p>
+</section>
+
+<section id="introduction" class="informative">
+  <h2>Introduction</h2>
+  <p>
+    Solid required every "RDF source" to be readable and writable as Turtle and JSON-LD and made
+    RDF the storage's native model; LWS inverted this — resources are bytes, and the Working
+    Draft merely notes that "Servers are free to support additional media types (e.g.,
+    text/turtle) through content negotiation" and sketches a <code>ContentNegotiation</code>
+    capability (<code>{source, target[]}</code>) in its storage-description example. That sketch
+    is the right layering but is not yet a contract: it does not say what a transformation
+    preserves, which representation's bytes are authoritative, how entity-tags and preconditions
+    behave across representations, or when RDF PATCH formats apply.
+  </p>
+  <p>
+    This profile supplies that contract. With it, an RDF-capable JLWS storage serves the same
+    resource as Turtle to one client and JSON-LD to another, guarantees both are the same RDF
+    graph, keeps writes safe under concurrency, and lets RDF-aware indexing and query be built on
+    top — while a server that skips this profile remains fully conformant to the core, and a
+    client can detect all of it from one capability entry.
+  </p>
+</section>
+
+<section id="conformance">
+  <p>This specification defines two conformance classes:</p>
+  <ul>
+    <li>An <dfn>RDF-transforming server</dfn> — a JLWS server ([[JLWS-CORE]]) implementing this
+      profile for at least one advertised source media type;</li>
+    <li>An <dfn>RDF-aware client</dfn> — a JLWS client that feature-detects this profile from the
+      storage description before relying on any transformation.</li>
+  </ul>
+</section>
+
+<section id="terminology">
+  <h2>Terminology</h2>
+  <p>
+    The terms <a data-cite="JLWS-CORE">storage description resource</a>, "data resource",
+    "capability", and "conformsTo" are used as defined by [[JLWS-CORE]]. "RDF graph",
+    "RDF dataset", and graph isomorphism are defined by [[!RDF11-CONCEPTS]].
+  </p>
+  <dl>
+    <dt><dfn>authoritative representation</dfn></dt>
+    <dd>The representation of a data resource in its stored media type: the byte stream most
+      recently written (or its declared normalisation — <a href="#normalizes"></a>).</dd>
+    <dt><dfn>derived representation</dfn></dt>
+    <dd>A representation produced by the server from the <a>authoritative representation</a>
+      through an advertised transformation.</dd>
+    <dt><dfn>RDF-readable resource</dfn></dt>
+    <dd>A data resource whose stored media type is an advertised transformation
+      <code>source</code> (or target-reachable from one) under this profile.</dd>
+  </dl>
+</section>
+
+<section id="capability">
+  <h2>Capability declaration</h2>
+  <p>
+    An <a>RDF-transforming server</a> MUST advertise, in the storage description's
+    <code>capability</code> set, one <code>ContentNegotiation</code> entry per supported source
+    media type:
+  </p>
+  <pre class="example" title="RDF transformation capability entries">
+{
+  "capability": [{
+    "type": "ContentNegotiation",
+    "source": "text/turtle",
+    "target": ["application/ld+json", "application/n-triples"],
+    "profile": "https://w3id.org/jeswr/lws/transform/rdf-1"
+  }, {
+    "type": "ContentNegotiation",
+    "source": "application/ld+json",
+    "target": ["text/turtle", "application/n-triples"],
+    "profile": "https://w3id.org/jeswr/lws/transform/rdf-1",
+    "normalizes": true
+  }]
+}
+  </pre>
+  <ul>
+    <li><code>source</code> — REQUIRED; the stored media type the entry applies to.</li>
+    <li><code>target</code> — REQUIRED; the media types derivable from it. Each MUST be a
+      concrete RDF serialisation of the same abstract syntax (<a href="#round-trip"></a>).</li>
+    <li><code>profile</code> — REQUIRED for entries claiming this profile; the value
+      <code>https://w3id.org/jeswr/lws/transform/rdf-1</code> pins the transformation semantics
+      of <a href="#round-trip"></a>. A <code>ContentNegotiation</code> entry without a
+      <code>profile</code> (e.g. <code>image/jpeg → image/png</code>) makes no
+      semantics-preservation claim and is outside this document.</li>
+    <li><code>normalizes</code> — OPTIONAL, default <code>false</code>
+      (<a href="#normalizes"></a>).</li>
+  </ul>
+  <p>
+    The storage description's <code>conformsTo</code> array MUST include
+    <code>https://w3id.org/jeswr/lws/transform/rdf-1</code> when any entry claims this profile.
+    Clients MUST NOT attempt transformation-dependent behaviour (RDF conneg, RDF PATCH, SPARQL
+    query) against a storage that does not advertise it; servers MUST NOT advertise pairs they do
+    not implement ([[JLWS-CORE]] conformance rule).
+  </p>
+  <div class="note" title="Relationship to the Working Draft">
+    [[LWS10-CORE]]'s Discovery example writes this capability as
+    <code>{"type": "https://feature.example/ContentNegotiation", "source": …, "target": […]}</code>
+    — an unregistered example type with no semantics attached. This profile registers the term,
+    keeps the <code>source</code>/<code>target</code> shape byte-compatible, and adds only the
+    two members (<code>profile</code>, <code>normalizes</code>) that turn the sketch into a
+    contract. (The design brief for this repository referred to the same mechanism as
+    "ContentTransformation"; the Working Draft's term is retained for wire continuity —
+    DECISIONS.md D18.)
+  </div>
+</section>
+
+<section id="round-trip">
+  <h2>Transformation semantics (the <code>rdf-1</code> contract)</h2>
+  <p>For every advertised <code>source → target</code> pair claiming this profile:</p>
+  <ul>
+    <li>The derived representation MUST encode an RDF graph (or dataset, for dataset-capable
+      pairs) <strong>isomorphic</strong> to that of the authoritative representation
+      ([[!RDF11-CONCEPTS]] Section 3.6): same triples up to blank-node relabelling.</li>
+    <li>Transformation MUST NOT apply inference, schema expansion, or vocabulary rewriting: no
+      triples added, none removed.</li>
+    <li>Relative IRIs MUST be resolved against the resource URI as base, identically in every
+      representation.</li>
+    <li>For JSON-LD targets: when the authoritative representation is JSON-LD with a declared
+      <code>@context</code>, servers MUST serialise derived JSON-LD using that context —
+      subject to the no-dereference rule (<a href="#security-privacy"></a>): a remote context
+      reference is reused only when it resolves from the server's allowlisted context cache; a
+      JSON-LD source declaring a remote context outside that allowlist MUST be handled without
+      fetching, either by serialising the derived representation in <em>expanded form</em>
+      (which requires no context resolution) or by declining the transformation for that
+      resource (<code>406</code> + problem details, as for an unparseable source) — never by a
+      network fetch. When the source has no context (e.g. Turtle), the server MUST use a
+      documented, stable context or expanded form. In every case clients MUST NOT depend on
+      any particular compaction beyond the graph contract.</li>
+    <li>Blank-node identifiers are NOT stable across representations or requests; clients
+      requiring stable references use IRIs.</li>
+    <li>If the authoritative representation fails to parse under its stored media type, the
+      server MUST answer requests for derived representations with
+      <code>406 Not Acceptable</code> carrying a problem details body of type
+      <code>https://w3id.org/jeswr/lws/problems/unparseable-source</code> — the stored bytes
+      remain readable in the stored media type. (A byte store never breaks because a transform
+      does.)</li>
+  </ul>
+</section>
+
+<section id="authoritative-bytes">
+  <h2>Authoritative bytes, entity-tags, and preconditions</h2>
+  <p>
+    This section removes the lost-update ambiguity that RDF-serving Solid servers exhibit when
+    the same resource is read and written through different serialisations.
+  </p>
+  <ul>
+    <li><strong>Stored bytes are authoritative.</strong> The byte stream accepted at write time
+      is the resource's <a>authoritative representation</a>. A read in the stored media type MUST
+      return those bytes exactly, unless <code>normalizes</code> is declared for that source type
+      (<a href="#normalizes"></a>).</li>
+    <li><strong>Derived representations are RFC 9110 representations of the same resource</strong>
+      — negotiated via <code>Accept</code>; responses vary by representation, so responses to
+      requests subject to transformation MUST carry <code>Vary: Accept</code>.</li>
+    <li><strong>Entity-tags are per-representation</strong> ([[!RFC9110]] Section 8.8.3: an
+      entity-tag validates a <em>representation</em>). The ETag returned with a Turtle response
+      and the ETag returned with a JSON-LD response of the same resource state MUST differ, and
+      each MUST change whenever the resource state changes.</li>
+    <li><strong>Write preconditions evaluate against the representation the ETag names.</strong>
+      A server MUST accept an <code>If-Match</code> carrying either the authoritative
+      representation's current ETag or the current ETag of the derived representation the client
+      last read; both name the same resource state. Stale values of either MUST yield
+      <code>412</code>. The core's <code>428</code> rule applies unchanged: no unconditional
+      overwrite of an existing RDF-readable resource.</li>
+    <li><strong>Writes in a derived media type</strong>: a server MAY accept a PUT whose
+      <code>Content-Type</code> is an advertised type reachable from the stored type, but ONLY
+      when the written type is itself advertised as a <code>source</code> in a
+      <code>ContentNegotiation</code> capability (bidirectional coverage). This condition is
+      load-bearing: because on acceptance the written bytes become the new authoritative
+      representation and the stored media type becomes the written <code>Content-Type</code>,
+      accepting a write in a type with no <code>source</code> entry would strand the resource
+      in a stored type the server cannot transform — silently breaking the negotiation targets
+      it advertises. Servers MUST NOT silently transcode a write into a
+      different stored type unless <code>normalizes</code> is declared. A server that does not
+      accept writes in a given type (including the not-a-<code>source</code> case above)
+      answers <code>415</code> with problem details naming the accepted types.</li>
+  </ul>
+</section>
+
+<section id="normalizes">
+  <h2>The <code>normalizes</code> flag</h2>
+  <p>
+    Some stores cannot preserve written bytes for a media type — e.g. a quad-store-backed server
+    that parses on ingest and reserialises on read. Such a server MUST declare
+    <code>"normalizes": true</code> on the affected <code>source</code> entry. Semantics:
+  </p>
+  <ul>
+    <li>Read-back in the stored media type is graph-isomorphic to what was written
+      (<a href="#round-trip"></a>) but NOT byte-identical; clients MUST NOT rely on formatting,
+      comment preservation, prefix labels, or blank-node identifiers.</li>
+    <li>The normalisation MUST be deterministic for a given resource state (two reads without an
+      intervening write return identical bytes), so ETags remain coherent.</li>
+    <li>Without the flag (the default), byte-exact read-back is a MUST — the core's byte-native
+      promise. Servers SHOULD prefer byte-preserving storage; <code>normalizes</code> is an
+      honest escape hatch, not the recommended mode.</li>
+  </ul>
+</section>
+
+<section id="rdf-patch">
+  <h2>RDF PATCH formats (only when on)</h2>
+  <p>
+    RDF-level patching is meaningless on a byte substrate and is therefore scoped entirely to
+    this profile:
+  </p>
+  <ul>
+    <li>A server MUST NOT advertise an RDF patch format (<code>application/sparql-update</code>,
+      <code>text/n3</code> for N3 Patch [[N3-PATCH]]) in <code>Accept-Patch</code> or in a
+      <code>PatchSupport</code> capability entry for a media type unless this profile is on for
+      that media type — mirroring the Working Draft's Discovery example, which pairs
+      <code>text/turtle</code> with <code>application/sparql-update</code> in
+      <code>PatchSupport</code>.</li>
+    <li>An RDF patch applies to the resource's RDF graph; the resulting graph is reserialised
+      into the authoritative representation. Applying an RDF patch is a state change like any
+      other: all representation ETags rotate, and the precondition discipline of
+      <a href="#authoritative-bytes"></a> applies to the PATCH request itself.</li>
+    <li>After an RDF patch, byte-exact preservation of the previous serialisation is
+      by definition impossible for the changed portions; a server MAY preserve unaffected
+      formatting but clients MUST NOT rely on it. (A server for which this matters SHOULD declare
+      <code>normalizes</code> for patched types.)</li>
+    <li>Patch evaluation MUST be atomic and MUST enforce the same authorization as a content
+      write; conditional patch semantics (e.g. an N3 Patch <code>?conditions</code> that fails to
+      match) yield <code>409 Conflict</code> with problem details.</li>
+  </ul>
+</section>
+
+<section id="indexing">
+  <h2>RDF-aware indexing and query (enrichment hook)</h2>
+  <p>
+    The core's search services derive types from <code>Link rel="type"</code> headers at write
+    time, never parsing bodies ([[LWS-SEARCHINDEX-ED]]). When this profile is on, the server MAY
+    additionally derive index entries from the parsed RDF content of RDF-readable resources
+    (<code>rdf:type</code> statements and descriptive properties), ranked equally with
+    header-derived entries — the searchindex draft's "MAY derive from content" hook, made
+    well-defined by this profile's parse contract. The <code>SparqlQueryService</code>
+    ([[JLWS-CORE]] <em>Query services</em>) MUST only be advertised when this profile is on, and
+    its access-control semantics (per-solution authorization filtering) follow [[AC-SPARQL]].
+    All such derived views remain bound by the core's oracle-freedom invariants: live
+    authorization filtering, caller-visible counts, immediate revocation effect.
+  </p>
+</section>
+
+<section id="solid-profile">
+  <h2>Solid as a profile on top ("Solid-on-JLWS")</h2>
+  <p class="informative">
+    <em>This section is an informative mapping sketch; a full Solid-on-JLWS profile would be its
+    own companion document.</em>
+  </p>
+  <p>
+    The layering thesis: <strong>JLWS is the substrate; Solid is a profile</strong>. A
+    Solid-on-JLWS storage is a JLWS storage that:
+  </p>
+  <ol>
+    <li><strong>Turns this profile on</strong> for <code>text/turtle</code> and
+      <code>application/ld+json</code> (both directions) — giving Solid's mandatory RDF-source
+      conneg pair [[SOLID-PROTOCOL]];</li>
+    <li><strong>Serves container listings as it already does</strong> — the core's JSON-LD
+      container representation is an RDF graph; with this profile on, a Turtle rendering of the
+      listing gives LDP-accustomed clients a familiar containment graph without the server
+      implementing LDP;</li>
+    <li><strong>Maps Solid-OIDC to the OIDC authentication suite</strong> — the WebID is the CID
+      subject (a WebID document content-negotiates to a CID; <code>solid:oidcIssuer</code>
+      becomes the <code>jlws:OpenIdProvider</code> service — the migration path in the editor's
+      lws-keycloak notes), with the DPoP presentation profile ([[JLWS-CORE]]
+      <em>Proof-of-possession profiles</em>) satisfying Solid-OIDC's DPoP expectation
+      [[SOLID-OIDC]] for clients that need it;</li>
+    <li><strong>Maps WAC/ACP documents to ODRL grants</strong> — <code>acl:Read</code> →
+      <code>odrl:read</code>; <code>acl:Write</code> → <code>odrl:modify</code> +
+      <code>jlws:create</code> + <code>odrl:delete</code>; <code>acl:Append</code> →
+      <code>jlws:append</code>; <code>acl:Control</code> → grant-management rights over the
+      access services; <code>acl:accessTo</code> → a <code>DataResource</code>/<code>Container</code>
+      target; <code>acl:default</code> → a recursive <code>Container</code> target;
+      <code>acl:agentClass foaf:Agent</code> → the public assignee ([[WAC]]). The WAC↔ACP
+      conversion precedent (the <code>@solid/object</code> <code>wacToAcp</code>/<code>acpToWac</code>
+      accessors) shows such mappings are mechanically checkable;</li>
+    <li><strong>Advertises N3 Patch and/or SPARQL Update</strong> via <code>PatchSupport</code>
+      (<a href="#rdf-patch"></a>) for Solid clients that write via PATCH.</li>
+  </ol>
+  <p>
+    Under this mapping, existing RDF client stacks consume a JLWS storage unchanged — content
+    negotiation and parsing, typed reads over the graph, standard serialisation on write — with
+    the capability entry telling the client, before its first request, whether RDF conneg will
+    work. The substrate never learns RDF; everything RDF-shaped lives behind the one advertised
+    profile. What Solid-on-JLWS deliberately does <em>not</em> restore: RDF-mandatory resources,
+    slash-semantics containment (the core's containment is metadata with guaranteed path
+    alignment — strictly more predictable), or client-managed containment triples.
+  </p>
+</section>
+
+<section id="security-privacy">
+  <h2>Security and privacy considerations</h2>
+  <ul>
+    <li><strong>Parser surface:</strong> transformation makes the server parse untrusted bytes.
+      Parsers MUST be resource-bounded (document size, triple count, nesting depth, parse time);
+      parse failures are per-resource errors (<a href="#round-trip"></a>), never server
+      faults.</li>
+    <li><strong>No dereference during transformation:</strong> serialisation and parsing MUST
+      NOT fetch remote documents — no JSON-LD remote <code>@context</code> resolution beyond a
+      server-configured allowlist of cached contexts, no <code>owl:imports</code>, no follow-your-nose.
+      A remote-context fetch performed on attacker-supplied content is an SSRF primitive; the
+      core's SSRF policy ([[JLWS-CORE]] <em>Server-side request forgery</em>) applies to any
+      allowlisted fetch.</li>
+    <li><strong>Oracle discipline:</strong> content-derived index entries expose content through
+      a side channel; the enrichment hook (<a href="#indexing"></a>) is bound by the core's
+      oracle-freedom rules, and index visibility MUST match resource read visibility
+      per-agent.</li>
+    <li><strong>Normalisation information loss:</strong> <code>normalizes</code> discards
+      comments and formatting, which may themselves carry meaning for some workflows; the flag
+      makes the loss visible in advance rather than discovered on read-back.</li>
+    <li><strong>ETag correlation:</strong> per-representation ETags MUST NOT embed content
+      digests that let an agent with access to one representation infer bytes of another it
+      cannot read (relevant only under representation-scoped authorization extensions; with
+      resource-scoped authorization, all representations share visibility).</li>
+  </ul>
+</section>
+
+<section id="conformance-vectors" class="appendix informative">
+  <h2>Test-vector families (planned)</h2>
+  <p>
+    Planned vectors for the shared suite ([[JLWS-CORE]] Appendix, <em>Test-vector index</em>):
+    graph round-trip (Turtle → JSON-LD → N-Triples → isomorphism check); ETag rotation matrix
+    across representations on write; If-Match acceptance with the derived representation's ETag;
+    <code>normalizes</code> determinism; unparseable-source degradation (stored bytes still
+    readable); RDF-PATCH-off rejection (415 / no Accept-Patch advertisement without the profile);
+    bounded-parser rejection of depth/size bombs; the WAC→ODRL mapping table as executable
+    assertions.
+  </p>
+</section>
+
+</body>
+</html>
