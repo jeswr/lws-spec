@@ -1,16 +1,21 @@
 <!-- AUTHORED-BY Claude Fable 5 -->
-# lws-spec — JLWS: a clean-slate Linked Web Storage design (personal, experimental)
+# lws-spec — JLWS: a Fable AI re-write of Linked Web Storage, as an experiment
 
-A **personal, experimental specification draft** in the `jeswr/` namespace. It is **not** a
-deliverable, work item, or position of the W3C Linked Web Storage Working Group or of any other
-group, tags no one, and requests nothing of anyone. It exists to explore — in complete,
-normative form — a clean-slate design over the ground the LWS WG's Working Drafts cover
-partially, and to be offered as input to that group only if and when its editor chooses.
+> ### ⚠️ This is an EXPERIMENT — an AI (Claude **Fable 5**) re-write of Linked Web Storage.
+> It was **written by an AI agent** as a clean-slate exploration, published here **only as an
+> experiment**. It is **NOT** a W3C deliverable, **NOT** a work item, and **NOT** a position of
+> the W3C Linked Web Storage Working Group or of any individual. It is a personal experiment in
+> the `jeswr/` namespace, tags no one, and requests nothing of anyone. Treat it as an
+> AI-generated design study, not a standard.
 
-**Status: LOCAL AND UNPUBLISHED.** Publication is the maintainer's explicit call and he has not
-yet made it (see `docs/OPEN-QUESTIONS.md` Q2). This repository intentionally has no public
-remote. The working name **JLWS** and the `https://w3id.org/jeswr/lws#` namespace are
-placeholders (Q1); nothing is minted under `w3.org`.
+A **Fable (AI) re-write** of the Linked Web Storage design, in complete normative form, over the
+ground the LWS WG's Working Drafts cover partially — offered as input to that group only if and
+when its human editor chooses. The working name **JLWS** and the `https://w3id.org/jeswr/lws#`
+namespace are placeholders (see `docs/OPEN-QUESTIONS.md` Q1); nothing is minted under `w3.org`.
+
+**Status: PUBLISHED AS A PUBLIC EXPERIMENT** (maintainer-authorised, 2026-07-05). It remains an
+AI-authored draft **awaiting review by the human editor**; the open questions in
+`docs/OPEN-QUESTIONS.md` (esp. namespace + posture) are still live.
 
 ## What it is
 
