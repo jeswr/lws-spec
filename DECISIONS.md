@@ -239,8 +239,10 @@ repository is a directory move (OQ10 stays open for the maintainer).
 The agentic-solid-conformance methodology extracts verdicts from a pinned reference
 implementation; JLWS has none yet, so the suite inverts the direction: every `expected` is
 derived from the normative text @ deb310e (per-case `source` cites the clause; `notes`
-records any interpretation, e.g. path-segment "logical containment", RFC 8693 §2.2.2
-`invalid_target`). Consequences designed in: (a) under-specified code points use
+records any interpretation applied where the spec leaves a code point open, e.g. the
+RFC 8693 §2.2.2 `invalid_target` choice — the path-segment reading of "logical containment"
+began as such a note and is now the spec's own normative rule (rs-validation), the intended
+lifecycle for these notes). Consequences designed in: (a) under-specified code points use
 `anyOf`/`errorOneOf` rather than silent over-pinning; (b) SHOULD-level requirements emit
 advisory `level: "SHOULD"` cases (W3C practice), optional features hide behind
 `preconditions` so skipping is conformant; (c) `GAPS.md` catalogues every normative

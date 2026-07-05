@@ -108,7 +108,27 @@ for (const suiteRef of top.suites) {
   }
   caseTotal += manifest.caseCount;
 
-  const indexed = new Set(Object.values(manifest.clauseIndex ?? {}).flat());
+  // clauseIndex integrity: every KEY must be a well-formed clause resolving to
+  // a real spec section id; every listed ID must be a real case in this
+  // manifest; and (checked per-case below) each case must be indexed under
+  // EXACTLY the clauses it declares — so a stale/wrong mapping cannot pass.
+  const clauseIndex = manifest.clauseIndex ?? {};
+  const indexed = new Set(Object.values(clauseIndex).flat());
+  const manifestCaseIds = new Set(manifest.cases.map((c) => c.id));
+  const indexedUnder = {}; // caseId -> Set of clauses it is listed under
+  for (const [clause, ids] of Object.entries(clauseIndex)) {
+    const m = clause.match(/^(core|rdf)#([A-Za-z0-9-]+)$/);
+    if (!m) fail(`${manifest.suite}: clauseIndex key ${clause} is not a well-formed clause`);
+    else {
+      const secIds = m[1] === 'core' ? CORE_IDS : RDF_IDS;
+      if (!secIds.has(m[2])) fail(`${manifest.suite}: clauseIndex key ${clause} names a section id absent from the spec`);
+    }
+    if (!Array.isArray(ids)) { fail(`${manifest.suite}: clauseIndex[${clause}] is not an array`); continue; }
+    for (const cid of ids) {
+      if (!manifestCaseIds.has(cid)) fail(`${manifest.suite}: clauseIndex[${clause}] lists ${cid}, not a case in this manifest`);
+      (indexedUnder[cid] ??= new Set()).add(clause);
+    }
+  }
 
   for (const { id, path } of manifest.cases) {
     const casePath = join(suiteDir, path);
@@ -133,6 +153,16 @@ for (const suiteRef of top.suites) {
       if (!m) { fail(`${id}: malformed clause ${clause}`); continue; }
       const ids = m[1] === 'core' ? CORE_IDS : RDF_IDS;
       if (!ids.has(m[2])) fail(`${id}: clause ${clause} names a section id absent from the spec`);
+    }
+
+    // the case must be indexed under EXACTLY the clauses it declares
+    const declaredClauses = new Set(c.clauses ?? []);
+    const under = indexedUnder[id] ?? new Set();
+    for (const cl of declaredClauses) {
+      if (!under.has(cl)) fail(`${id}: declares clause ${cl} but is not indexed under it`);
+    }
+    for (const cl of under) {
+      if (!declaredClauses.has(cl)) fail(`${id}: indexed under ${cl} but does not declare it`);
     }
 
     // file references resolve (case dir, or keyring/ under the suite dir)
@@ -237,7 +267,15 @@ for (const [caseName, expectation] of Object.entries(webhookExpectation)) {
   const sigOk = key
     ? verify(null, Buffer.from(base, 'utf8'), key, Buffer.from(sigB64, 'base64'))
     : false;
-  const covered = components.includes('content-digest');
+  // Full required-coverage set (core#webhook-binding): @method, the target
+  // form (@target-uri OR all of @scheme/@authority/@path), content-type, and
+  // content-digest — not content-digest alone.
+  const hasTargetForm = components.includes('@target-uri')
+    || (components.includes('@scheme') && components.includes('@authority') && components.includes('@path'));
+  const covered = components.includes('@method')
+    && components.includes('content-type')
+    && components.includes('content-digest')
+    && hasTargetForm;
 
   const verdict = !key ? 'key-unresolved'
     : !sigOk ? 'bad-signature'

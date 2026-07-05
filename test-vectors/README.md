@@ -33,7 +33,9 @@ outcomes here are **derived directly from the normative text** of the two specs 
 `deb310e` — the commit the suite was last **reconciled** against; whenever the spec's
 normative text changes, the pin is bumped and every affected vector re-derived in the same
 change (each case's `source` field records the clause it was derived from; `notes`
-records any interpretation applied, e.g. the path-segment reading of "logically contains").
+records any interpretation applied where the spec leaves a code point open, e.g. the
+RFC 8693 §2.2.2 `invalid_target` choice — the path-segment reading of "logically contains"
+began as such a note and is now the spec's own normative rule).
 That inversion is deliberate — these vectors are the **conformance target the first
 implementation builds to** (the planned `solid-server-rs` `feat/lws` branch) — and it has a
 consequence: until an implementation passes the suite, a vector may embody a
