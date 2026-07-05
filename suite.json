@@ -2,8 +2,8 @@
   "name": "lws-spec",
   "kind": "specification",
   "status": "design",
-  "visibility": "local-unpublished",
-  "description": "JLWS — a personal clean-slate Linked Web Storage design: core protocol (wire-compatible superset of the LWS WG WD; RFC 9728 discovery, idempotent create, path alignment, CID-shaped storage description, SSE/WebSocket notifications, WebAuthn suite, optional negotiated PoP, strict-ODRL grants, normative SSRF/threat model) + the RDF Content Transformation opt-in profile + the conformance test-vector suite (test-vectors/: 125 language-neutral cases, agentic-solid-conformance format, spec-derived verdicts, GAPS.md). LOCAL ONLY; publication gated on the maintainer.",
+  "visibility": "public",
+  "description": "JLWS — a personal clean-slate Linked Web Storage design: core protocol (wire-compatible superset of the LWS WG WD; RFC 9728 discovery, idempotent create, path alignment, CID-shaped storage description, SSE/WebSocket notifications, WebAuthn suite, optional negotiated PoP, strict-ODRL grants, normative SSRF/threat model) + the RDF Content Transformation opt-in profile + the conformance test-vector suite (test-vectors/: 125 language-neutral cases, agentic-solid-conformance format, spec-derived verdicts, GAPS.md). Public (maintainer-authorised). docs/alignment/ records how the sibling specs (AC-SPARQL, DPoP-SK, a2a-rdf, WebAuthn re-auth, the Agentic Solid Note, agentic-solid-conformance) compose with JLWS.",
   "conformsTo": [],
   "relatedRepos": [
     "jeswr/lws-keycloak",
@@ -15,7 +15,11 @@
     "jeswr/solid-odrl",
     "jeswr/federation-registry",
     "jeswr/solid-server-rs",
-    "jeswr/agentic-solid-conformance"
+    "jeswr/agentic-solid-conformance",
+    "jeswr/solid-sparql-query",
+    "jeswr/a2a-rdf-extension",
+    "jeswr/agentic-solid-note",
+    "jeswr/solid-webauthn-reauth-spec"
   ],
   "tr": "none (personal draft; W3C contribution only on the maintainer's decision)"
 }

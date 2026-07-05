@@ -144,10 +144,10 @@
           status: "Library (the conformsTo convention adopted by this specification)"
         },
         "AC-SPARQL": {
-          title: "Access-controlled SPARQL over Solid storage (design)",
-          href: "https://github.com/jeswr/solid-server-rs/blob/main/docs/design/solid-server-rs-wac.md",
-          publisher: "jeswr/solid-server-rs",
-          status: "Design document"
+          title: "Access-Controlled SPARQL Query over a Solid Pod",
+          href: "https://github.com/jeswr/solid-sparql-query",
+          publisher: "jeswr/solid-sparql-query",
+          status: "Unofficial editor's draft (server-side contract: jeswr/sparq#992)"
         },
         "SOLID-ODRL": {
           title: "@jeswr/solid-odrl — ODRL 2.2 policy expression, evaluation, and delegation chains",
@@ -1192,8 +1192,12 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
         A server MAY, by deployment policy, <em>require</em> a proof-of-possession profile for a
         designated realm (e.g. medical or financial storages — [[LWS-UCS]] use cases). The
         signal is concrete, on both discovery surfaces: the realm's protected resource metadata
-        MUST set <code>dpop_bound_access_tokens_required: true</code> ([[!RFC9728]] Section 2 —
-        or, for DPoP-SK, the analogous required-member defined by [[DPOP-SK]]), and its
+        MUST set <code>dpop_bound_access_tokens_required: true</code> ([[!RFC9728]] Section 2).
+        The same member governs DPoP-SK: a DPoP-SK session is established <em>from</em> a
+        DPoP-bound access token (one DPoP proof at establishment — [[DPOP-SK]]
+        <em>Establishment</em>), so no separate required-member exists or is needed; DPoP-SK
+        <em>availability</em> on the realm is signalled by the <code>pop_session</code> metadata
+        member defined by [[DPOP-SK]] <em>Discovery and negotiation</em>. The realm's
         <code>401</code> challenges MUST list only the required profile's scheme(s) (e.g.
         <code>WWW-Authenticate: DPoP …</code> per [[!RFC9449]] Section 7.1), omitting the
         <code>Bearer</code> scheme. When the member is absent or <code>false</code>, Bearer is
