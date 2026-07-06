@@ -120,6 +120,10 @@ test('classifyStatement: enforceable verdict aggregation and precedence', () => 
   assert.equal(classifyStatement(s, m('pass', 'pass')).category, 'pass');
   assert.equal(classifyStatement(s, m('pass', 'fail')).category, 'fail');
   assert.equal(classifyStatement(s, m('pass', 'skip-unrealizable-state')).category, 'pass');
+  // Partial runs: a filtered-out sibling forbids a statement-level pass,
+  // but never masks a real failure.
+  assert.equal(classifyStatement(s, m('pass', 'skip-filtered')).category, 'untested-filtered');
+  assert.equal(classifyStatement(s, m('fail', 'skip-filtered')).category, 'fail');
   assert.equal(classifyStatement(s, m('error-setup', 'skip-precondition')).category, 'untested-setup-error');
   assert.equal(classifyStatement(s, m('skip-unrealizable-state', 'skip-precondition')).category, 'untested-unrealizable');
   assert.equal(classifyStatement(s, m('skip-precondition', 'skip-library-vector')).category, 'untested-precondition');

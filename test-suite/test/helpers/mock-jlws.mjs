@@ -195,8 +195,12 @@ export function createMockJlws({ lenient = false, hijackLocation = false } = {})
         const links = resourceLinks(req, childPath, store.get(childPath));
         res.writeHead(201, {
           // hijackLocation simulates a hostile/broken server steering the
-          // harness outside its per-run sandbox (same origin, foreign path).
-          Location: hijackLocation ? `${baseUrl(req)}/pwned` : `${baseUrl(req)}${childPath}`,
+          // harness outside its per-run sandbox (same origin, foreign path);
+          // a string value lets tests choose the escape shape (e.g. a
+          // dot-segment path that only escapes after URL normalisation).
+          Location: hijackLocation
+            ? `${baseUrl(req)}${typeof hijackLocation === 'string' ? hijackLocation : '/pwned'}`
+            : `${baseUrl(req)}${childPath}`,
           ETag: store.get(childPath).etag,
           ...(links.length ? { Link: links } : {}),
         });

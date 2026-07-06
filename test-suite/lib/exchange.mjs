@@ -238,6 +238,22 @@ export class ExchangeRunner {
     return `${this.config.target.replace(/\/+$/, '')}/${this.runId}/${String(this.seq).padStart(3, '0')}-${slug}/`;
   }
 
+  /**
+   * True iff a URI normalises (WHATWG URL: dot segments incl. %2e-encoded
+   * forms collapsed) to the same origin AND inside the per-run scope path.
+   * String-prefix checks are NOT enough: `http://t/<run>/../pwned` passes a
+   * startsWith test but lands on /pwned on a normalising server.
+   */
+  insideRunScope(uri) {
+    try {
+      const u = new URL(uri);
+      const scope = new URL(`${this.config.target.replace(/\/+$/, '')}/${this.runId}/`);
+      return u.origin === scope.origin && u.pathname.startsWith(scope.pathname);
+    } catch {
+      return false;
+    }
+  }
+
   /** Create the per-run scope container once (strict servers refuse orphan-parent PUTs). */
   async ensureRunScope() {
     if (this.scopeReady) return;
@@ -342,10 +358,14 @@ export class ExchangeRunner {
 
   async teardown(created, extra, realizedRoot) {
     // Only ever DELETE inside the per-run scope: `extra` carries
-    // server-minted Location values, which are untrusted input.
-    const runScope = `${this.config.target}/${this.runId}/`;
+    // server-minted Location values, which are untrusted input — filtered
+    // on the NORMALISED URL (origin + pathname), not a string prefix.
     const targets = [...new Set([...created, ...extra])]
-      .filter((u) => u.startsWith(runScope))
+      .filter((u) => this.insideRunScope(u))
+      .map((u) => {
+        const { origin, pathname } = new URL(u);
+        return origin + pathname;
+      })
       .sort((a, b) => b.split('/').length - a.split('/').length || b.length - a.length);
     for (const t of targets) {
       try {
@@ -399,7 +419,6 @@ export class ExchangeRunner {
 
     const responses = [];
     try {
-      const runScope = `${this.config.target}/${this.runId}/`;
       for (let i = 0; i < steps.length; i += 1) {
         const step = steps[i];
         // 1. case-space -> target-space, 2. placeholders (target-space values).
@@ -423,10 +442,10 @@ export class ExchangeRunner {
           typeof mappedRequest.target === 'string' &&
           mappedRequest.target.includes('${response') &&
           !['GET', 'HEAD'].includes(request.method) &&
-          !request.target.startsWith(runScope)
+          !this.insideRunScope(request.target)
         ) {
           throw new Error(
-            `server-minted ${request.method} target ${request.target} escapes the run scope ${runScope}; refusing to follow it`,
+            `server-minted ${request.method} target ${request.target} escapes the run scope ${this.config.target}/${this.runId}/; refusing to follow it`,
           );
         }
         const agent = 'agent' in request ? (request.agent === null ? null : request.agent) : CONTROLLER;

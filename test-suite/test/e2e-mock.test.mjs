@@ -93,40 +93,52 @@ test('lenient (legacy-LDP) mock: non-conformance is detected, never masked', asy
   }
 });
 
-test('scope guard: a server-minted mutation target outside the run scope is refused, not followed', async () => {
-  const mock = createMockJlws({ hijackLocation: true });
-  const target = await mock.start();
-  try {
-    const config = loadConfig({ overrides: { target, label: 'hijack mock' } });
-    const runner = new ExchangeRunner(config, 'jlws-guardtest');
-    const result = await runner.runCase({
-      id: 'synthetic/hijacked-location-mutation',
-      operation: 'http-exchange',
-      input: {
-        state: {
-          storageRoot: 'https://storage.example/alice/',
-          resources: { 'https://storage.example/alice/': { type: 'Container' } },
-        },
-      },
-      exchanges: [
-        {
-          request: { method: 'POST', target: 'https://storage.example/alice/', headers: { Slug: 'x', 'Content-Type': 'text/plain' }, body: 'x' },
-          expected: { status: 201 },
-        },
-        {
-          // A mutation steered by the hijacked Location must be refused.
-          request: { method: 'DELETE', target: '${response[0].header.Location}' },
-          expected: { status: 204 },
-        },
-      ],
-    });
-    assert.equal(result.disposition, 'fail');
-    assert.ok(result.failures.some((f) => f.includes('escapes the run scope')), JSON.stringify(result.failures));
-    assert.ok(!mock.requests.some((r) => r.startsWith('DELETE /pwned')), 'the hijacked DELETE must never be sent');
-  } finally {
-    await mock.stop();
-  }
-});
+const hijackCase = {
+  id: 'synthetic/hijacked-location-mutation',
+  operation: 'http-exchange',
+  input: {
+    state: {
+      storageRoot: 'https://storage.example/alice/',
+      resources: { 'https://storage.example/alice/': { type: 'Container' } },
+    },
+  },
+  exchanges: [
+    {
+      request: { method: 'POST', target: 'https://storage.example/alice/', headers: { Slug: 'x', 'Content-Type': 'text/plain' }, body: 'x' },
+      expected: { status: 201 },
+    },
+    {
+      // A mutation steered by the hijacked Location must be refused.
+      request: { method: 'DELETE', target: '${response[0].header.Location}' },
+      expected: { status: 204 },
+    },
+  ],
+};
+
+for (const [name, hijackLocation, runId] of [
+  ['plain out-of-scope path', true, 'jlws-guardtest'],
+  // startsWith(runScope) would pass this one — only URL normalisation
+  // reveals the escape (dot segments collapse to /pwned).
+  ['dot-segment escape', '/jlws-guardtest2/../pwned', 'jlws-guardtest2'],
+]) {
+  test(`scope guard: server-minted mutation target refused (${name})`, async () => {
+    const mock = createMockJlws({ hijackLocation });
+    const target = await mock.start();
+    try {
+      const config = loadConfig({ overrides: { target, label: 'hijack mock' } });
+      const runner = new ExchangeRunner(config, runId);
+      const result = await runner.runCase(hijackCase);
+      assert.equal(result.disposition, 'fail');
+      assert.ok(result.failures.some((f) => f.includes('escapes the run scope')), JSON.stringify(result.failures));
+      assert.ok(
+        !mock.requests.some((r) => r.startsWith('DELETE') && r.includes('pwned')),
+        `the hijacked DELETE must never be sent (saw: ${mock.requests.filter((r) => r.startsWith('DELETE')).join(', ')})`,
+      );
+    } finally {
+      await mock.stop();
+    }
+  });
+}
 
 test('partial runs: filtered-out vectors classify as untested-filtered, never as something else', async () => {
   const mock = createMockJlws();
