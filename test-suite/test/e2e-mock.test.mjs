@@ -19,6 +19,7 @@ import { createMockJlws } from './helpers/mock-jlws.mjs';
 import { runSuite } from '../lib/runner.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { renderMarkdown } from '../lib/report.mjs';
+import { ExchangeRunner } from '../lib/exchange.mjs';
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -87,6 +88,56 @@ test('lenient (legacy-LDP) mock: non-conformance is detected, never masked', asy
     }
     const cd1 = report.statements.find((s) => s.id === 'JLWSC-CW-1' || s.testCases.includes('resources/put-unconditional-existing-428'));
     assert.equal(cd1.category, 'fail');
+  } finally {
+    await mock.stop();
+  }
+});
+
+test('scope guard: a server-minted mutation target outside the run scope is refused, not followed', async () => {
+  const mock = createMockJlws({ hijackLocation: true });
+  const target = await mock.start();
+  try {
+    const config = loadConfig({ overrides: { target, label: 'hijack mock' } });
+    const runner = new ExchangeRunner(config, 'jlws-guardtest');
+    const result = await runner.runCase({
+      id: 'synthetic/hijacked-location-mutation',
+      operation: 'http-exchange',
+      input: {
+        state: {
+          storageRoot: 'https://storage.example/alice/',
+          resources: { 'https://storage.example/alice/': { type: 'Container' } },
+        },
+      },
+      exchanges: [
+        {
+          request: { method: 'POST', target: 'https://storage.example/alice/', headers: { Slug: 'x', 'Content-Type': 'text/plain' }, body: 'x' },
+          expected: { status: 201 },
+        },
+        {
+          // A mutation steered by the hijacked Location must be refused.
+          request: { method: 'DELETE', target: '${response[0].header.Location}' },
+          expected: { status: 204 },
+        },
+      ],
+    });
+    assert.equal(result.disposition, 'fail');
+    assert.ok(result.failures.some((f) => f.includes('escapes the run scope')), JSON.stringify(result.failures));
+    assert.ok(!mock.requests.some((r) => r.startsWith('DELETE /pwned')), 'the hijacked DELETE must never be sent');
+  } finally {
+    await mock.stop();
+  }
+});
+
+test('partial runs: filtered-out vectors classify as untested-filtered, never as something else', async () => {
+  const mock = createMockJlws();
+  const target = await mock.start();
+  try {
+    const config = loadConfig({ overrides: { target, label: 'filter mock' } });
+    const report = await runSuite(repoRoot, config, { caseFilter: (id) => id === 'resources/put-create-if-none-match' });
+    // JLWSC-CTN-1 is wired to containers/rel-up-on-non-root, which the filter excluded.
+    const ctn1 = report.statements.find((s) => s.id === 'JLWSC-CTN-1');
+    assert.equal(ctn1.category, 'untested-filtered');
+    assert.ok(report.summary.statements.byCategory['untested-filtered'] > 0);
   } finally {
     await mock.stop();
   }

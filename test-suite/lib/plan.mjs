@@ -33,6 +33,7 @@ export const CATEGORIES = [
   'untested-unrealizable',
   'untested-precondition',
   'untested-library',
+  'untested-filtered',
   'external-suite',
   'no-vector',
   'audit-evidence',
@@ -109,6 +110,13 @@ export function classifyStatement(statement, caseResults) {
     return {
       category: 'untested-precondition',
       detail: 'optional feature not provided by the target — skipping is conformant',
+      cases,
+    };
+  }
+  if (pick('skip-filtered')) {
+    return {
+      category: 'untested-filtered',
+      detail: 'wired vectors excluded by the case filter (partial run — not a full report)',
       cases,
     };
   }

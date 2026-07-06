@@ -13,9 +13,11 @@ import http from 'node:http';
 const PROBLEMS = 'https://w3id.org/jeswr/lws/problems/';
 const SD_REL = 'https://w3id.org/jeswr/lws#storageDescription';
 
-export function createMockJlws({ lenient = false } = {}) {
+export function createMockJlws({ lenient = false, hijackLocation = false } = {}) {
   /** path -> {container, mediaType, body: Buffer, etag: string} */
   const store = new Map();
+  /** every request seen, as "METHOD path" — lets tests assert what was (not) sent */
+  const requests = [];
   let etagCounter = 0;
   const freshEtag = () => `"v${(etagCounter += 1)}"`;
   store.set('/', { container: true, etag: freshEtag() });
@@ -59,6 +61,7 @@ export function createMockJlws({ lenient = false } = {}) {
   };
 
   function handle(req, res, body) {
+    requests.push(`${req.method} ${req.url}`);
     const rawPath = req.url;
     const segments = rawPath.split('/').map((s) => {
       try {
@@ -191,7 +194,9 @@ export function createMockJlws({ lenient = false } = {}) {
         });
         const links = resourceLinks(req, childPath, store.get(childPath));
         res.writeHead(201, {
-          Location: `${baseUrl(req)}${childPath}`,
+          // hijackLocation simulates a hostile/broken server steering the
+          // harness outside its per-run sandbox (same origin, foreign path).
+          Location: hijackLocation ? `${baseUrl(req)}/pwned` : `${baseUrl(req)}${childPath}`,
           ETag: store.get(childPath).etag,
           ...(links.length ? { Link: links } : {}),
         });
@@ -221,6 +226,7 @@ export function createMockJlws({ lenient = false } = {}) {
   return {
     server,
     store,
+    requests,
     async start() {
       await new Promise((r) => server.listen(0, '127.0.0.1', r));
       return `http://127.0.0.1:${server.address().port}`;

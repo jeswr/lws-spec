@@ -341,8 +341,11 @@ export class ExchangeRunner {
   }
 
   async teardown(created, extra, realizedRoot) {
+    // Only ever DELETE inside the per-run scope: `extra` carries
+    // server-minted Location values, which are untrusted input.
+    const runScope = `${this.config.target}/${this.runId}/`;
     const targets = [...new Set([...created, ...extra])]
-      .filter((u) => u.startsWith(this.config.target))
+      .filter((u) => u.startsWith(runScope))
       .sort((a, b) => b.split('/').length - a.split('/').length || b.length - a.length);
     for (const t of targets) {
       try {
@@ -396,6 +399,7 @@ export class ExchangeRunner {
 
     const responses = [];
     try {
+      const runScope = `${this.config.target}/${this.runId}/`;
       for (let i = 0; i < steps.length; i += 1) {
         const step = steps[i];
         // 1. case-space -> target-space, 2. placeholders (target-space values).
@@ -408,6 +412,22 @@ export class ExchangeRunner {
             failures: [`request ${i} targets ${request.target}, outside the realised storage`],
             realizedRoot,
           };
+        }
+        // SERVER-MINTED targets (a placeholder-resolved Location / link /
+        // auth-param) are untrusted input. Same-origin reads are what a
+        // discovery client legitimately does (e.g. following the RFC 9728
+        // resource_metadata URI to /.well-known/…), but a MUTATION steered
+        // outside the per-run sandbox is refused and aborts the remaining
+        // sequence — a server minting such a target is itself a finding.
+        if (
+          typeof mappedRequest.target === 'string' &&
+          mappedRequest.target.includes('${response') &&
+          !['GET', 'HEAD'].includes(request.method) &&
+          !request.target.startsWith(runScope)
+        ) {
+          throw new Error(
+            `server-minted ${request.method} target ${request.target} escapes the run scope ${runScope}; refusing to follow it`,
+          );
         }
         const agent = 'agent' in request ? (request.agent === null ? null : request.agent) : CONTROLLER;
         const res = await this.send(request, { agent });
