@@ -1,0 +1,10 @@
+{
+  "//": "CSS baseline: an in-memory, unauthenticated Community Solid Server (npx @solid/community-server). CSS is NOT a JLWS implementation — this config declares no optional features, no capabilities, no agent seams, so the run scores exactly what an existing Solid/LDP server does against the clean-slate spec. Override the target port with --target.",
+  "target": "http://localhost:3000",
+  "label": "Community Solid Server (in-memory, unauthenticated) — CSS baseline",
+  "features": [],
+  "capabilities": [],
+  "conformsTo": [],
+  "agents": {},
+  "accessRealizer": "none"
+}

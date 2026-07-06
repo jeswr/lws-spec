@@ -1,0 +1,18 @@
+{
+  "name": "jlws-conformance-suite",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Executable conformance runner for the JLWS specs: runs the committed test-vectors against a target server and reports per-normative-statement verdicts keyed to the statement-companion IDs.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "conformance": "node bin/run.mjs"
+  },
+  "dependencies": {
+    "n3": "^1.26.0"
+  }
+}

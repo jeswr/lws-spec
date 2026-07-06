@@ -400,11 +400,14 @@ advertisement a SHOULD for the privacy reason recorded in core#credential-model)
 
 ## Running the suite
 
-There is no runner to install: an implementation binds the sixteen operations above (most
-implementations will bind `http-exchange` to a real server instance plus a state loader,
-and the pure decision operations to library entry points), iterates the manifests, and
-reports per-case pass/fail/skip. Structural coherence of the committed vectors themselves
-is checked with:
+The repo ships an executable runner for the server-side surface:
+[`../test-suite/`](../test-suite/) plays the `http-exchange` vectors against a target server
+URL and reports **per-normative-statement** verdicts keyed to the statement-companion IDs
+(see its README for the honesty model and the committed CSS-baseline scoreboard). The
+fifteen **pure decision operations** remain library-level seams: an implementation binds
+them to its own entry points (most implementations will additionally bind `http-exchange`
+to an in-process router for speed), iterates the manifests, and reports per-case
+pass/fail/skip. Structural coherence of the committed vectors themselves is checked with:
 
 ```sh
 node test-vectors/tools/check.mjs    # manifests, clause pins, fixtures, signatures

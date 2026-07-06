@@ -61,6 +61,15 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   expected verdicts are spec-derived (no reference implementation exists yet — see the suite
   README's provenance note); this suite is the conformance target the first implementation
   (the planned `solid-server-rs` LWS work) builds to.
+- **`test-suite/`** — the **executable conformance suite**: a Node runner that plays the
+  committed test-vectors against a target server URL and reports **per-normative-statement**
+  pass / fail / untested verdicts keyed to the companion statement IDs, honouring the
+  E / A-int / A-exist / P testability spine (only server-deniable enforceable statements
+  execute; audit-class statements report as evidence-checks; skips carry their reason).
+  Ships self-tests (strict + lenient in-process mocks as positive/negative controls for the
+  runner itself) and a committed dated **CSS-baseline** scoreboard — how an existing Solid
+  server (CSS 7.1.9) scores against the clean-slate spec, with failures framed as findings
+  about the delta, not bugs. See `test-suite/README.md`.
 - **`index.statements.ttl`** / **`rdf-transform.statements.ttl`** — the **machine-readable
   normative-statement companions** (the `jeswr/spec-companion` format: W3C `spec:` requirement
   markup as a sidecar graph + the E / A-int / A-exist / P testability spine). One
@@ -91,6 +100,8 @@ node test-vectors/tools/generate.mjs   # regenerate; git diff must stay clean
 # statement companions (validator + shapes live in jeswr/spec-companion):
 node <spec-companion>/tools/validate.mjs index.statements.ttl --spec-html index.html
 node <spec-companion>/tools/validate.mjs rdf-transform.statements.ttl --spec-html rdf-transform.html
+# executable conformance suite self-tests (needs `npm install` in test-suite/ once):
+cd test-suite && npm test
 ```
 
 (stdlib-only tag-balance + structure check; Node ≥ 20). Plus roborev on every commit
