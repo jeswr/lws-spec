@@ -77,6 +77,19 @@ export function planCase(caseRecord, config) {
     if (DECLARATION_MATCHED.has(key)) {
       const wanted = (state[key] ?? []).map(capabilityName).filter(Boolean);
       const declared = key === 'capabilities' ? config.capabilities : config.conformsTo;
+      // An EXPLICITLY EMPTY pin asserts the state declares NOTHING on this
+      // dimension (the transform-off vectors: `"capabilities": []` means the
+      // storage has the surface switched OFF). A black-box harness cannot
+      // toggle a capability off on a target that declares it — unrealisable,
+      // never a false failure. (An empty pin is vacuous under the subset
+      // check below, so this is the only meaning writing one can have.)
+      if (Array.isArray(state[key]) && state[key].length === 0 && declared.length > 0) {
+        return {
+          run: false,
+          reason: 'unrealizable-state',
+          detail: `state.${key} pins an empty declaration but the target declares ${declared.join(', ')} — a declared surface cannot be toggled off black-box`,
+        };
+      }
       const missing = wanted.filter((w) => !declared.includes(w));
       if (missing.length > 0) {
         return {
@@ -316,11 +329,15 @@ export class ExchangeRunner {
           'If-None-Match': '*',
           'Content-Type': isContainer ? 'text/turtle' : (resource.mediaType ?? 'application/octet-stream'),
         },
+        // Text content is case-space -> target-space mapped like every other
+        // case value (the vectors' self-referential IRIs must point into the
+        // realised scope for byte-exact/derived-representation assertions to
+        // mean anything); base64 content is binary-precise and never mapped.
         ...(isContainer
           ? { body: '' }
           : resource.contentBase64 != null
             ? { bodyBase64: resource.contentBase64 }
-            : { body: resource.content ?? '' }),
+            : { body: mapString(resource.content ?? '', caseRoot, realizedRoot) }),
       });
       if (res.status < 200 || res.status >= 300) {
         throw new Error(`setup: PUT ${target} -> ${res.status} (state realisation refused by target)`);
@@ -397,9 +414,13 @@ export class ExchangeRunner {
     // Record original bytes for bytesUnchanged probes.
     for (const [uri, r] of Object.entries(state.resources ?? {})) {
       if (r.type === 'DataResource') {
+        // Mirror realizeState's mapping: the recorded originals must be the
+        // exact bytes the setup PUT sent, or bytesUnchanged would misfire.
         originals.set(
           mapString(uri, caseRoot, realizedRoot),
-          r.contentBase64 != null ? Buffer.from(r.contentBase64, 'base64') : Buffer.from(r.content ?? '', 'utf8'),
+          r.contentBase64 != null
+            ? Buffer.from(r.contentBase64, 'base64')
+            : Buffer.from(mapString(r.content ?? '', caseRoot, realizedRoot), 'utf8'),
         );
       }
     }

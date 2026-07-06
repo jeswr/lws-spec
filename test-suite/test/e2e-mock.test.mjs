@@ -140,6 +140,49 @@ for (const [name, hijackLocation, runId] of [
   });
 }
 
+// Setup content is case-space -> target-space mapped exactly like requests
+// and expected values (the byte-exact vectors embed self-referential IRIs):
+// the stored bytes must be the MAPPED text, and byteEquals (whose expected
+// value the executor maps) must then round-trip.
+const selfRefCase = {
+  id: 'synthetic/setup-content-mapping',
+  operation: 'http-exchange',
+  input: {
+    state: {
+      storageRoot: 'https://storage.example/alice/',
+      resources: {
+        'https://storage.example/alice/': { type: 'Container' },
+        'https://storage.example/alice/card.ttl': {
+          type: 'DataResource',
+          mediaType: 'text/turtle',
+          content: '<https://storage.example/alice/card.ttl#me> a <http://schema.org/Person> .\n',
+        },
+      },
+    },
+    request: { method: 'GET', target: 'https://storage.example/alice/card.ttl' },
+  },
+  expected: {
+    status: 200,
+    body: { byteEquals: '<https://storage.example/alice/card.ttl#me> a <http://schema.org/Person> .\n' },
+    stateAfter: { bytesUnchanged: ['https://storage.example/alice/card.ttl'] },
+  },
+};
+
+test('setup content is case-space mapped (byte-exact round-trip through the realised scope)', async () => {
+  const mock = createMockJlws();
+  const target = await mock.start();
+  try {
+    const config = loadConfig({ overrides: { target, label: 'content-mapping mock' } });
+    const runner = new ExchangeRunner(config, 'jlws-contentmap');
+    const result = await runner.runCase(selfRefCase);
+    assert.equal(result.disposition, 'pass', JSON.stringify(result.failures));
+    const put = mock.requests.find((r) => r.startsWith('PUT') && r.includes('card.ttl'));
+    assert.ok(put, 'setup PUT must have happened');
+  } finally {
+    await mock.stop();
+  }
+});
+
 test('partial runs: filtered-out vectors classify as untested-filtered, never as something else', async () => {
   const mock = createMockJlws();
   const target = await mock.start();

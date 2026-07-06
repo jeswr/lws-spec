@@ -46,6 +46,32 @@ test('planCase: capabilities/conformsTo match the target declaration', () => {
   assert.equal(planCase(c, { ...config, capabilities: ['ContentNegotiation'] }).run, true);
 });
 
+test('planCase: an explicitly EMPTY declaration pin is unrealizable on a declaring target', () => {
+  // The transform-off vectors pin `"capabilities": []` — the storage with the
+  // surface switched OFF. A black-box harness cannot toggle a declared
+  // capability off, so against a declaring target the state is unrealisable
+  // (never a false failure); against a declaring-nothing target it runs.
+  const c = httpCase();
+  c.input.state.capabilities = [];
+  assert.equal(
+    planCase(c, { ...config, capabilities: ['ContentNegotiation'] }).reason,
+    'unrealizable-state',
+  );
+  assert.equal(planCase(c, config).run, true);
+  // Same rule for conformsTo…
+  const cc = httpCase();
+  cc.input.state.conformsTo = [];
+  assert.equal(
+    planCase(cc, { ...config, conformsTo: ['https://w3id.org/jeswr/lws/protocol/core/1.0'] }).reason,
+    'unrealizable-state',
+  );
+  // …and an ABSENT key still means "no pin" — a declaring target runs it.
+  assert.equal(
+    planCase(httpCase(), { ...config, capabilities: ['ContentNegotiation'] }).run,
+    true,
+  );
+});
+
 test('planCase: access map matters only when a request authenticates as an agent', () => {
   const controllerOnly = httpCase();
   controllerOnly.input.state.access = { 'https://id.example/bob': {} };

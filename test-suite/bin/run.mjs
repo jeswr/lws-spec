@@ -15,6 +15,11 @@
 //   --out-json <path>     write the full JSON report
 //   --out-md <path>       write the markdown scoreboard
 //   --only <prefix>       run only cases whose id starts with the prefix
+//   --controller-bearer <token>
+//                         bearer token for storage-controller requests
+//                         (overrides config.controllerBearer — a per-run
+//                         credential should be passed here, never committed
+//                         in a targets/*.json)
 //   --strict              exit 1 when any executed MUST-level statement fails
 //                         (for CI against a real JLWS implementation; a
 //                         baseline run over a non-JLWS server stays exit 0)
@@ -39,6 +44,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const overrides = {};
 if (flag('target')) overrides.target = flag('target');
 if (flag('label')) overrides.label = flag('label');
+if (flag('controller-bearer')) overrides.controllerBearer = flag('controller-bearer');
 const config = loadConfig({ configPath: flag('config'), overrides });
 
 const only = flag('only');

@@ -45,5 +45,11 @@ export function loadConfig({ configPath = null, overrides = {} }) {
       throw new Error(`config: agents[${agent}] must be { "bearer": "<token>" }`);
     }
   }
+  if (
+    config.controllerBearer !== null &&
+    (typeof config.controllerBearer !== 'string' || config.controllerBearer.trim() === '')
+  ) {
+    throw new Error('config: controllerBearer must be null or a non-empty token string');
+  }
   return config;
 }

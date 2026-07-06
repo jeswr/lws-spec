@@ -30,9 +30,12 @@ npm test
 ```
 
 Flags: `--target <url>`, `--config <path>`, `--label <text>`, `--baseline-note <text>`,
-`--out-json` / `--out-md`, `--only <case-id-prefix>`, `--quiet`, and `--strict` (exit 1 when an
+`--out-json` / `--out-md`, `--only <case-id-prefix>`, `--quiet`, `--strict` (exit 1 when an
 executed MUST/MUST NOT-level statement fails — for CI over a real JLWS implementation; a
-baseline run over a non-JLWS server stays exit 0). **Local servers only** — never point the
+baseline run over a non-JLWS server stays exit 0), and `--controller-bearer <token>` (bearer
+credential for storage-controller requests — a per-run credential belongs on the command line,
+never committed inside a `targets/*.json`; a fail-closed target like `solid-server-rs` needs it
+for the harness to realise state at all). **Local servers only** — never point the
 suite at a production deployment: it creates and deletes real resources under
 `<target>/jlws-<runid>/…`.
 
@@ -43,7 +46,10 @@ See [`lib/config.mjs`](./lib/config.mjs) for the schema. Everything defaults con
 - `features` / `capabilities` / `conformsTo` — the optional surfaces the target genuinely
   provides (vector `preconditions` and `state.capabilities` are matched against these).
   Declaring nothing skips those vectors conformantly; declaring something you don't implement
-  will fail honestly.
+  will fail honestly. A vector that pins an **explicitly empty** declaration
+  (`"state": { "capabilities": [] }` — the transform-off vectors) is unrealisable against a
+  target that declares that surface: a black-box harness cannot toggle a declared capability
+  off, so those report as skipped, never as false failures.
 - `agents` — the **auth seam**: `{ "<agent-uri>": { "bearer": "<token>" } }`. Requests whose
   vector authenticates as an agent send that bearer token; unauthenticated mode (no agents,
   the default) runs everything that needs no credentials. A DPoP-fetch seam and an
@@ -75,8 +81,9 @@ failures are reportable, not disqualifying (W3C practice).
 Setup/teardown is per-case: each vector's declared `resources` state is realised under a fresh
 `<target>/jlws-<runid>/<seq>-<case>/` scope (created with `PUT + If-None-Match: *`, torn down
 deepest-first afterwards, best-effort). Case-space URIs (`https://storage.example/alice/…`)
-are mapped onto that scope in requests **and** in expected values, so servers echoing absolute
-URIs compare correctly. Request paths are sent raw (no URL normalisation) so the
+are mapped onto that scope in requests, in setup resource **text content** (the byte-exact
+vectors embed self-referential IRIs; base64 content is binary-precise and never rewritten),
+**and** in expected values, so servers echoing absolute URIs compare correctly. Request paths are sent raw (no URL normalisation) so the
 path-traversal vectors reach the server unmangled, and redirects are never followed.
 
 ## Reading a baseline scoreboard
