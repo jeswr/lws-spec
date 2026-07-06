@@ -79,9 +79,13 @@ profile) while leaving JLWS's D9 Bearer baseline intact (scoped to everything el
 
 ## 3. Test-vector plan
 
+**STATUS: LANDED** — the 4 cases below plus an advisory negative twin of the
+advertisement case (`webauthn-suite-omitted-flagged`), as `auth/webauthn-*` (auth suite
+now 36 cases; operations 15–16 in `test-vectors/README.md`).
+
 Small extension to this repo's existing `test-vectors/vectors/auth/` suite (the exchange
-side is already vectored there — 31 cases). New cases, all deterministic (the wire
-contract's decode is dependency-free and fail-closed):
+side is already vectored there — 31 cases at the time of this design). New cases, all
+deterministic (the wire contract's decode is dependency-free and fail-closed):
 
 | id | operation | expected | pins |
 |---|---|---|---|

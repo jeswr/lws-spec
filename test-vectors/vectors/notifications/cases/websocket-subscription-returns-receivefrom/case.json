@@ -67,7 +67,7 @@
       "websocket-subscription"
     ]
   },
-  "source": "lws-spec@deb310e core#websocket-binding (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#websocket-binding (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "creating a WebSocket subscription returns a wss: capability URL in receiveFrom"
 }

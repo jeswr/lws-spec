@@ -1,5 +1,5 @@
 {
-  "caseCount": 17,
+  "caseCount": 21,
   "cases": [
     {
       "id": "rdf-transform/capability-requires-conformsto-profile",
@@ -8,6 +8,22 @@
     {
       "id": "rdf-transform/capability-entry-requires-source-and-target",
       "path": "cases/capability-entry-requires-source-and-target/case.json"
+    },
+    {
+      "id": "rdf-transform/advertised-conneg-honoured",
+      "path": "cases/advertised-conneg-honoured/case.json"
+    },
+    {
+      "id": "rdf-transform/client-detects-transform-offer",
+      "path": "cases/client-detects-transform-offer/case.json"
+    },
+    {
+      "id": "rdf-transform/client-fail-closed-no-advertisement",
+      "path": "cases/client-fail-closed-no-advertisement/case.json"
+    },
+    {
+      "id": "rdf-transform/sparql-service-requires-profile-on",
+      "path": "cases/sparql-service-requires-profile-on/case.json"
     },
     {
       "id": "rdf-transform/turtle-to-jsonld-isomorphic",
@@ -78,7 +94,11 @@
       "rdf-transform/unconditional-put-still-428",
       "rdf-transform/rdf-patch-not-advertised-when-off"
     ],
+    "core#query-services": [
+      "rdf-transform/sparql-service-requires-profile-on"
+    ],
     "rdf#authoritative-bytes": [
+      "rdf-transform/advertised-conneg-honoured",
       "rdf-transform/stored-bytes-byte-exact",
       "rdf-transform/per-representation-etags-differ",
       "rdf-transform/if-match-derived-etag-accepted",
@@ -87,7 +107,16 @@
     ],
     "rdf#capability": [
       "rdf-transform/capability-requires-conformsto-profile",
-      "rdf-transform/capability-entry-requires-source-and-target"
+      "rdf-transform/capability-entry-requires-source-and-target",
+      "rdf-transform/advertised-conneg-honoured",
+      "rdf-transform/client-detects-transform-offer",
+      "rdf-transform/client-fail-closed-no-advertisement"
+    ],
+    "rdf#conformance": [
+      "rdf-transform/client-detects-transform-offer"
+    ],
+    "rdf#indexing": [
+      "rdf-transform/sparql-service-requires-profile-on"
     ],
     "rdf#normalizes": [
       "rdf-transform/stored-bytes-byte-exact",
@@ -97,6 +126,7 @@
       "rdf-transform/rdf-patch-not-advertised-when-off"
     ],
     "rdf#round-trip": [
+      "rdf-transform/advertised-conneg-honoured",
       "rdf-transform/turtle-to-jsonld-isomorphic",
       "rdf-transform/jsonld-to-turtle-isomorphic",
       "rdf-transform/blank-node-isomorphism",

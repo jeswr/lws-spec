@@ -440,7 +440,11 @@
   <p>
     This profile's vectors ship in the shared suite ([[JLWS-CORE]] Appendix,
     <em>Test-vector index</em>; repository <code>test-vectors/vectors/rdf-transform/</code>,
-    17 cases): capability/<code>conformsTo</code> consistency; graph round-trips
+    21 cases): capability/<code>conformsTo</code> consistency; the advertisement contract
+    (an advertised pair is actually negotiable with <code>Vary: Accept</code>; clients
+    feature-detect fail-closed — a profile-less <code>ContentNegotiation</code> entry makes
+    no rdf-1 claim; <code>SparqlQueryService</code> only when the profile is on); graph
+    round-trips
     (Turtle ↔ JSON-LD, blank-node isomorphism, no-inference, resource-URI base resolution);
     the ETag rotation matrix across representations on write; If-Match acceptance with the
     derived representation's ETag; <code>normalizes</code> determinism; unparseable-source

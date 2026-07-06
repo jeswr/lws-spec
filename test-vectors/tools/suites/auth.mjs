@@ -2,13 +2,18 @@
 // Suite: auth — the authorization chain: RFC 9728 challenge discovery, the
 // client realm-containment rule, RFC 8693 token exchange, RFC 9068 at+jwt
 // validation by the storage server (signed Ed25519/EdDSA fixtures in
-// keyring/), Bearer-baseline vs negotiated PoP presentation, and RFC 9396
-// authorization_details narrowing (core#authz-discovery, #token-exchange,
-// #access-token, #presentation, #rs-validation, #client-rules, #rar).
+// keyring/), Bearer-baseline vs negotiated PoP presentation, RFC 9396
+// authorization_details narrowing, and the WebAuthn authentication suite's
+// composition surface (assertion-bundle decode, RFC 8414 suite
+// advertisement, DPoP-bound-only issuance) (core#authz-discovery,
+// #token-exchange, #access-token, #presentation, #rs-validation,
+// #client-rules, #rar, #credential-model, #suite-webauthn).
 
 export default function auth(ctx) {
   const {
     STORAGE, CORE, ALICE, AS_ISSUER, ROGUE_ISSUER, NOW, authKeyring,
+    SPEC_SOURCE, WEBAUTHN_REAUTH_SOURCE, WEBAUTHN_TOKEN_TYPE,
+    WEBAUTHN_CREDENTIAL_ID, webauthnBundles,
   } = ctx;
   const NOTES = `${STORAGE}notes/`;
   const A = `${NOTES}a.txt`;
@@ -52,9 +57,11 @@ export default function auth(ctx) {
       + 'resource_metadata + realm (no error parameter without presented '
       + 'credentials), client-side realm containment verification, RFC 8693 '
       + 'token exchange with the REQUIRED absolute-URI resource parameter, '
-      + 'single-audience RFC 9068 at+jwt validation (13 signed fixtures), the '
-      + 'Bearer-baseline / negotiated-PoP presentation rules, and '
-      + 'narrowing-only RFC 9396 authorization_details enforcement.',
+      + 'single-audience RFC 9068 at+jwt validation (14 signed fixtures), the '
+      + 'Bearer-baseline / negotiated-PoP presentation rules, narrowing-only '
+      + 'RFC 9396 authorization_details enforcement, and the WebAuthn '
+      + 'suite\'s composition surface (fail-closed assertion-bundle decode, '
+      + 'RFC 8414 suite advertisement, DPoP-bound-only issuance).',
     keyring: authKeyring,
     cases: [
       // ------------------------------------------------------------------
@@ -418,6 +425,111 @@ export default function auth(ctx) {
         clauses: ['core#rs-validation'],
         operation: 'validate-access-token',
         input: tokenInput('at-cnf-bound.jwt'),
+        expected: { accept: false, errorCode: 'POP_PROOF_MISSING' },
+      },
+      // ------------------------------------------------------------------
+      // The WebAuthn authentication suite (core#suite-webauthn,
+      // #credential-model) — composition cases per
+      // docs/alignment/webauthn-reauth.md. The suite adopts the
+      // [WEBAUTHN-REAUTH] wire contract verbatim: the assertion bundle is
+      // base64url(UTF-8 JSON {version: 1, credential}) presented as the
+      // RFC 8693 subject_token under its minted token-type URI. The OP-side
+      // cryptographic verification matrix (origin binding, signCount,
+      // challenge replay) is AS behaviour and out of vector scope (GAPS.md).
+      // ------------------------------------------------------------------
+      {
+        id: 'webauthn-bundle-decode-ok',
+        title: 'a well-formed WebAuthn assertion bundle decodes: version 1 envelope, public-key credential, canonical base64url binary fields',
+        clauses: ['core#suite-webauthn', 'core#credential-model'],
+        operation: 'decode-webauthn-assertion-bundle',
+        preconditions: { features: ['suite-webauthn'] },
+        source: `${SPEC_SOURCE} core#suite-webauthn + ${WEBAUTHN_REAUTH_SOURCE} src/protocol/codec.ts decodeAssertionBundle (spec-derived; the wire contract is the normative shape)`,
+        notes: 'Structural decode only — the fail-closed boundary an AS '
+          + 'crosses before any cryptography. The fixture is a deterministic '
+          + 'AuthenticationResponseJSON (no live authenticator); its '
+          + 'signature bytes are arbitrary because the decode surface does '
+          + 'not verify them.',
+        input: { token: 'bundle.b64u' },
+        files: { 'bundle.b64u': webauthnBundles['bundle.b64u'] },
+        expected: { ok: true, version: 1, credentialId: WEBAUTHN_CREDENTIAL_ID },
+      },
+      {
+        id: 'webauthn-bundle-noncanonical-b64url-rejected',
+        title: 'a bundle whose binary field carries alphabet-valid but NON-CANONICAL base64url is rejected (fail-closed decode)',
+        clauses: ['core#suite-webauthn', 'core#credential-model'],
+        operation: 'decode-webauthn-assertion-bundle',
+        preconditions: { features: ['suite-webauthn'] },
+        source: `${SPEC_SOURCE} core#suite-webauthn + ${WEBAUTHN_REAUTH_SOURCE} src/protocol/codec.ts isBase64url (spec-derived; the wire contract is the normative shape)`,
+        notes: 'The credential\'s signature field is "AB": inside the '
+          + 'base64url alphabet, but no encoder emits it (the final sextet\'s '
+          + 'unused bits are non-zero — it aliases the bytes of "AA" as a '
+          + 'distinct string, a malleability hazard for string-keyed '
+          + 'lookups). The wire contract requires canonical unpadded '
+          + 'base64url and rejects via a decode→re-encode round-trip; the AS '
+          + 'maps the failure to the RFC 6749 §5.2 invalid_request error at '
+          + 'the exchange.',
+        input: { token: 'bundle-noncanonical.b64u' },
+        files: { 'bundle-noncanonical.b64u': webauthnBundles['bundle-noncanonical.b64u'] },
+        expected: { ok: false, errorCode: 'MALFORMED_BUNDLE' },
+      },
+      {
+        id: 'webauthn-suite-advertised',
+        title: 'an authorization server offering the WebAuthn suite SHOULD list its token-type URI in RFC 8414 subject_token_types_supported',
+        clauses: ['core#credential-model', 'core#authz-discovery'],
+        level: 'SHOULD',
+        operation: 'validate-as-metadata',
+        preconditions: { features: ['suite-webauthn'] },
+        source: `${SPEC_SOURCE} core#credential-model + ${WEBAUTHN_REAUTH_SOURCE} src/protocol/constants.ts WEBAUTHN_ASSERTION_TOKEN_TYPE (spec-derived; no reference implementation yet)`,
+        notes: 'SHOULD rather than MUST for the privacy reason the spec '
+          + 'records (suite enumeration is a fingerprinting surface — '
+          + 'core#credential-model). The token-type URI is the one minted by '
+          + 'the wire contract.',
+        input: {
+          document: {
+            issuer: AS_ISSUER,
+            token_endpoint: `${AS_ISSUER}/token`,
+            grant_types_supported: ['urn:ietf:params:oauth:grant-type:token-exchange'],
+            subject_token_types_supported: [
+              'urn:ietf:params:oauth:token-type:id_token',
+              WEBAUTHN_TOKEN_TYPE,
+            ],
+          },
+          offeredSuiteTokenTypes: [WEBAUTHN_TOKEN_TYPE],
+        },
+        expected: { ok: true },
+      },
+      {
+        id: 'webauthn-suite-omitted-flagged',
+        title: 'metadata for an AS offering the WebAuthn suite that omits its token-type URI fails the advertisement check (advisory)',
+        clauses: ['core#credential-model', 'core#authz-discovery'],
+        level: 'SHOULD',
+        operation: 'validate-as-metadata',
+        preconditions: { features: ['suite-webauthn'] },
+        source: `${SPEC_SOURCE} core#credential-model + ${WEBAUTHN_REAUTH_SOURCE} src/protocol/constants.ts WEBAUTHN_ASSERTION_TOKEN_TYPE (spec-derived; no reference implementation yet)`,
+        input: {
+          document: {
+            issuer: AS_ISSUER,
+            token_endpoint: `${AS_ISSUER}/token`,
+            grant_types_supported: ['urn:ietf:params:oauth:grant-type:token-exchange'],
+            subject_token_types_supported: ['urn:ietf:params:oauth:token-type:id_token'],
+          },
+          offeredSuiteTokenTypes: [WEBAUTHN_TOKEN_TYPE],
+        },
+        expected: { errorCode: 'SUITE_NOT_ADVERTISED', ok: false },
+      },
+      {
+        id: 'webauthn-issued-token-never-bare',
+        title: 'a token issued via the WebAuthn suite is always DPoP-bound (cnf present) and therefore never accepted bare — the Bearer baseline is not weakened by the suite',
+        clauses: ['core#rs-validation', 'core#suite-webauthn'],
+        operation: 'validate-access-token',
+        source: `${SPEC_SOURCE} core#rs-validation + ${WEBAUTHN_REAUTH_SOURCE} #token-exchange ("there is no Bearer variant") (spec-derived; no reference implementation yet)`,
+        notes: 'Composition consequence (docs/alignment/webauthn-reauth.md): '
+          + 'the [WEBAUTHN-REAUTH] exchange issues only DPoP-bound tokens, so '
+          + 'every token this suite produces carries cnf.jkt, and '
+          + 'rs-validation step 5 already refuses it bare — the storage '
+          + 'server needs no WebAuthn awareness. The fixture is a valid '
+          + 'at+jwt whose cnf.jkt is the committed sk-client key thumbprint.',
+        input: tokenInput('at-webauthn-cnf.jwt'),
         expected: { accept: false, errorCode: 'POP_PROOF_MISSING' },
       },
       // ------------------------------------------------------------------

@@ -90,7 +90,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@deb310e core#http-delete (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#http-delete (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "deleting a resource atomically removes it from the parent's items and changes the parent's ETag"
 }

@@ -35,12 +35,12 @@ one suite.
 
 ### 3.1 In `lws-spec/test-vectors/` (this repo)
 
-| Suite | Cases | Source alignment | Gate |
+| Suite | Cases | Source alignment | Status |
 |---|---|---|---|
-| `vectors/ac-sparql/` (new) | 8 — gating (2, buildable now), GET-equivalence ± (2), revocation-immediate, counts-visible-only, service-description oracle-freedom, UDG-opt-in discipline | [ac-sparql.md §3](./ac-sparql.md) | impl gated on `sparq#992` (discovery pair buildable now) |
-| `vectors/dpop-sk/` (new) | 8 — PRM shape (3), establishment `none`-binding, attestation accept/bad-sig/replay/expired | [dpop-sk.md §3](./dpop-sk.md) | none (deterministic; narrows the GAPS.md `core#rs-validation` deferral, leaving only `tls-exporter`) |
-| `vectors/auth/` (extend) | +4 — webauthn bundle decode ok / non-canonical-b64url reject, suite advertisement, issued-token-never-bare | [webauthn-reauth.md §3](./webauthn-reauth.md) | none |
-| `vectors/discovery/` (extend) | +1 — `sd-agent-interaction-service` extension-entry parse + forward-compat | [a2a-rdf.md §3](./a2a-rdf.md) | the config-gated SD entry (trivial) |
+| `vectors/ac-sparql/` (new) | 8 — gating (2, buildable now), GET-equivalence ± (2), revocation-immediate, counts-visible-only, service-description oracle-freedom, UDG-opt-in discipline | [ac-sparql.md §3](./ac-sparql.md) | impl gated on `sparq#992`; the discovery-consistency half of the gating pair LANDED early as `rdf-transform/sparql-service-requires-profile-on` |
+| `vectors/dpop-sk/` (new) | **LANDED — 14 cases** (the planned 8, widened during derivation: PRM shape 2 + client fail-closed negotiation 2 + establishment ok/non-cnf-refused 2 + attestation accept/tamper/cross-target-transplant/token-substitution/replay/verify-then-mark/expired/stripped-no-bearer 8) | [dpop-sk.md §3](./dpop-sk.md) | landed; the GAPS.md `core#rs-validation` deferral narrowed, `tls-exporter` flavour retained there |
+| `vectors/auth/` (extend) | **LANDED — +5** (webauthn bundle decode ok / non-canonical-b64url reject, suite advertisement + its advisory negative twin, issued-token-never-bare) | [webauthn-reauth.md §3](./webauthn-reauth.md) | landed |
+| `vectors/discovery/` (extend) | **LANDED — +2** (`sd-agent-interaction-service` extraction; `…-hostile-fails-closed` non-https endpoint) | [a2a-rdf.md §3](./a2a-rdf.md) | landed as spec-derived discovery-shape cases (D20 permits preceding the config-gated SD-builder impl) |
 
 Bookkeeping on landing each suite: update `test-vectors/manifest.json`
 (`caseCount`/`suiteCount`/suite entry), re-run `node test-vectors/tools/check.mjs`

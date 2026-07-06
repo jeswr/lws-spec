@@ -79,7 +79,7 @@
   "level": "MUST",
   "notes": "Operationalisation: whatever status/problem-type the server uses for a genuinely missing resource, the response for an existing-but-inaccessible one must be indistinguishable in status and problem type.",
   "operation": "http-exchange",
-  "source": "lws-spec@deb310e core#oracle-freedom (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#oracle-freedom (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "error responses MUST NOT leak existence: a hidden resource answers exactly like a missing one (status and problem type)"
 }

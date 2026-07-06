@@ -24,7 +24,9 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createHash, createPublicKey, verify } from 'node:crypto';
+import {
+  createHash, createHmac, createPublicKey, timingSafeEqual, verify,
+} from 'node:crypto';
 
 const TOOLS = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(TOOLS, '..');
@@ -45,15 +47,23 @@ const OPERATIONS = new Set([
   'verify-realm-containment', 'enforce-authorization-details',
   'validate-access-document', 'evaluate-access', 'validate-storage-description',
   'validate-notification-envelope', 'verify-webhook-signature',
-  'transform-representation',
+  'transform-representation', 'evaluate-pop-session-offer', 'discover-service',
+  'evaluate-transform-offer', 'decode-webauthn-assertion-bundle',
+  'validate-as-metadata',
 ]);
 const LEVELS = new Set(['MUST', 'SHOULD', 'MAY']);
 // The closed set of file-bearing input fields (README "File-reference
 // convention"): only these members, plus ${file:...} placeholders, name
 // fixture files. Any other string is a literal.
 const FILE_FIELDS = new Set([
-  'token', 'delivery', 'storageDescription', 'bodyFile', 'isomorphicTo',
+  'token', 'delivery', 'bodyFile', 'isomorphicTo', 'popSkSessions',
 ]);
+// 'storageDescription' is a file ref in verify-webhook-signature inputs but
+// an inline document in evaluate-transform-offer inputs — the string-shape
+// test below (no spaces, no '://', and for these fields no '@context'
+// object) already disambiguates because inline documents are objects, not
+// strings.
+FILE_FIELDS.add('storageDescription');
 // 'source' is a file ref ONLY inside a transform-representation input (its
 // sibling sourceMediaType disambiguates it from a ContentNegotiation
 // capability entry's source member, which is a media type).
@@ -283,6 +293,198 @@ for (const [caseName, expectation] of Object.entries(webhookExpectation)) {
         : !digestOk ? 'digest-mismatch'
           : 'ok';
   if (verdict !== expectation) fail(`${caseName}: fixture self-check verdict ${verdict}, expected ${expectation}`);
+}
+
+// --- crypto self-consistency: DPoP-SK fixtures -------------------------------
+// The signed dpop-sk fixtures must verify (or deliberately fail) exactly as
+// their cases claim: tokens against the committed JWKS, establishment DPoP
+// proofs against their embedded JWK (with the ath and cnf.jkt bindings), the
+// session records against the tokens they claim to bind, and every
+// attestation header pair recomputed under the committed TEST-ONLY session
+// key against the ACTUAL request it is played on.
+{
+  const skDir = join(ROOT, 'vectors/dpop-sk');
+  const b64u = (buf) => Buffer.from(buf).toString('base64url');
+  const sha256 = (data, enc) => createHash('sha256').update(data, enc).digest();
+  const readKeyring = (f) => readFileSync(join(skDir, 'keyring', f), 'utf8').trim();
+  const decodePart = (t, i) => JSON.parse(Buffer.from(t.split('.')[i], 'base64url').toString());
+
+  const skTokens = Object.fromEntries(
+    ['at-sk-bound.jwt', 'at-sk-other.jwt', 'at-sk-nocnf.jwt'].map((f) => [f, readKeyring(f)]),
+  );
+  const skJwks = JSON.parse(readKeyring('as.jwks.json'));
+  const skAsKey = createPublicKey({ key: skJwks.keys[0], format: 'jwk' });
+  for (const [f, t] of Object.entries(skTokens)) {
+    const [h, p, s] = t.split('.');
+    if (!verify(null, Buffer.from(`${h}.${p}`), skAsKey, Buffer.from(s, 'base64url'))) {
+      fail(`dpop-sk keyring ${f}: signature must verify against as.jwks.json`);
+    }
+  }
+  if (!decodePart(skTokens['at-sk-bound.jwt'], 1).cnf?.jkt) fail('at-sk-bound.jwt: missing cnf.jkt');
+  if (!decodePart(skTokens['at-sk-other.jwt'], 1).cnf?.jkt) fail('at-sk-other.jwt: missing cnf.jkt');
+  if (decodePart(skTokens['at-sk-nocnf.jwt'], 1).cnf) fail('at-sk-nocnf.jwt: must NOT carry cnf (the deliberate unbound-token fixture)');
+
+  // Establishment proofs: EdDSA under the embedded JWK; typ dpop+jwt; ath
+  // binds the named token; the bound token's cnf.jkt is the proof key's
+  // RFC 7638 thumbprint.
+  const proofChecks = [
+    ['dpop-establish.jwt', 'at-sk-bound.jwt', true],
+    ['dpop-establish-nocnf.jwt', 'at-sk-nocnf.jwt', false],
+  ];
+  for (const [proofFile, tokenFile, expectCnfBinding] of proofChecks) {
+    const proof = readKeyring(proofFile);
+    const [h, p, s] = proof.split('.');
+    const header = decodePart(proof, 0);
+    const payload = decodePart(proof, 1);
+    if (header.typ !== 'dpop+jwt') fail(`${proofFile}: typ must be dpop+jwt`);
+    const proofKey = createPublicKey({ key: header.jwk, format: 'jwk' });
+    if (!verify(null, Buffer.from(`${h}.${p}`), proofKey, Buffer.from(s, 'base64url'))) {
+      fail(`${proofFile}: signature must verify against the embedded jwk`);
+    }
+    if (payload.htm !== 'POST') fail(`${proofFile}: htm must be POST`);
+    if (payload.ath !== b64u(sha256(skTokens[tokenFile], 'ascii'))) {
+      fail(`${proofFile}: ath must hash ${tokenFile}`);
+    }
+    const jkt = b64u(sha256(JSON.stringify({ crv: header.jwk.crv, kty: header.jwk.kty, x: header.jwk.x })));
+    const cnf = decodePart(skTokens[tokenFile], 1).cnf;
+    if (expectCnfBinding && cnf?.jkt !== jkt) {
+      fail(`${proofFile}: ${tokenFile} cnf.jkt must equal the proof key thumbprint`);
+    }
+  }
+
+  // Session records: key present, tokenHash binds at-sk-bound, expiry sides.
+  const evalInstant = Date.parse(top.evaluationInstant);
+  const sessions = {};
+  for (const [f, expectLive] of [['session-valid.json', true], ['session-expired.json', false]]) {
+    const s = JSON.parse(readKeyring(f));
+    sessions[s.session_id] = s;
+    if (s.tokenHash !== b64u(sha256(skTokens['at-sk-bound.jwt'], 'ascii'))) {
+      fail(`${f}: tokenHash must be SHA-256 of at-sk-bound.jwt`);
+    }
+    const live = Date.parse(s.expiresAt) > evalInstant;
+    if (live !== expectLive) fail(`${f}: expiresAt must be ${expectLive ? 'after' : 'before'} the evaluation instant`);
+    if (Buffer.from(s.key, 'base64url').length !== 32) fail(`${f}: key must be 32 bytes`);
+  }
+
+  // Attestation fixtures, per case: recompute the RFC 9421 base from the
+  // ACTUAL request in the case file and the committed session key, then
+  // compare against the case's claim (sig valid? token bound? session live?).
+  const attestExpectation = {
+    'attest-ok': [{ sig: true, token: true, live: true }],
+    'attest-bad-signature-standard-challenge': [{ sig: false }],
+    'attest-cross-target-transplant-rejected': [{ sig: false }],
+    'attest-token-substitution-rejected': [{ sig: true, token: false, live: true }],
+    'attest-replay-rejected': [
+      { sig: true, token: true, live: true },
+      { sig: true, token: true, live: true },
+    ],
+    'attest-forged-cannot-burn-counter': [{ sig: false }, { sig: true, token: true, live: true }],
+    'attest-expired-session-rechallenge': [{ sig: true, token: true, live: false }],
+    'attest-stripped-signature-no-bearer-fallback': [{ stripped: true }],
+  };
+  for (const [caseName, perRequest] of Object.entries(attestExpectation)) {
+    const c = JSON.parse(readFileSync(join(skDir, 'cases', caseName, 'case.json'), 'utf8'));
+    const requests = c.exchanges ? c.exchanges.map((e) => e.request) : [c.input.request];
+    const sessionFixture = JSON.parse(readKeyring(c.input.state.popSkSessions[0].replace(/^keyring\//, '')));
+    const key = Buffer.from(sessionFixture.key, 'base64url');
+    requests.forEach((req, i) => {
+      const want = perRequest[i];
+      if (!want) { fail(`${caseName}: more requests than expectations`); return; }
+      const si = req.headers['Signature-Input'];
+      const sig = req.headers.Signature;
+      if (want.stripped) {
+        if (si || sig) fail(`${caseName}[${i}]: must carry no attestation headers`);
+        return;
+      }
+      if (!si || !sig) { fail(`${caseName}[${i}]: missing attestation headers`); return; }
+      const authz = req.headers.Authorization.replace(
+        /\$\{file:([^}]+)\}/,
+        (_, ref) => readKeyring(ref.replace(/^keyring\//, '')),
+      );
+      const paramsStr = si.replace(/^sig=/, '');
+      const keyid = paramsStr.match(/keyid="([^"]+)"/)?.[1];
+      const base = [
+        `"@method": ${req.method}`,
+        `"@target-uri": ${req.target}`,
+        `"authorization": ${authz}`,
+        `"@signature-params": ${paramsStr}`,
+      ].join('\n');
+      const expectTag = createHmac('sha256', key).update(base, 'utf8').digest();
+      const gotTag = Buffer.from(sig.match(/^sig=:(.*):$/)?.[1] ?? '', 'base64');
+      const sigOk = gotTag.length === expectTag.length && timingSafeEqual(gotTag, expectTag);
+      if (sigOk !== want.sig) {
+        fail(`${caseName}[${i}]: HMAC ${sigOk ? 'verifies but must not' : 'must verify but does not'}`);
+      }
+      if (want.sig && keyid !== sessionFixture.session_id) {
+        fail(`${caseName}[${i}]: keyid must name the realised session`);
+      }
+      if (want.token !== undefined) {
+        const presented = authz.replace(/^DPoP /, '');
+        const bound = b64u(sha256(presented, 'ascii')) === sessionFixture.tokenHash;
+        if (bound !== want.token) fail(`${caseName}[${i}]: token binding is ${bound}, case claims ${want.token}`);
+      }
+      if (want.live !== undefined) {
+        const live = Date.parse(sessionFixture.expiresAt) > evalInstant;
+        if (live !== want.live) fail(`${caseName}[${i}]: session liveness is ${live}, case claims ${want.live}`);
+      }
+    });
+  }
+}
+
+// --- fixture self-consistency: WebAuthn assertion bundles --------------------
+// Reimplements the wire contract's fail-closed decode (canonical unpadded
+// base64url; version-1 envelope; required credential fields) and checks each
+// bundle fixture decodes — or deliberately fails — exactly as its case claims.
+{
+  const casesDir = join(ROOT, 'vectors/auth/cases');
+  const isCanonicalB64u = (v) => {
+    if (typeof v !== 'string' || v.length === 0 || v.length % 4 === 1) return false;
+    if (!/^[A-Za-z0-9_-]+$/.test(v)) return false;
+    return Buffer.from(v, 'base64url').toString('base64url') === v;
+  };
+  const decodeBundle = (token) => {
+    if (!/^[A-Za-z0-9_-]*$/.test(token)) return { ok: false, at: 'outer-b64u' };
+    let parsed;
+    try {
+      parsed = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
+    } catch {
+      return { ok: false, at: 'json' };
+    }
+    if (parsed?.version !== 1) return { ok: false, at: 'version' };
+    const cred = parsed.credential;
+    if (typeof cred !== 'object' || cred === null) return { ok: false, at: 'credential' };
+    for (const f of ['id', 'rawId']) {
+      if (!isCanonicalB64u(cred[f])) return { ok: false, at: f };
+    }
+    if (cred.type !== 'public-key') return { ok: false, at: 'type' };
+    const r = cred.response;
+    if (typeof r !== 'object' || r === null) return { ok: false, at: 'response' };
+    for (const f of ['clientDataJSON', 'authenticatorData', 'signature']) {
+      if (!isCanonicalB64u(r[f])) return { ok: false, at: `response.${f}` };
+    }
+    if (r.userHandle !== undefined && r.userHandle !== null && !isCanonicalB64u(r.userHandle)) {
+      return { ok: false, at: 'response.userHandle' };
+    }
+    return { ok: true, credentialId: cred.id };
+  };
+  const bundleExpectation = {
+    'webauthn-bundle-decode-ok': { ok: true },
+    'webauthn-bundle-noncanonical-b64url-rejected': { ok: false, at: 'response.signature' },
+  };
+  for (const [caseName, expectation] of Object.entries(bundleExpectation)) {
+    const c = JSON.parse(readFileSync(join(casesDir, caseName, 'case.json'), 'utf8'));
+    const token = readFileSync(join(casesDir, caseName, c.input.token), 'utf8').trim();
+    const result = decodeBundle(token);
+    if (result.ok !== expectation.ok) {
+      fail(`${caseName}: bundle fixture decode ok=${result.ok}, case claims ok=${expectation.ok}`);
+    }
+    if (!expectation.ok && result.at !== expectation.at) {
+      fail(`${caseName}: bundle must fail at ${expectation.at}, failed at ${result.at}`);
+    }
+    if (expectation.ok && result.credentialId !== c.expected.credentialId) {
+      fail(`${caseName}: fixture credential id ${result.credentialId} != expected.credentialId`);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------

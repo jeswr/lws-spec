@@ -2043,23 +2043,30 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
   <h2>Test-vector index</h2>
   <p>
     The conformance test-vector suite ships in this repository at
-    <a href="./test-vectors/README.md"><code>test-vectors/</code></a>: 125 language-neutral
+    <a href="./test-vectors/README.md"><code>test-vectors/</code></a>: 150 language-neutral
     (input, operation, expected-outcome) cases in the format of
     <a href="https://github.com/jeswr/agentic-solid-conformance">agentic-solid-conformance</a>,
     each pinning specific normative clauses of this document or the RDF Content Transformation
     companion by section id, honouring the Working Group charter's "testing from earliest
     drafts" success criterion and exceeding the 27 MUST-level tests of the community
-    <code>linkedwebstorage/test-suite</code>. Nine suites cover byte-native resource CRUD and
+    <code>linkedwebstorage/test-suite</code>. Ten suites cover byte-native resource CRUD and
     the conditional-request matrix (<code>If-Match</code> / <code>If-None-Match: *</code> /
     428 / 412) including idempotent create; container listings, containment, and fail-closed
-    membership; linkset metadata; discovery (storage description + RFC 9728 metadata); the
+    membership; linkset metadata; discovery (storage description + RFC 9728 metadata + the
+    a2a-rdf extension-service entry, fail-closed); the
     authorization chain (challenge shape, realm containment, token exchange, signed
-    RFC 9068 at+jwt validation fixtures, Bearer-baseline/PoP-opt-in, RFC 9396 narrowing);
+    RFC 9068 at+jwt validation fixtures, Bearer-baseline/PoP-opt-in, RFC 9396 narrowing,
+    and the WebAuthn suite's wire-contract decode and advertisement); the DPoP-SK
+    presentation profile (<code>pop_session</code> discovery, fail-closed negotiation,
+    establishment, and the RFC 9421 <code>hmac-sha256</code> attestation matrix with
+    verify-then-mark anti-replay, <code>cb=none</code> flavour);
     strict-ODRL access documents and grant evaluation; notifications (subscription
     authorization, envelope invariants, RFC 9421-signed webhook verification fixtures);
-    the RDF transformation profile; and the RFC 9457 error/oracle contract. The suite's
+    the RDF transformation profile (including its advertisement and feature-detection
+    contract); and the RFC 9457 error/oracle contract. The suite's
     <code>GAPS.md</code> inventories the normative statements that are not vectorable (SSE
-    resumption/reset and the DPoP/DPoP-SK proof matrices among them, with reasons), and its
+    resumption/reset, the plain-DPoP proof matrix, and DPoP-SK's <code>tls-exporter</code>
+    flavour among them, with reasons), and its
     expected verdicts are spec-derived pending the first implementation — see the suite
     README's provenance note. ODRL <em>delegation</em>-chain semantics remain covered by the
     solid-odrl vectors in agentic-solid-conformance, adopted by reference in
@@ -2140,8 +2147,9 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
           <a href="./rdf-transform.html">RDF Content Transformation companion</a></td>
         <td><a href="#capability-registry"></a></td></tr>
       <tr><td>D19</td><td>—(process, not wire: WG repo/publication process)</td>
-        <td>One personal repo, ReSpec <code>unofficial</code>, local-only until the
-          maintainer steers publication (DECISIONS.md D19)</td>
+        <td>One personal repo, ReSpec <code>unofficial</code>, published as a
+          clearly-framed public experiment on the maintainer's authorisation
+          (DECISIONS.md D19)</td>
         <td><a href="#sotd"></a></td></tr>
     </tbody>
   </table>

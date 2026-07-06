@@ -50,11 +50,14 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   uploads) vs adopted defaults.
 - **`docs/DESIGN-BRIEF.md`** — the research foundation (primary-source-cited survey of the WG,
   its drafts, minutes, issues, and the maintainer's own prior LWS artifacts).
-- **`test-vectors/`** — the **conformance test-vector suite**: 125 language-neutral
-  (input, operation, expected-outcome) cases across 9 suites in the
+- **`test-vectors/`** — the **conformance test-vector suite**: 150 language-neutral
+  (input, operation, expected-outcome) cases across 10 suites in the
   `agentic-solid-conformance` format, each pinning normative clauses by spec section id;
-  JSON cases with Turtle/JSON-LD/N-Quads fixtures plus real signed EdDSA at+jwt and RFC 9421
-  webhook fixtures; a `GAPS.md` inventorying the un-vectorable normative statements. The
+  JSON cases with Turtle/JSON-LD/N-Quads fixtures plus real signed EdDSA at+jwt, RFC 9421
+  webhook, DPoP-SK hmac-sha256 attestation, and WebAuthn assertion-bundle fixtures; a
+  `GAPS.md` inventorying the un-vectorable normative statements. Includes the composition
+  suites from `docs/alignment/`: `dpop-sk`, the WebAuthn wire-contract cases, the a2a-rdf
+  `AgentInteractionService` discovery pair, and the rdf-1 advertisement contract. The
   expected verdicts are spec-derived (no reference implementation exists yet — see the suite
   README's provenance note); this suite is the conformance target the first implementation
   (the planned `solid-server-rs` LWS work) builds to.

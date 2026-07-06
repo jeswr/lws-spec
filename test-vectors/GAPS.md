@@ -49,7 +49,7 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
 
 | Clause | Requirement | Why no vector |
 |---|---|---|
-| core#credential-model, #suites | Validation of authentication credentials under the four suites (OIDC discovery + ID-token validation, self-signed CID `kid` selection, did:key extraction, WebAuthn assertion verification) | network/trust + multi-party — each suite's validation dereferences live documents (CID, OIDC discovery, JWKS) and, for WebAuthn, verifies a challenge-bound assertion; the exchange operation abstracts the credential as pre-validated. **vectorable, deferred** in part: self-signed-CID and did:key cases (offline-verifiable) are a natural next tranche; the WebAuthn suite's wire contract already has its own test surface in `jeswr/solid-webauthn-reauth` |
+| core#credential-model, #suites | Validation of authentication credentials under the four suites (OIDC discovery + ID-token validation, self-signed CID `kid` selection, did:key extraction, WebAuthn assertion verification) | network/trust + multi-party — each suite's validation dereferences live documents (CID, OIDC discovery, JWKS) and, for WebAuthn, verifies a challenge-bound assertion; the exchange operation abstracts the credential as pre-validated. **vectorable, deferred** in part: self-signed-CID and did:key cases (offline-verifiable) are a natural next tranche. The WebAuthn suite's **wire-contract decode** is now pinned here (`auth/webauthn-bundle-*`, operation 15); what remains deferred is the **OP-side verification matrix** (origin/RP-ID binding, signCount policy, challenge freshness/replay, the coarse `invalid_grant` error contract) — AS behaviour belonging to `solid-webauthn-reauth-spec`'s own planned vectors, plus the assertion cryptography itself |
 | core#identity-documents | Verifiers SHOULD cache CID-derived keys per HTTP caching metadata | network/trust + stateful |
 | core#client-identity | Client-ID metadata document validation | vectorable, deferred — the document format is plain JSON; accept/reject cases would pin draft-ietf-oauth-client-id-metadata-document shapes |
 
@@ -59,9 +59,21 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
 |---|---|---|
 | core#token-exchange | "The authorization server MUST validate all presented tokens before issuing" | covered-elsewhere in part — subject-token validation is suite-specific (above); the resource-parameter handling is pinned |
 | core#rs-validation | JWKS caching, key rotation support | network/trust + stateful |
-| core#rs-validation | PoP proof validation when `cnf` is present (the proof itself: DPoP per RFC 9449, DPoP-SK per its spec) | covered-elsewhere / vectorable, deferred — the bare-presentation rejection is pinned (token-pop-bound-presented-bare-rejected); full DPoP proof matrices belong with the DPoP-SK spec's own planned vectors and RFC 9449's test surface |
+| core#rs-validation | PoP proof validation when `cnf` is present (the proof itself: DPoP per RFC 9449, DPoP-SK per its spec) | NARROWED — the bare-presentation rejection is pinned (token-pop-bound-presented-bare-rejected, webauthn-issued-token-never-bare), and the **DPoP-SK attestation matrix is now pinned** by the `dpop-sk` suite (cb=none flavour: establishment, accept/tamper/cross-target/token-substitution/replay/verify-then-mark/expiry/no-bearer-fallback). Still deferred: the plain-DPoP proof matrix (RFC 9449's own test surface — the establishment cases exercise one full-proof accept/reject pair) and the DPoP-SK `tls-exporter` flavour (below) |
 | core#client-rules | A client MUST NOT present a token whose aud does not contain the target; SHOULD NOT share tokens; SHOULD NOT proactively fetch tokens; SHOULD reuse cached tokens | client-behavioural — apart from realm containment (pinned), client-side conduct is not observable from data vectors; a client-harness tranche is **vectorable, deferred** |
 | core#sec-tokens | jti replay cache (MAY); pseudonymous batch issuance (SHOULD) | deployment-policy + stateful |
+
+### DPoP-SK presentation profile (core#presentation-pop, composed per docs/alignment/dpop-sk.md)
+
+The `dpop-sk` suite pins the deterministic surface (cb=none). Not vectorable:
+
+| Requirement (dpop-sk-spec anchor) | Why no vector |
+|---|---|
+| The `tls-exporter` channel-binding flavour: RFC 8446 §7.5 exporter derivation, TLS 1.3 requirement, connection pinning, resumption/0-RTT rejection, the `confirm` key-confirmation value (`#kd-exporter`, `#establishment-response`) | network/trust — needs a live in-process TLS exporter interface no fixture can supply; the whole flavour stays out, per the alignment doc |
+| Establishment rate-limiting (`#establishment-request`, SHOULD), capacity-bounded session store / eviction (`#server-state`) | deployment-policy + stateful |
+| Constant-time HMAC comparison; sig-verify + window check-and-mark atomicity under concurrency (`#attestation-verification`, `#anti-replay`) | internal/concurrent — the *sequential* verify-then-mark consequence IS pinned (attest-forged-cannot-burn-counter); the atomicity of the pair under concurrent duplicates is not black-box observable from ordered exchanges |
+| `created` freshness window (`#attestation-verification` step 5, SHOULD — "the same window they apply to DPoP iat") | deployment-policy (SHOULD; the window width is the server's) |
+| Session termination via attested DELETE (`#lifetime`, SHOULD) + forced rekey at server discretion | behavioural + deployment-policy |
 
 ### Access requests and grants
 
@@ -123,7 +135,7 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
 | rdf#authoritative-bytes | Writes in a derived type flip the stored media type — accepted ONLY when the written type is itself an advertised `source` (bidirectional coverage), else 415; MUST NOT silently transcode | vectorable, deferred — gated on an implementation opting into derived-type writes; two case shapes are ready (PUT ld+json onto a ttl resource then GET without Accept; PUT in a target-only type → 415) |
 | rdf#normalizes | Read-back under `normalizes` is graph-isomorphic to what was written | partially pinned (determinism is; the write→read isomorphism needs a write + transform check in one case — **vectorable, deferred**) |
 | rdf#rdf-patch | RDF PATCH application: graph patch, atomicity, ETag rotation, N3 `?conditions` failure → 409 | vectorable, deferred — a PATCH tranche (SPARQL Update / N3 Patch fixtures) once an implementation advertises an RDF patch format; atomicity itself is stateful |
-| rdf#indexing | Content-derived index enrichment bound by oracle rules | companion-planned (query companion) + covered-elsewhere (oracle cases) |
+| rdf#indexing | Content-derived index enrichment bound by oracle rules | companion-planned (query companion) + covered-elsewhere (oracle cases). The discovery-consistency half — `SparqlQueryService` MUST NOT be advertised without the profile — is now pinned (rdf-transform/sparql-service-requires-profile-on); the AC-SPARQL binding behaviour itself (gating at the endpoint, per-solution authorization filtering) is the planned `ac-sparql` suite, gated on its implementation (docs/alignment/ac-sparql.md) |
 | rdf#security-privacy | Parser resource bounds (size/triple/depth/time); no dereference during transformation (no remote `@context`, no `owl:imports`) | network/trust — proving the absence of a fetch needs an instrumented network layer; resource-bound rejection of depth/size bombs is **vectorable, deferred** (bomb fixtures are cheap to add) |
 | rdf#security-privacy | ETag correlation (no cross-representation digest leakage) | design-review property of the ETag scheme, not observable from single exchanges |
 
@@ -137,8 +149,11 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
   path-segment reading of "logically contains" in the two prefix-trap cases began as a
   recorded interpretation and is now the spec's own normative definition — the intended
   lifecycle for every such note.)
-- **The client conformance class is under-vectored.** Only `verify-realm-containment`
-  exercises client-scoped requirements; a client-side harness tranche is deferred.
+- **The client conformance class is under-vectored.** `verify-realm-containment`,
+  `evaluate-pop-session-offer` (fail-closed DPoP-SK negotiation), and
+  `evaluate-transform-offer` (rdf-1 feature detection) exercise client-scoped
+  requirements; the broader client-conduct tranche (token handling, cache reuse) remains
+  deferred.
 - **The `access` state map is an abstraction.** http-exchange cases declare effective
   access; the grant→enforcement wiring (core#grants-are-records) is pinned only at the
   decision level (`evaluate-access`) plus the steady-state oracle cases. The bounded

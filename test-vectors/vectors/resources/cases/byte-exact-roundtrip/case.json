@@ -61,7 +61,7 @@
   "level": "MUST",
   "notes": "The server stores and returns the representation without interpreting it: GET returns the stored bytes with the stored media type.",
   "operation": "http-exchange",
-  "source": "lws-spec@deb310e core#http-read (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#http-read (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "written bytes (including non-UTF-8 binary) and the full stored media type round-trip exactly"
 }

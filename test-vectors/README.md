@@ -21,21 +21,25 @@ cataloguing the normative statements that are **not** vectorable and why. Like t
 these vectors have **no dependency on any implementation code**: any implementation, in any
 language, can bind the abstract operations below and compare against `expected`.
 
-This suite shares the parent repository's status: **local and unpublished**, a personal,
-experimental artifact awaiting its editor's review. It names no external party and requests
-nothing of anyone.
+This suite shares the parent repository's status: a **personal, experimental artifact**
+(published as a clearly-framed public experiment on the maintainer's authorisation)
+awaiting its editor's full review. It names no external party and requests nothing of
+anyone.
 
 ## Provenance of verdicts — spec-derived, not implementation-extracted
 
 `agentic-solid-conformance` *extracted* its verdicts by executing pinned reference
 implementations. **No reference implementation of JLWS exists yet**, so the expected
 outcomes here are **derived directly from the normative text** of the two specs at commit
-`deb310e` — the commit the suite was last **reconciled** against; whenever the spec's
+`f2e081d` — the commit the suite was last **reconciled** against; whenever the spec's
 normative text changes, the pin is bumped and every affected vector re-derived in the same
 change (each case's `source` field records the clause it was derived from; `notes`
 records any interpretation applied where the spec leaves a code point open, e.g. the
 RFC 8693 §2.2.2 `invalid_target` choice — the path-segment reading of "logically contains"
-began as such a note and is now the spec's own normative rule).
+began as such a note and is now the spec's own normative rule). Cases pinning a
+**composition surface** (the DPoP-SK profile, the WebAuthn suite's wire contract, the
+a2a-rdf extension service) additionally cite the companion document + anchor in `source`
+at a pinned commit — `clauses` itself only ever names `core#`/`rdf#` section ids.
 That inversion is deliberate — these vectors are the **conformance target the first
 implementation builds to** (the planned `solid-server-rs` `feat/lws` branch) — and it has a
 consequence: until an implementation passes the suite, a vector may embody a
@@ -47,7 +51,7 @@ manifests ↔ cases ↔ clause ids ↔ fixtures ↔ signatures).
 
 ## Suites
 
-125 cases across 9 suites (see [`manifest.json`](./manifest.json) for the machine-readable
+150 cases across 10 suites (see [`manifest.json`](./manifest.json) for the machine-readable
 index):
 
 | Suite | Cases | Spec | Surface |
@@ -55,11 +59,12 @@ index):
 | [`vectors/resources/`](./vectors/resources/) | 17 | core | byte-native CRUD, `PUT + If-None-Match: *` idempotent create, 428/412 discipline, Range, conditional GET, HEAD, required links, traversal, quota |
 | [`vectors/containers/`](./vectors/containers/) | 14 | core | JSON-LD listings, identical-bytes conneg, `rel="up"`, POST/Slug create + namespace alias, `Depth: infinity` delete, membership atomicity, fail-closed listings, container ≠ data resource, move |
 | [`vectors/metadata/`](./vectors/metadata/) | 7 | core | RFC 9264 linksets, merge-patch, Accept-Patch, 428/412, system-managed immutability, delete-with-resource |
-| [`vectors/discovery/`](./vectors/discovery/) | 6 | core | storage-description validation (CID shape, `conformsTo`, self-service entry, unknown-capability tolerance), description link, RFC 9728 metadata document |
-| [`vectors/auth/`](./vectors/auth/) | 31 | core | 401 challenge shape, realm containment, RFC 8693 exchange, RFC 9068 single-audience at+jwt validation (13 signed fixtures), Bearer baseline / PoP opt-in, RFC 9396 narrowing |
+| [`vectors/discovery/`](./vectors/discovery/) | 8 | core | storage-description validation (CID shape, `conformsTo`, self-service entry, unknown-capability tolerance), description link, RFC 9728 metadata document, extension-service consumption (a2a-rdf `AgentInteractionService`, fail-closed non-https endpoint) |
+| [`vectors/auth/`](./vectors/auth/) | 36 | core | 401 challenge shape, realm containment, RFC 8693 exchange, RFC 9068 single-audience at+jwt validation (14 signed fixtures), Bearer baseline / PoP opt-in, RFC 9396 narrowing, the WebAuthn suite's composition surface (fail-closed bundle decode, RFC 8414 advertisement, DPoP-bound-only issuance) |
+| [`vectors/dpop-sk/`](./vectors/dpop-sk/) | 14 | core | the DPoP-SK PoP presentation profile over JLWS (cb=none flavour): `pop_session` PRM advertisement, the single `dpop_bound_access_tokens_required` member covering both PoP profiles, fail-closed client negotiation, establishment from a DPoP-bound token, RFC 9421 hmac-sha256 attestation accept/tamper/cross-target/token-substitution/replay/verify-then-mark/expiry/no-bearer-fallback |
 | [`vectors/access-grants/`](./vectors/access-grants/) | 17 | core | strict-ODRL document validation, default-deny grant evaluation, action inclusion, typed targets, constraints, public assignee |
 | [`vectors/notifications/`](./vectors/notifications/) | 12 | core | subscription authorization, SSE/WebSocket binding shapes, content-free envelope, RFC 9421 webhook signature verification (5 signed fixtures) |
-| [`vectors/rdf-transform/`](./vectors/rdf-transform/) | 17 | rdf-1 | capability consistency, graph-isomorphic round-trips, no-inference, base resolution, remote-context decline (no fetch), authoritative bytes + per-representation ETags, `normalizes`, unparseable-source degradation, opt-in-OFF behaviour |
+| [`vectors/rdf-transform/`](./vectors/rdf-transform/) | 21 | rdf-1 | capability consistency, advertised-pair conneg honoured, client fail-closed feature detection, `SparqlQueryService` gating, graph-isomorphic round-trips, no-inference, base resolution, remote-context decline (no fetch), authoritative bytes + per-representation ETags, `normalizes`, unparseable-source degradation, opt-in-OFF behaviour |
 | [`vectors/errors/`](./vectors/errors/) | 4 | core | RFC 9457 problem details everywhere, 404-for-hidden, hidden ≡ missing, 403-for-partial-access |
 
 ## Vector schema
@@ -83,7 +88,7 @@ case, and — where the suite ships shared fixtures — a `keyring/` directory.
   "expected": { … },                            // operation-specific
   "exchanges": [ … ],                           // http-exchange multi-request form
   "notes": "…",                                 // any interpretation applied
-  "source": "lws-spec@deb310e core#rs-validation (spec-derived; …)"
+  "source": "lws-spec@f2e081d core#rs-validation (spec-derived; …)"
 }
 ```
 
@@ -96,9 +101,9 @@ case, and — where the suite ships shared fixtures — a `keyring/` directory.
 - **Preconditions.** A case with `preconditions` applies only when the implementation
   provides the named optional feature (`capabilities`: registry capability types such as
   `RecursiveDelete`, `MoveResource`; `features`: harness-level toggles such as
-  `pop-required-realm`, `pop-profile-dpop`, `sse-subscription`, `websocket-subscription`,
-  `normalizes`, `storage-quota`). Skipping such a case is conformant; implementing the
-  feature but failing the case is not.
+  `pop-required-realm`, `pop-profile-dpop`, `pop-profile-dpop-sk`, `suite-webauthn`,
+  `sse-subscription`, `websocket-subscription`, `normalizes`, `storage-quota`). Skipping
+  such a case is conformant; implementing the feature but failing the case is not.
 - **State realizability** (`http-exchange` only): if an implementation cannot realise a
   case's declared `state` (e.g. cannot enable a `ContentNegotiation` pair), the case is
   skipped and reported as unrealisable. `MUST` cases with realisable states must pass.
@@ -112,10 +117,12 @@ not).
 ### File-reference convention
 
 These input fields (and only these) name fixture files: `token`, `delivery`,
-`storageDescription`, `bodyFile`, `isomorphicTo`, the values of the `issuerJwks` map,
-`source` when accompanied by `sourceMediaType`, and the `${file:<path>}` placeholder.
-Paths resolve relative to the case directory, except paths beginning `keyring/`, which
-resolve from the suite directory. Every other string is a literal.
+`storageDescription` (when its value is a string — as an inline object it is the document
+itself), `bodyFile`, `isomorphicTo`, the entries of the `popSkSessions` array, the values
+of the `issuerJwks` map, `source` when accompanied by `sourceMediaType`, and the
+`${file:<path>}` placeholder. Paths resolve relative to the case directory, except paths
+beginning `keyring/`, which resolve from the suite directory. Every other string is a
+literal.
 
 ### Placeholders (http-exchange requests)
 
@@ -160,7 +167,13 @@ top-level `expected.asserts` / `expected.stateAfter`.
   validation time to `state.now` (the signed fixtures are time-pinned around
   `2026-07-01T12:00:00Z`);
 - `popRequiredRealms`, `popProfiles`, `notificationService`, `quotaRemainingBytes` — as
-  named.
+  named;
+- `popSession` — the DPoP-SK offer the realm advertises (`endpoint`, `algs`,
+  `channelBindings`, `profile`); `popSkSessions` — established DPoP-SK sessions to
+  realise, as file references to session records (`session_id`, `key`, `tokenHash`, `cb`,
+  `alg`, `expiresAt`; the receive window starts empty). An implementation that cannot
+  inject an established session reports the case unrealisable (the state-realizability
+  rule above).
 
 **Request**: `{method, target, headers?, body? | bodyBase64?, agent?}`. `agent` is the
 authenticated-agent abstraction: a URI (the harness authenticates the request as that
@@ -184,7 +197,9 @@ abstraction and carry a literal `Authorization` header instead.
 - `body` — `{byteEquals}` | `{byteEqualsBase64}` | `{empty: true}` | `{jsonIsObject: true}`
   | `{jsonContains}` (subset match: objects recursively by-member; each listed array
   element must subset-match some element of the actual array, order-insensitive) |
-  `{jsonHasMembers: [names]}` | `{jsonMemberMatches: {member: assertion}}` |
+  `{jsonHasMembers: [names]}` | `{jsonLacksMembers: [names]}` (none of the named
+  top-level members is present) | `{jsonMemberMatches: {member: assertion}}` (the
+  assertion vocabulary plus `{atMost: n}` for numeric members) |
   `{jsonArrayExcludes: {path, subset}}` (no element of the array at `path` matches
   `subset`);
 - `problem: {type}` — the response is `application/problem+json` and its `type` member
@@ -275,8 +290,9 @@ validate-storage-description(document) → {ok | errorCode}
 ```
 
 Error codes: `CONFORMS_TO_MISSING`, `SERVICE_SELF_MISSING`, `CONFORMS_TO_PROFILE_MISSING`,
-`CAPABILITY_MALFORMED`. Unrecognised capability/service types MUST be ignored, not
-rejected.
+`CAPABILITY_MALFORMED`, `SERVICE_REQUIRES_PROFILE` (a service advertised without the
+profile it is scoped to — e.g. `SparqlQueryService` without `rdf-1`). Unrecognised
+capability/service types MUST be ignored, not rejected.
 
 ### 9. `validate-notification-envelope` — the envelope (core#notification-envelope)
 
@@ -318,9 +334,73 @@ closed error codes `REMOTE_CONTEXT_DECLINED` (a compacted JSON-LD source declari
 remote `@context` outside `allowlistedContexts` MUST be declined, never fetched) and
 `UNPARSEABLE_SOURCE`.
 
+### 12. `evaluate-pop-session-offer` — DPoP-SK client negotiation (core#presentation-pop)
+
+```
+evaluate-pop-session-offer(resourceMetadata, client) → {establish}
+```
+
+The client-side, fail-closed half of the DPoP-SK negotiation (the profile's *Discovery
+and negotiation* section, composed through core#presentation-pop): given an RFC 9728
+resource metadata document and the client's capabilities (`recognizedProfiles`, `algs`,
+`channelBindings`), decide whether establishment may be attempted. `establish: false` is
+mandatory when the `pop_session.profile` is unrecognised or no offered algorithm/binding
+is supported (exact-match); `establish: true` is never *required* (a capable client MAY
+still use plain DPoP or Bearer where accepted), so only refusals are vectored.
+
+### 13. `discover-service` — consumer-side service discovery (core#discovery-model)
+
+```
+discover-service(document, serviceType) → {found, serviceEndpoint?, conformsTo?}
+```
+
+Selects a usable service entry of the given type (a registry term or an extension URI)
+from a storage description. Fail-closed at the consumption boundary: an entry whose
+`serviceEndpoint` is missing or not `https` (the core#ssrf scheme rule, applied before
+any request) is not usable, and `found: false` is returned when no acceptable entry
+exists — without any fetch.
+
+### 14. `evaluate-transform-offer` — rdf-1 feature detection (rdf#capability, rdf#conformance)
+
+```
+evaluate-transform-offer(storageDescription, sourceMediaType, targetMediaType)
+    → {available}
+```
+
+The RDF-aware-client rule: transformation-dependent behaviour (RDF conneg, RDF PATCH,
+SPARQL query) may be relied on only when an advertised `ContentNegotiation` entry with
+`profile` `…/transform/rdf-1` covers the pair AND `conformsTo` lists the profile URI. A
+profile-less entry makes no rdf-1 claim (`available: false`).
+
+### 15. `decode-webauthn-assertion-bundle` — the WebAuthn suite's wire decode (core#suite-webauthn)
+
+```
+decode-webauthn-assertion-bundle(token) → {ok, version?, credentialId? | errorCode}
+```
+
+The fail-closed structural decode of the RFC 8693 `subject_token` under the
+[WEBAUTHN-REAUTH] wire contract (base64url of the UTF-8 JSON envelope
+`{version: 1, credential}`), which core#suite-webauthn adopts verbatim: canonical
+unpadded base64url on every binary field (impossible-length and non-zero-unused-bits
+forms rejected), `type: "public-key"`, and the response members the verifier reads.
+Error code (closed set): `MALFORMED_BUNDLE` — the AS surfaces it as an RFC 6749 §5.2
+`invalid_request`. Cryptographic verification of the inner assertion is the
+authorization server's job and out of vector scope (GAPS.md).
+
+### 16. `validate-as-metadata` — suite advertisement (core#credential-model), advisory
+
+```
+validate-as-metadata(document, offeredSuiteTokenTypes) → {ok | errorCode}
+```
+
+Checks an RFC 8414 authorization-server metadata document advertises every offered
+authentication suite's token-type URI in `subject_token_types_supported`. Error code:
+`SUITE_NOT_ADVERTISED`. All cases are `SHOULD`-level (the spec deliberately keeps
+advertisement a SHOULD for the privacy reason recorded in core#credential-model).
+
 ## Running the suite
 
-There is no runner to install: an implementation binds the eleven operations above (most
+There is no runner to install: an implementation binds the sixteen operations above (most
 implementations will bind `http-exchange` to a real server instance plus a state loader,
 and the pure decision operations to library entry points), iterates the manifests, and
 reports per-case pass/fail/skip. Structural coherence of the committed vectors themselves
@@ -338,9 +418,13 @@ Never edit files under `vectors/` by hand — they are generator output; change
 
 `tools/keys/*.TEST-ONLY.private.jwk.json` are **throwaway Ed25519 test keys committed
 deliberately** so the suite regenerates byte-identically (Ed25519 signing is
-deterministic). They protect nothing, exist nowhere else, and MUST NOT be used for
-anything but generating these fixtures. The public halves ship in the suite keyrings
-(`vectors/auth/keyring/*.jwks.json`,
+deterministic), and `tools/keys/sk-session.TEST-ONLY.key.json` is likewise a throwaway
+**symmetric** 32-byte HMAC key: the DPoP-SK session key of the `dpop-sk` suite's
+attestation fixtures, which by the profile's nature both sides hold (it also ships in the
+suite's session records, `vectors/dpop-sk/keyring/session-*.json`). They protect nothing,
+exist nowhere else, and MUST NOT be used for anything but generating these fixtures. The
+public halves of the asymmetric keys ship in the suite keyrings
+(`vectors/auth/keyring/*.jwks.json`, `vectors/dpop-sk/keyring/as.jwks.json`,
 `vectors/notifications/keyring/storage-description.json`). All signed fixtures are pinned
 to the evaluation instant `2026-07-01T12:00:00Z`; harnesses evaluate temporal claims
 against the case's `now`, never the wall clock.

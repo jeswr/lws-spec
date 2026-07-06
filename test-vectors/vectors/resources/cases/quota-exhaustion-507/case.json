@@ -46,7 +46,7 @@
       "storage-quota"
     ]
   },
-  "source": "lws-spec@deb310e core#http-general (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#http-general (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "storage-quota exhaustion is reported as 507 Insufficient Storage"
 }

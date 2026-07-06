@@ -64,7 +64,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@deb310e rdf#authoritative-bytes (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d rdf#authoritative-bytes (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "the core's 428 rule applies unchanged to RDF-readable resources: no unconditional overwrite"
 }

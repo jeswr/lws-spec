@@ -69,7 +69,7 @@
   "level": "MUST",
   "notes": "Establishes the state.access seam every authorization-sensitive case builds on: bob holds read (only) on a.txt. The write attempt draws 403 (agent has SOME access to the resource, so existence is not hidden).",
   "operation": "http-exchange",
-  "source": "lws-spec@deb310e core#rs-validation (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#rs-validation (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "an authenticated agent with read access reads; the same agent gets no write without a write grant"
 }

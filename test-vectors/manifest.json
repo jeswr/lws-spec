@@ -1,9 +1,9 @@
 {
-  "caseCount": 125,
+  "caseCount": 150,
   "evaluationInstant": "2026-07-01T12:00:00Z",
   "name": "jlws-conformance-test-vectors",
   "schemaVersion": 1,
-  "specSource": "lws-spec@deb310e",
+  "specSource": "lws-spec@f2e081d",
   "specs": {
     "core": {
       "document": "../index.html",
@@ -14,7 +14,7 @@
       "uri": "https://w3id.org/jeswr/lws/transform/rdf-1"
     }
   },
-  "suiteCount": 9,
+  "suiteCount": 10,
   "suites": [
     {
       "caseCount": 17,
@@ -38,18 +38,25 @@
       "suite": "metadata"
     },
     {
-      "caseCount": 6,
-      "description": "The storage description as the single feature-detection surface: REQUIRED members (id, type, conformsTo, service incl. the StorageDescription self-entry), unknown-capability forward compatibility, the storage-description Link on every resource response, and the RFC 9728 protected resource metadata document with the jlws_storage_description extension member.",
+      "caseCount": 8,
+      "description": "The storage description as the single feature-detection surface: REQUIRED members (id, type, conformsTo, service incl. the StorageDescription self-entry), unknown-capability forward compatibility, the storage-description Link on every resource response, the RFC 9728 protected resource metadata document with the jlws_storage_description extension member, and extension-service consumption (the a2a-rdf AgentInteractionService entry, fail-closed on a non-https endpoint).",
       "path": "vectors/discovery/manifest.json",
       "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
       "suite": "discovery"
     },
     {
-      "caseCount": 31,
-      "description": "The authorization chain end to end: 401 challenges carrying RFC 9728 resource_metadata + realm (no error parameter without presented credentials), client-side realm containment verification, RFC 8693 token exchange with the REQUIRED absolute-URI resource parameter, single-audience RFC 9068 at+jwt validation (13 signed fixtures), the Bearer-baseline / negotiated-PoP presentation rules, and narrowing-only RFC 9396 authorization_details enforcement.",
+      "caseCount": 36,
+      "description": "The authorization chain end to end: 401 challenges carrying RFC 9728 resource_metadata + realm (no error parameter without presented credentials), client-side realm containment verification, RFC 8693 token exchange with the REQUIRED absolute-URI resource parameter, single-audience RFC 9068 at+jwt validation (14 signed fixtures), the Bearer-baseline / negotiated-PoP presentation rules, narrowing-only RFC 9396 authorization_details enforcement, and the WebAuthn suite's composition surface (fail-closed assertion-bundle decode, RFC 8414 suite advertisement, DPoP-bound-only issuance).",
       "path": "vectors/auth/manifest.json",
       "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
       "suite": "auth"
+    },
+    {
+      "caseCount": 14,
+      "description": "The DPoP-SK proof-of-possession presentation profile over the JLWS auth surface (cb=none flavour): RFC 9728 pop_session advertisement beside jlws_storage_description, the single dpop_bound_access_tokens_required member covering both PoP profiles, fail-closed client negotiation, session establishment from a DPoP-bound token (and refusal for an unbound one), and per-request RFC 9421 hmac-sha256 attestation with RFC 4303 verify-then-mark anti-replay — accept, tamper, cross-target transplant, token substitution, replay, forged-traffic window integrity, session expiry, and no-bearer-fallback.",
+      "path": "vectors/dpop-sk/manifest.json",
+      "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
+      "suite": "dpop-sk"
     },
     {
       "caseCount": 17,
@@ -66,7 +73,7 @@
       "suite": "notifications"
     },
     {
-      "caseCount": 17,
+      "caseCount": 21,
       "description": "The RDF Content Transformation Profile (the opt-in that makes a byte-native storage RDF-aware): capability/conformsTo consistency, graph-isomorphic source→target transformation with no inference and resource-URI base resolution, authoritative stored bytes with per-representation ETags + Vary: Accept + cross-representation If-Match, deterministic normalizes read-back, 406 degradation for unparseable sources, RDF PATCH formats scoped to the profile, and exact byte-native behaviour when the opt-in is off.",
       "path": "vectors/rdf-transform/manifest.json",
       "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",

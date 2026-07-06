@@ -14,7 +14,7 @@
   },
   "level": "MUST",
   "operation": "verify-webhook-signature",
-  "source": "lws-spec@deb310e core#webhook-binding (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#webhook-binding (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a delivery whose body does not match the covered Content-Digest is rejected"
 }

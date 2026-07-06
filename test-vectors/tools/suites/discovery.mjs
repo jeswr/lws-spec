@@ -6,8 +6,11 @@
 // #capability-registry, #authz-discovery).
 
 export default function discovery(ctx) {
-  const { STORAGE, CORE, RDF1, AS_ISSUER } = ctx;
+  const {
+    STORAGE, CORE, RDF1, AS_ISSUER, SPEC_SOURCE, A2A_RDF_EXT, A2A_RDF_SOURCE,
+  } = ctx;
   const DESC = `${STORAGE}description`;
+  const AIS = `${A2A_RDF_EXT}#AgentInteractionService`;
 
   const validDescription = {
     '@context': ['https://w3id.org/jeswr/lws/v1', 'https://www.w3.org/ns/cid/v1'],
@@ -68,8 +71,10 @@ export default function discovery(ctx) {
       + 'REQUIRED members (id, type, conformsTo, service incl. the '
       + 'StorageDescription self-entry), unknown-capability forward '
       + 'compatibility, the storage-description Link on every resource '
-      + 'response, and the RFC 9728 protected resource metadata document with '
-      + 'the jlws_storage_description extension member.',
+      + 'response, the RFC 9728 protected resource metadata document with '
+      + 'the jlws_storage_description extension member, and extension-service '
+      + 'consumption (the a2a-rdf AgentInteractionService entry, fail-closed '
+      + 'on a non-https endpoint).',
     cases: [
       {
         id: 'storage-description-valid',
@@ -119,6 +124,72 @@ export default function discovery(ctx) {
           },
         },
         expected: { ok: true },
+      },
+      {
+        id: 'sd-agent-interaction-service',
+        title: 'a storage description advertising the a2a-rdf AgentInteractionService extension entry yields the agent-card URL to a recognising consumer',
+        clauses: ['core#discovery-model', 'core#capability-registry'],
+        operation: 'discover-service',
+        source: `${SPEC_SOURCE} core#capability-registry + ${A2A_RDF_SOURCE} #AgentInteractionService (spec-derived; no reference implementation yet)`,
+        notes: 'The term is minted and defined by the a2a-rdf extension '
+          + '(#AgentInteractionService): serviceEndpoint is the '
+          + 'controller-agent\'s A2A Agent Card URL (the card, not the A2A '
+          + 'endpoint); conformsTo asserts the agent declares the extension. '
+          + 'JLWS needs no edit — extension services use absolute URIs '
+          + '(core#capability-registry), and consumers that do not recognise '
+          + 'the type ignore it (core#discovery-model; already pinned by '
+          + 'storage-description-unknown-capability-ignored).',
+        input: {
+          document: {
+            ...validDescription,
+            service: [
+              ...validDescription.service,
+              {
+                type: AIS,
+                serviceEndpoint: 'https://agent.example/.well-known/agent-card.json',
+                conformsTo: A2A_RDF_EXT,
+              },
+            ],
+          },
+          serviceType: AIS,
+        },
+        expected: {
+          found: true,
+          serviceEndpoint: 'https://agent.example/.well-known/agent-card.json',
+          conformsTo: A2A_RDF_EXT,
+        },
+      },
+      {
+        id: 'sd-agent-interaction-service-hostile-fails-closed',
+        title: 'a hostile extension-service entry with a non-https serviceEndpoint is unusable: the consumer fails closed and performs no fetch',
+        clauses: ['core#discovery-model', 'core#ssrf'],
+        operation: 'discover-service',
+        source: `${SPEC_SOURCE} core#ssrf + ${A2A_RDF_SOURCE} #AgentInteractionService (spec-derived; no reference implementation yet)`,
+        notes: 'The storage description is attacker-influenceable input to '
+          + 'any consumer that dereferences advertised endpoints, so the '
+          + 'core#ssrf policy (https only, decided before any request) '
+          + 'applies to the consumption boundary: an entry whose '
+          + 'serviceEndpoint is not https — here the classic cloud-metadata '
+          + 'target — MUST NOT be dereferenced; discovery yields no usable '
+          + 'entry. (The a2a-rdf negotiation-layer protections, including the '
+          + 'no-silent-NL-downgrade rule, are that spec\'s own surface and '
+          + 'are vectored in agentic-solid-conformance\'s a2a-rdf suite, not '
+          + 'here.)',
+        input: {
+          document: {
+            ...validDescription,
+            service: [
+              ...validDescription.service,
+              {
+                type: AIS,
+                serviceEndpoint: 'http://169.254.169.254/latest/agent-card.json',
+                conformsTo: A2A_RDF_EXT,
+              },
+            ],
+          },
+          serviceType: AIS,
+        },
+        expected: { found: false },
       },
       {
         id: 'storage-description-link-on-get',

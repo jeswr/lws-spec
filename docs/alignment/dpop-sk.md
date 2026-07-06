@@ -71,6 +71,16 @@ or downgrade rules (`#establishment` … `#downgrade`): they transfer verbatim.
 
 ## 3. Test-vector plan
 
+**STATUS: LANDED** — `test-vectors/vectors/dpop-sk/`, 14 cases (the 8 below, widened
+during spec-derivation with: a second client fail-closed-negotiation case, an
+establishment-refused-for-a-non-cnf-token case, a cross-target-transplant case, a
+token-substitution case, a verify-then-mark window-integrity case, and a
+stripped-attestation/no-bearer-fallback case; the planned `prm-carries-pop-session` /
+`pop-required-single-member` / `establish-ok-none-binding` / `attest-*` verdicts are as
+tabled, with `establish-ok` pinning response *shape* only — under `cb=none` the key is
+CSPRNG output, not a derivable fixture). See `test-vectors/README.md` (operations 12
+and the http-exchange `popSession`/`popSkSessions` state).
+
 New suite `test-vectors/vectors/dpop-sk/` in this repo. This **narrows the standing
 GAPS.md deferral** (core#rs-validation row: "full DPoP proof matrices belong with the
 DPoP-SK spec's own planned vectors") — these are those vectors, homed here because the
@@ -90,8 +100,9 @@ interface, which no fixture can supply).
 | `attest-replay` | same nonce replayed inside window | rejected (verify-then-mark) | DPoP-SK `#anti-replay` |
 | `attest-expired-session` | attestation after session lifetime | rejected → re-establishment | DPoP-SK `#lifetime` |
 
-(8 cases; the GAPS.md row is updated to point at this suite when it lands, retaining only
-the `tls-exporter` flavour as un-vectorable.)
+(The GAPS.md `core#rs-validation` row now points at the landed suite, retaining the
+`tls-exporter` flavour — plus the profile's stateful/deployment-policy slivers — as
+un-vectorable in a dedicated DPoP-SK subsection.)
 
 ## 4. `feat/lws` implementation seam
 

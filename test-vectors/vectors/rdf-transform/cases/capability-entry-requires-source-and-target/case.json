@@ -35,7 +35,7 @@
   },
   "level": "MUST",
   "operation": "validate-storage-description",
-  "source": "lws-spec@deb310e rdf#capability (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d rdf#capability (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "a ContentNegotiation entry without REQUIRED source/target members is rejected"
 }

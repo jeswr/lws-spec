@@ -11,7 +11,7 @@
 // tools/keys/ (generated on first run and committed; Ed25519 signatures are
 // deterministic, so regeneration is byte-stable).
 //
-// The expected verdicts are DERIVED FROM THE SPEC TEXT (lws-spec @ deb310e —
+// The expected verdicts are DERIVED FROM THE SPEC TEXT (lws-spec @ f2e081d —
 // the commit the suite was last reconciled against; bump SPEC_SOURCE + rerun
 // a reconciliation pass whenever the spec's normative text changes), not
 // extracted from a reference implementation — none exists yet. See
@@ -23,7 +23,8 @@ import {
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign,
+  createHash, createHmac, createPrivateKey, createPublicKey, generateKeyPairSync,
+  randomBytes, sign,
 } from 'node:crypto';
 
 const TOOLS = dirname(fileURLToPath(import.meta.url));
@@ -35,7 +36,15 @@ const KEYDIR = join(TOOLS, 'keys');
 // Shared constants (exposed to the suite modules via ctx)
 // ---------------------------------------------------------------------------
 
-export const SPEC_SOURCE = 'lws-spec@deb310e';
+export const SPEC_SOURCE = 'lws-spec@f2e081d';
+// Companion documents whose anchors are cited in `source`/`notes` (never in
+// `clauses`, which pin only core#/rdf# section ids — see README):
+export const DPOP_SK_SOURCE = 'dpop-sk-spec@f485855';
+export const WEBAUTHN_REAUTH_SOURCE = 'solid-webauthn-reauth@cf81736';
+export const A2A_RDF_SOURCE = 'a2a-rdf-extension@d3a2773';
+export const DPOP_SK_PROFILE = 'https://w3id.org/jeswr/dpop-sk/v1';
+export const A2A_RDF_EXT = 'https://w3id.org/jeswr/a2a-rdf/v1';
+export const WEBAUTHN_TOKEN_TYPE = 'urn:solid:token-type:webauthn-assertion';
 export const CORE = 'https://w3id.org/jeswr/lws/protocol/core/1.0';
 export const RDF1 = 'https://w3id.org/jeswr/lws/transform/rdf-1';
 export const PROBLEMS = 'https://w3id.org/jeswr/lws/problems/';
@@ -94,6 +103,61 @@ export function signJwt(header, payload, privateKey) {
   return `${h}.${p}.${b64u(sig)}`;
 }
 
+// Symmetric TEST-ONLY key (32 bytes) for the DPoP-SK attestation fixtures —
+// committed deliberately, like the Ed25519 keys, so regeneration is
+// byte-stable (HMAC is deterministic). See README "Keyring — TEST KEYS ONLY".
+function loadOrCreateHmacKey(name) {
+  const file = join(KEYDIR, `${name}.TEST-ONLY.key.json`);
+  let jwk;
+  if (existsSync(file)) {
+    jwk = JSON.parse(readFileSync(file, 'utf8'));
+  } else {
+    jwk = { k: b64u(randomBytes(32)), kty: 'oct' };
+    mkdirSync(KEYDIR, { recursive: true });
+    writeFileSync(file, stableStringify(jwk));
+  }
+  return Buffer.from(jwk.k, 'base64url');
+}
+
+// RFC 7638 JWK thumbprint of an OKP (Ed25519) public JWK: SHA-256 of the JSON
+// object containing exactly the required members, lexicographically ordered
+// (crv, kty, x), with no whitespace.
+export function jwkThumbprint(publicJwk) {
+  const ordered = { crv: publicJwk.crv, kty: publicJwk.kty, x: publicJwk.x };
+  return b64u(createHash('sha256').update(JSON.stringify(ordered)).digest());
+}
+
+// RFC 9449 `ath`: base64url(SHA-256(ASCII(access token))).
+export const athOf = (token) => b64u(createHash('sha256').update(token, 'ascii').digest());
+
+// DPoP-SK per-request attestation (dpop-sk-spec #attestation-request): an
+// RFC 9421 message signature over the REQUIRED covered-component set
+// ("@method" "@target-uri" "authorization"), hmac-sha256 under the session
+// key K, nonce as a String-typed parameter, tag "dpop-sk". Returns the two
+// header field values to inline into an http-exchange request.
+export function skAttestationHeaders(opts, key) {
+  const {
+    method = 'GET', targetUri, token, created = NOW_EPOCH, sessionId,
+    nonce, corrupt = false,
+  } = opts;
+  const paramsStr = `("@method" "@target-uri" "authorization");created=${created};keyid="${sessionId}";alg="hmac-sha256";nonce="${nonce}";tag="dpop-sk"`;
+  const base = [
+    `"@method": ${method}`,
+    `"@target-uri": ${targetUri}`,
+    `"authorization": DPoP ${token}`,
+    `"@signature-params": ${paramsStr}`,
+  ].join('\n');
+  let tag = createHmac('sha256', key).update(base, 'utf8').digest();
+  if (corrupt) {
+    tag = Buffer.from(tag);
+    tag[0] ^= 0xff;
+  }
+  return {
+    'Signature-Input': `sig=${paramsStr}`,
+    Signature: `sig=:${b64(tag)}:`,
+  };
+}
+
 export function contentDigest(bodyBytes) {
   return `sha-256=:${b64(createHash('sha256').update(bodyBytes).digest())}:`;
 }
@@ -148,6 +212,9 @@ function buildCtx() {
   const asKey = loadOrCreateEd25519('as');
   const rogueKey = loadOrCreateEd25519('rogue-as');
   const storageKey = loadOrCreateEd25519('storage-webhook');
+  const skClientKey = loadOrCreateEd25519('sk-client');
+  const skSessionKey = loadOrCreateHmacKey('sk-session');
+  const skClientJkt = jwkThumbprint(skClientKey.publicJwk);
 
   const jwks = (k, kid) => stableStringify({
     keys: [{ ...k.publicJwk, alg: 'EdDSA', kid, use: 'sig' }],
@@ -183,6 +250,10 @@ function buildCtx() {
     ),
     'at-cnf-bound.jwt': at(atClaims({ cnf: { jkt: 'x1lFC4tBUpQPvrAkVXfXHWSZgheS2q6uHhOxNAToDXY' }, jti: 'jlws-vec-cnf' })),
     'at-wrong-typ.jwt': at(atClaims({ jti: 'jlws-vec-typ' }), { alg: 'EdDSA', typ: 'JWT', kid: 'as-key-1' }),
+    // A token as issued via the WebAuthn suite: the [WEBAUTHN-REAUTH] exchange
+    // issues only DPoP-bound tokens, so it always carries cnf.jkt (here: the
+    // committed sk-client key's RFC 7638 thumbprint).
+    'at-webauthn-cnf.jwt': at(atClaims({ cnf: { jkt: skClientJkt }, jti: 'jlws-vec-webauthn' })),
   };
 
   // alg=none: unsigned.
@@ -202,6 +273,99 @@ function buildCtx() {
     'as.jwks.json': jwks(asKey, 'as-key-1'),
     'rogue-as.jwks.json': jwks(rogueKey, 'rogue-key-1'),
     ...Object.fromEntries(Object.entries(tokens).map(([n, t]) => [n, `${t}\n`])),
+  };
+
+  // -------------------------------------------------------------------------
+  // DPoP-SK fixtures (vectors/dpop-sk/keyring/) — dpop-sk-spec, cb=none
+  // flavour only (the tls-exporter flavour needs a live TLS exporter and
+  // stays in GAPS.md). All deterministic: Ed25519 + HMAC under committed
+  // TEST-ONLY keys.
+  // -------------------------------------------------------------------------
+  const SK_ENDPOINT = `${STORAGE}.pop/session`;
+  const SK_SESSION_ID = Buffer.from(Array.from({ length: 16 }, (_, i) => i)).toString('base64url');
+  const SK_EXPIRED_SESSION_ID = Buffer.from(Array.from({ length: 16 }, (_, i) => 16 + i)).toString('base64url');
+
+  const skTokens = {
+    // The session-bound token: valid, single-aud, cnf.jkt = the sk-client key.
+    'at-sk-bound.jwt': at(atClaims({ cnf: { jkt: skClientJkt }, jti: 'jlws-vec-sk-bound' })),
+    // A second, equally valid cnf-bound token — for the token-substitution case.
+    'at-sk-other.jwt': at(atClaims({ cnf: { jkt: skClientJkt }, jti: 'jlws-vec-sk-other' })),
+    // A valid token WITHOUT cnf: establishment from it must be refused.
+    'at-sk-nocnf.jwt': at(atClaims({ jti: 'jlws-vec-sk-nocnf' })),
+  };
+
+  const dpopProof = (jti, boundToken) => signJwt(
+    {
+      alg: 'EdDSA',
+      typ: 'dpop+jwt',
+      jwk: { crv: skClientKey.publicJwk.crv, kty: skClientKey.publicJwk.kty, x: skClientKey.publicJwk.x },
+    },
+    { ath: athOf(boundToken), htm: 'POST', htu: SK_ENDPOINT, iat: NOW_EPOCH, jti },
+    skClientKey.privateKey,
+  );
+
+  const skSession = (sessionId, boundToken, expiresAt) => stableStringify({
+    alg: 'hmac-sha256',
+    cb: 'none',
+    expiresAt,
+    key: Buffer.from(skSessionKey).toString('base64url'),
+    session_id: sessionId,
+    tokenHash: athOf(boundToken),
+  });
+
+  const skKeyring = {
+    'as.jwks.json': jwks(asKey, 'as-key-1'),
+    ...Object.fromEntries(Object.entries(skTokens).map(([n, t]) => [n, `${t}\n`])),
+    'dpop-establish.jwt': `${dpopProof('jlws-vec-sk-est-1', skTokens['at-sk-bound.jwt'])}\n`,
+    'dpop-establish-nocnf.jwt': `${dpopProof('jlws-vec-sk-est-2', skTokens['at-sk-nocnf.jwt'])}\n`,
+    'session-valid.json': skSession(SK_SESSION_ID, skTokens['at-sk-bound.jwt'], '2026-07-01T12:02:00Z'),
+    'session-expired.json': skSession(SK_EXPIRED_SESSION_ID, skTokens['at-sk-bound.jwt'], '2026-07-01T11:59:00Z'),
+  };
+
+  const skAttest = ({ tokenName = 'at-sk-bound.jwt', ...opts }) => skAttestationHeaders({
+    sessionId: SK_SESSION_ID,
+    token: skTokens[tokenName],
+    ...opts,
+  }, skSessionKey);
+
+  // -------------------------------------------------------------------------
+  // WebAuthn assertion-bundle fixtures ([WEBAUTHN-REAUTH] wire contract:
+  // base64url of the UTF-8 JSON envelope {version: 1, credential}).
+  // Deterministic bytes; no live authenticator involved — the decode surface
+  // is structural (the OP's cryptographic verification is out of vector
+  // scope, GAPS.md).
+  // -------------------------------------------------------------------------
+  const WEBAUTHN_CREDENTIAL_ID = Buffer.from('jlws-vector-credential-01').toString('base64url');
+  const webauthnCredential = {
+    id: WEBAUTHN_CREDENTIAL_ID,
+    rawId: WEBAUTHN_CREDENTIAL_ID,
+    type: 'public-key',
+    response: {
+      clientDataJSON: b64u(JSON.stringify({
+        type: 'webauthn.get',
+        challenge: b64u('jlws-vector-challenge'),
+        origin: 'https://app.example',
+      })),
+      authenticatorData: b64u(Buffer.from(Array.from({ length: 37 }, (_, i) => i))),
+      signature: b64u(Buffer.from(Array.from({ length: 64 }, (_, i) => 64 + i))),
+      userHandle: b64u('alice-user-handle'),
+    },
+    clientExtensionResults: {},
+  };
+  const encodeBundle = (bundle) => b64u(JSON.stringify(bundle));
+  const webauthnBundles = {
+    'bundle.b64u': `${encodeBundle({ version: 1, credential: webauthnCredential })}\n`,
+    // Alphabet-valid but NON-CANONICAL base64url in a binary field: "AB"
+    // decodes to 0x00 yet re-encodes to "AA" — a distinct string aliasing the
+    // same bytes (a malleability hazard for string-keyed credential lookups).
+    // The wire contract's fail-closed decode must reject it.
+    'bundle-noncanonical.b64u': `${encodeBundle({
+      version: 1,
+      credential: {
+        ...webauthnCredential,
+        response: { ...webauthnCredential.response, signature: 'AB' },
+      },
+    })}\n`,
   };
 
   // Storage description used by the webhook-verification cases (also a valid
@@ -266,8 +430,15 @@ function buildCtx() {
   return {
     SPEC_SOURCE, CORE, RDF1, PROBLEMS, NOW, NOW_EPOCH,
     STORAGE, ALICE, BOB, AS_ISSUER, ROGUE_ISSUER, CLIENT,
+    DPOP_SK_SOURCE, WEBAUTHN_REAUTH_SOURCE, A2A_RDF_SOURCE,
+    DPOP_SK_PROFILE, A2A_RDF_EXT, WEBAUTHN_TOKEN_TYPE,
+    SK_ENDPOINT, SK_SESSION_ID, SK_EXPIRED_SESSION_ID,
+    WEBAUTHN_CREDENTIAL_ID,
     stableStringify,
     authKeyring,
+    skKeyring,
+    skAttest,
+    webauthnBundles,
     notificationsKeyring: { 'storage-description.json': webhookStorageDescription },
     webhookFixture,
     envelope,
@@ -282,7 +453,7 @@ async function main() {
   const ctx = buildCtx();
   const suiteModules = [
     'resources', 'containers', 'metadata', 'discovery', 'auth',
-    'access-grants', 'notifications', 'rdf-transform', 'errors',
+    'dpop-sk', 'access-grants', 'notifications', 'rdf-transform', 'errors',
   ];
 
   const topIndex = [];

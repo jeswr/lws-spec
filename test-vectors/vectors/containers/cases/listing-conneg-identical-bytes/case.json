@@ -93,7 +93,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@deb310e core#container-media-type (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@f2e081d core#container-media-type (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "the listing is served for application/lws+json, application/ld+json, and application/json with identical payload bytes"
 }

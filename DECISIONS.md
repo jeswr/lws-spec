@@ -227,10 +227,12 @@ WAC → ODRL mapping table; N3-Patch via PatchSupport), to be a full companion l
 
 Follows the dpop-sk-spec template (ReSpec `unofficial`, personal editor entry, drafting
 disclosure, DECISIONS.md, suite.json, `.roborev.toml`). Brief OQ10 (one repo vs split vectors)
-defaulted to one repo; publication itself is explicitly gated on the maintainer (OQ2) — this
-repository is local and unpushed, and `edDraftURI`/`github` are deliberately unset in the
-ReSpec configs until he decides. Status update: the vectors LANDED (`test-vectors/`, 124
-cases, agentic-solid-conformance format, spec-derived verdicts); the co-location remains
+defaulted to one repo; publication was gated on the maintainer (OQ2) and has since been
+authorised as a clearly-framed public experiment (`github.com/jeswr/lws-spec`);
+`edDraftURI` remains deliberately unset in the ReSpec configs pending his naming/venue
+decisions (OQ1). Status update: the vectors LANDED (`test-vectors/`, 150
+cases across 10 suites incl. the D21 composition suites, agentic-solid-conformance
+format, spec-derived verdicts); the co-location remains
 reversible — the suite is self-contained under `test-vectors/` so a later split into its own
 repository is a directory move (OQ10 stays open for the maintainer).
 

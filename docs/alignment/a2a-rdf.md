@@ -81,8 +81,11 @@ server, only a transform fixture:
 | `a2a-rdf/pd-hash-stable-across-representations` | `verify-pd-pin` of the same PD graph as Turtle **and** as JSON-LD (an rdf-1-faithful rendering) against one pin | both accept | a2a-rdf `#pd-hashing`; `rdf-transform.html#round-trip` |
 | `a2a-rdf/pd-hash-rejects-graph-change` | `verify-pd-pin` of a JSON-LD rendering whose graph differs by one triple | reject | a2a-rdf `#pd-hashing` (the hash is the trust anchor) |
 
-Plus one case in **this repo's** `test-vectors/vectors/discovery/` suite when the
-affordance ships:
+Plus the discovery cases in **this repo's** `test-vectors/vectors/discovery/` suite —
+**LANDED** as `sd-agent-interaction-service` + `sd-agent-interaction-service-hostile-fails-closed`
+(the second: a non-https `serviceEndpoint` fails closed under core#ssrf at the
+consumption boundary; spec-derived discovery-shape cases, which D20 permits ahead of the
+config-gated SD-builder implementation):
 
 | id | operation | expected | pins |
 |---|---|---|---|

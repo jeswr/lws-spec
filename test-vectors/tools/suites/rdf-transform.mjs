@@ -3,9 +3,12 @@
 // capability declaration consistency, RDF 1.1 abstract-syntax round-trips
 // (graph isomorphism, no inference, resource-URI base), authoritative bytes
 // with per-representation ETags and cross-representation If-Match, the
-// normalizes flag, per-resource degradation on unparseable sources, and the
-// byte-native behaviour when the opt-in is OFF (rdf#capability, #round-trip,
-// #authoritative-bytes, #normalizes, #rdf-patch; core#content-transformation).
+// normalizes flag, per-resource degradation on unparseable sources, the
+// byte-native behaviour when the opt-in is OFF, and the advertisement
+// contract (advertised pairs are served; clients feature-detect fail-closed;
+// SparqlQueryService only when the profile is on) (rdf#capability,
+// #round-trip, #authoritative-bytes, #normalizes, #rdf-patch, #indexing;
+// core#content-transformation, #query-services).
 
 export default function rdfTransform(ctx) {
   const { STORAGE, RDF1, CORE } = ctx;
@@ -113,6 +116,112 @@ export default function rdfTransform(ctx) {
           },
         },
         expected: { ok: false, errorCode: 'CAPABILITY_MALFORMED' },
+      },
+      {
+        id: 'advertised-conneg-honoured',
+        title: 'a server advertising the rdf-1 pair actually serves the derived representation: Accept application/ld+json on stored Turtle yields JSON-LD with Vary: Accept',
+        clauses: ['rdf#capability', 'rdf#round-trip', 'rdf#authoritative-bytes'],
+        operation: 'http-exchange',
+        notes: 'The advertisement contract on the wire: "servers MUST NOT '
+          + 'advertise pairs they do not implement" (rdf#capability, the '
+          + 'core conformance rule). The representation-stability half — the '
+          + 'derived body encoding a graph isomorphic to the stored one — is '
+          + 'pinned by the transform-representation cases '
+          + '(turtle-to-jsonld-isomorphic and siblings); this case pins that '
+          + 'the advertised pair is actually negotiable and varies by '
+          + 'Accept.',
+        input: {
+          state: rdfOnState,
+          request: {
+            method: 'GET',
+            target: `${NOTES}card.ttl`,
+            headers: { Accept: 'application/ld+json' },
+          },
+        },
+        expected: {
+          status: 200,
+          headers: {
+            'Content-Type': { mediaType: 'application/ld+json' },
+            Vary: { includesToken: 'Accept' },
+          },
+          body: { jsonIsObject: true },
+        },
+      },
+      {
+        id: 'client-detects-transform-offer',
+        title: 'an RDF-aware client feature-detects the rdf-1 profile from the storage description: an advertised source→target pair with the profile URI and conformsTo entry is available',
+        clauses: ['rdf#capability', 'rdf#conformance'],
+        operation: 'evaluate-transform-offer',
+        input: {
+          storageDescription: {
+            '@context': ['https://w3id.org/jeswr/lws/v1', 'https://www.w3.org/ns/cid/v1'],
+            id: STORAGE,
+            type: 'Storage',
+            conformsTo: [CORE, RDF1],
+            capability: [TTL_ENTRY],
+            service: [{ type: 'StorageDescription', serviceEndpoint: `${STORAGE}description` }],
+          },
+          sourceMediaType: 'text/turtle',
+          targetMediaType: 'application/ld+json',
+        },
+        expected: { available: true },
+      },
+      {
+        id: 'client-fail-closed-no-advertisement',
+        title: 'clients MUST NOT attempt transformation-dependent behaviour against a storage that does not advertise the profile — a profile-less ContentNegotiation entry makes no rdf-1 claim',
+        clauses: ['rdf#capability'],
+        operation: 'evaluate-transform-offer',
+        notes: 'The trap: the document DOES carry a ContentNegotiation entry '
+          + 'whose source/target cover the requested pair, but without the '
+          + 'REQUIRED profile member it makes no semantics-preservation '
+          + 'claim and is outside the rdf-1 contract (rdf#capability), and '
+          + 'conformsTo does not list the profile URI. A client keying on '
+          + 'source/target alone would wrongly rely on RDF conneg here.',
+        input: {
+          storageDescription: {
+            '@context': ['https://w3id.org/jeswr/lws/v1', 'https://www.w3.org/ns/cid/v1'],
+            id: STORAGE,
+            type: 'Storage',
+            conformsTo: [CORE],
+            capability: [{
+              type: 'ContentNegotiation',
+              source: 'text/turtle',
+              target: ['application/ld+json'],
+            }],
+            service: [{ type: 'StorageDescription', serviceEndpoint: `${STORAGE}description` }],
+          },
+          sourceMediaType: 'text/turtle',
+          targetMediaType: 'application/ld+json',
+        },
+        expected: { available: false },
+      },
+      {
+        id: 'sparql-service-requires-profile-on',
+        title: 'a SparqlQueryService MUST only be advertised when the rdf-1 profile is on: advertising it without the profile is rejected',
+        clauses: ['rdf#indexing', 'core#query-services'],
+        operation: 'validate-storage-description',
+        notes: 'rdf#indexing: "The SparqlQueryService MUST only be advertised '
+          + 'when this profile is on" (SPARQL is meaningless over an opaque '
+          + 'byte substrate). The document below advertises the service but '
+          + 'neither an rdf-1 capability entry nor the profile URI in '
+          + 'conformsTo. The full AC-SPARQL binding surface (gating '
+          + 'behaviour, per-solution authorization filtering) is the planned '
+          + 'ac-sparql suite, gated on its implementation '
+          + '(docs/alignment/ac-sparql.md); this case pins only the '
+          + 'discovery-consistency half.',
+        input: {
+          document: {
+            '@context': ['https://w3id.org/jeswr/lws/v1', 'https://www.w3.org/ns/cid/v1'],
+            id: STORAGE,
+            type: 'Storage',
+            conformsTo: [CORE],
+            service: [
+              { type: 'StorageDescription', serviceEndpoint: `${STORAGE}description` },
+              { type: 'SparqlQueryService', serviceEndpoint: `${STORAGE}.query/sparql` },
+            ],
+          },
+        },
+        expected: { ok: false, errorCode: 'SERVICE_REQUIRES_PROFILE' },
       },
       // ------------------------------------------------------------------
       // Transformation semantics (rdf#round-trip)
