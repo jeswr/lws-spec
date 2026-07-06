@@ -366,7 +366,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> ;
+    sc:testGap <#gap-deferred> .
 
 <#JLWSC-CP-4> a spec:Requirement ;
     dcterms:identifier "JLWSC-CP-4" ;
@@ -385,7 +386,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> ;
+    sc:testGap <#gap-deferred> .
 
 <#JLWSC-CP-6> a spec:Requirement ;
     dcterms:identifier "JLWSC-CP-6" ;
@@ -922,7 +924,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#AuthenticationCredentialDocument> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> ;
+    sc:testGap <#gap-deferred> .
 
 <#JLWSC-CRED-3> a spec:Requirement ;
     dcterms:identifier "JLWSC-CRED-3" ;
@@ -949,7 +952,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#AuthenticationCredentialDocument> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> ;
+    sc:testGap <#gap-deferred> .
 
 <#JLWSC-CRED-6> a spec:Requirement ;
     dcterms:identifier "JLWSC-CRED-6" ;
@@ -1024,7 +1028,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Client> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#client-identity> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-identity> ;
+    sc:testGap <#gap-deferred> .
 
 ### Authorization server discovery (#authz-discovery)
 
@@ -1323,7 +1328,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    sc:testGap <#gap-deferred> .
 
 <#JLWSC-RSV-8> a spec:Requirement ;
     dcterms:identifier "JLWSC-RSV-8" ;
@@ -1592,7 +1598,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-binding> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-binding> ;
+    sc:testGap <#gap-deferred> .
 
 <#JLWSC-DB-3> a spec:Requirement ;
     dcterms:identifier "JLWSC-DB-3" ;
@@ -2106,7 +2113,8 @@
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#sec-cors> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-cors> ;
+    sc:testGap <#gap-deferred> .
 
 ### Privacy considerations (#privacy-considerations)
 
@@ -2133,7 +2141,8 @@
     spec:requirementLevel spec:SHOULDNOT ;
     spec:requirementSubject <#AuthorizationServer> ;
     sc:testability sc:Enforceable ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#privacy-considerations> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#privacy-considerations> ;
+    sc:testGap <#gap-stateful-temporal> .
 
 <#JLWSC-PRIV-4> a spec:Requirement ;
     dcterms:identifier "JLWSC-PRIV-4" ;
