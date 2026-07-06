@@ -1,0 +1,605 @@
+# AUTHORED-BY Claude Fable 5
+#
+# Machine-readable normative-statement companion for the JLWS RDF Content Transformation
+# Profile (rdf-transform.html). COMPLEMENTARY: the full-text spec is the normative document
+# and is unchanged; this graph enumerates its normative statements so tooling (the
+# test-vector suite, coverage gates, the interop map) can consume them.
+#
+# Format: jeswr/spec-companion (the Solid Protocol's http://www.w3.org/ns/spec# requirement
+# markup as a sidecar graph + the certification testability spine E / A-int / A-exist / P +
+# honest per-statement test-gap accounting). Statement texts are VERBATIM quotes of the spec
+# source, validator-enforced against the pinned rdf-transform.html (tags stripped, entities
+# decoded, [[refs]] unbracketed, whitespace collapsed).
+#
+# Extraction basis: the spec-normative-analysis lws-rdf-transform inventory (54 records,
+# extracted from lws-spec@f2e081d), re-verified quote-by-quote against this repository's
+# HEAD. Inventory records whose operative clause carries NO BCP 14 keyword are NOT modelled
+# as statements (a keywordless clause cannot honestly carry a requirement level); each is
+# recorded as an sc:extractionNote errata candidate below. Statement ids map to inventory
+# ids section-by-section (JLWSR-CAP-n = lws-rdf-transform:capability:nn, etc.); the mapping
+# is stated in each section header comment.
+#
+# Test-case links point at the conformance suite in this repository
+# (test-vectors/vectors/rdf-transform/, 21 cases), published beside the spec.
+
+@base <https://jeswr.github.io/lws-spec/rdf-transform.statements.ttl> .
+@prefix sc:      <https://w3id.org/jeswr/spec-companion#> .
+@prefix spec:    <http://www.w3.org/ns/spec#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# The companion document
+#################################################################
+
+<> a sc:CompanionDocument ;
+    dcterms:title "JLWS RDF Content Transformation Profile normative-statement companion"@en ;
+    sc:companionOf <https://jeswr.github.io/lws-spec/rdf-transform.html> ;
+    sc:specVersion "c933aee98f95025ee38781a399f17a0347c5633d" ;
+    dcterms:created "2026-07-06"^^xsd:date ;
+    prov:wasAttributedTo <https://jeswr.org/#me> ;
+    dcterms:description "Extracted with AI assistance (Claude Fable 5, Anthropic) from the pinned spec source via the spec-normative-analysis lws-rdf-transform inventory; awaiting review by the human editor, like the spec itself."@en ;
+    sc:extractionNote "The core-428 incorporation ('The core's 428 rule applies unchanged: no unconditional overwrite of an existing RDF-readable resource.', #authoritative-bytes) carries no BCP 14 keyword of its own — its force is by incorporation of the JLWS Core #http-update rule; the vector rdf-transform/unconditional-put-still-428 is wired to the core companion's JLWSC-UPD-1. Errata candidate: give the scoping sentence a keyword. (Inventory lws-rdf-transform:authoritative-bytes:07.)" ;
+    sc:extractionNote "The 415 error shape ('A server that does not accept writes in a given type (including the not-a-source case above) answers 415 with problem details naming the accepted types.', #authoritative-bytes) is indicative — no BCP 14 keyword. Errata candidate: 'answers' -> 'MUST answer'. (Inventory lws-rdf-transform:authoritative-bytes:10.)" ;
+    sc:extractionNote "The normalizes read-back semantics ('Read-back in the stored media type is graph-isomorphic to what was written but NOT byte-identical', #normalizes) is a keywordless semantics bullet; the deterministic half is JLWSR-NORM-3 and the client half JLWSR-NORM-2. Errata candidate: give the isomorphism clause a MUST. (Inventory lws-rdf-transform:normalizes:02.)" ;
+    sc:extractionNote "The PATCH ETag-rotation clause ('Applying an RDF patch is a state change like any other: all representation ETags rotate', #rdf-patch) is keywordless — an application of JLWSR-AB-4 to PATCH. Errata candidate. (Inventory lws-rdf-transform:rdf-patch:02.)" ;
+    sc:extractionNote "The PATCH precondition incorporation ('the precondition discipline of #authoritative-bytes applies to the PATCH request itself', #rdf-patch) is keywordless incorporation of JLWSR-AB-5..6 and the core 428 rule. Errata candidate. (Inventory lws-rdf-transform:rdf-patch:03.)" ;
+    sc:extractionNote "The derived-views oracle incorporation ('All such derived views remain bound by the core's oracle-freedom invariants', #indexing) is keywordless; the visibility half is stated with an explicit MUST in JLWSR-SP-5, and the core companion carries the oracle-freedom MUSTs. Errata candidate. (Inventory lws-rdf-transform:indexing:04.)" ;
+    sc:extractionNote "The allowlisted-fetch SSRF incorporation ('the core's SSRF policy (JLWS-CORE Server-side request forgery) applies to any allowlisted fetch.', #security-privacy) is keywordless incorporation; the operative MUSTs live in the core's #ssrf section (core companion JLWSC-SSRF-*). Errata candidate. (Inventory lws-rdf-transform:security-privacy:04.)" .
+
+#################################################################
+# The specification
+#################################################################
+
+<https://jeswr.github.io/lws-spec/rdf-transform.html> a spec:Specification ;
+    dcterms:title "JLWS RDF Content Transformation Profile"@en ;
+    spec:conformance <https://jeswr.github.io/lws-spec/rdf-transform.html#conformance> ;
+    spec:consideration <https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> ;
+    spec:requirement
+        <#JLWSR-CAP-1> , <#JLWSR-CAP-2> , <#JLWSR-CAP-3> , <#JLWSR-CAP-4> ,
+        <#JLWSR-CAP-5> , <#JLWSR-CAP-6> , <#JLWSR-CAP-7> , <#JLWSR-CAP-8> ,
+        <#JLWSR-CAP-9> ,
+        <#JLWSR-RT-1> , <#JLWSR-RT-2> , <#JLWSR-RT-3> , <#JLWSR-RT-4> ,
+        <#JLWSR-RT-5> , <#JLWSR-RT-6> , <#JLWSR-RT-7> , <#JLWSR-RT-8> ,
+        <#JLWSR-RT-9> , <#JLWSR-RT-10> ,
+        <#JLWSR-AB-1> , <#JLWSR-AB-2> , <#JLWSR-AB-3> , <#JLWSR-AB-4> ,
+        <#JLWSR-AB-5> , <#JLWSR-AB-6> , <#JLWSR-AB-7> , <#JLWSR-AB-8> ,
+        <#JLWSR-NORM-1> , <#JLWSR-NORM-2> , <#JLWSR-NORM-3> , <#JLWSR-NORM-4> ,
+        <#JLWSR-NORM-5> ,
+        <#JLWSR-PATCH-1> , <#JLWSR-PATCH-2> , <#JLWSR-PATCH-3> , <#JLWSR-PATCH-4> ,
+        <#JLWSR-PATCH-5> , <#JLWSR-PATCH-6> , <#JLWSR-PATCH-7> ,
+        <#JLWSR-IDX-1> , <#JLWSR-IDX-2> , <#JLWSR-IDX-3> ,
+        <#JLWSR-SP-1> , <#JLWSR-SP-2> , <#JLWSR-SP-3> , <#JLWSR-SP-5> ,
+        <#JLWSR-SP-6> .
+
+<https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> a spec:SecurityConsiderations .
+
+#################################################################
+# Conformance classes
+#################################################################
+
+<#RdfTransformingServer> a sc:ConformanceClass ;
+    rdfs:label "RDF-transforming server"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/rdf-transform.html#conformance> .
+
+<#RdfAwareClient> a sc:ConformanceClass ;
+    rdfs:label "RDF-aware client"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/rdf-transform.html#conformance> .
+
+# Class of products in the SpecGL "content" sense: the storage description's rdf-1
+# ContentNegotiation capability entries, rejectable by a storage-description validator
+# (the validate-storage-description evaluation seam of the vector suite).
+<#CapabilityDocument> a sc:ConformanceClass ;
+    rdfs:label "Storage description document (rdf-1 capability entries)"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> .
+
+#################################################################
+# Test gaps (honest no-vector justifications)
+#################################################################
+
+<#gap-deferred> a sc:TestGap ;
+    dcterms:description "Deterministic and vectorable but not yet written: the suite's GAPS.md defers this tranche (bounded-parser rejection of depth/size bombs, declared-context reuse in JSON-LD compaction, derived-type writes, the RDF PATCH application tranche, stale-412 on the derived representation, falsely-advertised-pair probes). A natural next tranche for test-vectors/vectors/rdf-transform/."@en .
+
+<#gap-pure-permission> a sc:TestGap ;
+    dcterms:description "Pure permission: both exercising and not exercising the option are conformant, so no deterministic vector can pin a violation of the permission itself. Constraints on the exercised option are recorded as their own statements where the text gives them normative force."@en .
+
+<#gap-client-conduct> a sc:TestGap ;
+    dcterms:description "Client-internal reliance ('depend on', 'rely on') is not wire-observable and the spec mandates no counterpart server rejection; this is interoperability guidance a data vector cannot pin. At most auditable against a client-under-test transcript."@en .
+
+<#gap-guidance> a sc:TestGap ;
+    dcterms:description "Architecture preference with no observable conformance surface: a normalizes-declaring server is fully conformant, so no vector can distinguish preferring byte-preserving storage from not preferring it."@en .
+
+<#gap-etag-construction> a sc:TestGap ;
+    dcterms:description "Not black-box testable: whether an ETag embeds an invertible content digest is a property of ETag construction, not observable from responses (a keyed or random ETag is indistinguishable from a digest-based one), and no evidence artifact is mandated. Auditable only by implementation review."@en .
+
+<#gap-companion-planned> a sc:TestGap ;
+    dcterms:description "The operative semantics live in a referenced companion contract (AC-SPARQL per-solution authorization filtering) whose own conformance surface is defined there; this profile pins only the advertisement condition, which is vectored separately."@en .
+
+#################################################################
+# Normative statements
+#################################################################
+
+### Capability declaration (#capability) — inventory lws-rdf-transform:capability:01..09
+
+<#JLWSR-CAP-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-1" ;
+    spec:statement "An RDF-transforming server MUST advertise, in the storage description's capability set, one ContentNegotiation entry per supported source media type" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:AccountableExistence ;
+    rdfs:comment "Advertisement duty: an auditor can check the storage description contains the entries, but an unadvertised-yet-supported source type is not externally observable and no rejection path is mandated."@en ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> .
+
+<#JLWSR-CAP-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-2" ;
+    spec:statement "source — REQUIRED; the stored media type the entry applies to." ;
+    rdfs:comment "Condition: a ContentNegotiation entry claims this profile. REQUIRED normalized to MUST; document-shape rule rejectable at the validate-storage-description seam."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#CapabilityDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/capability-entry-requires-source-and-target/case.json> .
+
+<#JLWSR-CAP-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-3" ;
+    spec:statement "target — REQUIRED; the media types derivable from it." ;
+    rdfs:comment "Condition: a ContentNegotiation entry claims this profile. REQUIRED normalized to MUST; the constraint on each target value is JLWSR-CAP-4."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#CapabilityDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/capability-entry-requires-source-and-target/case.json> .
+
+<#JLWSR-CAP-4> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-4" ;
+    spec:statement "Each MUST be a concrete RDF serialisation of the same abstract syntax" ;
+    rdfs:comment "'Each' = each target media type in the entry's target array; the sentence's trailing cross-reference to #round-trip is a ReSpec section link, omitted from the quote. Checkable by a storage-description validator against the registered concrete RDF serialisations."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#CapabilityDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-CAP-5> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-5" ;
+    spec:statement "profile — REQUIRED for entries claiming this profile; the value https://w3id.org/jeswr/lws/transform/rdf-1 pins the transformation semantics" ;
+    rdfs:comment "REQUIRED normalized to MUST. A ContentNegotiation entry WITHOUT a profile member is explicitly outside this document (no semantics-preservation claim) — that scoping sentence carries no obligation and is not separately recorded."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#CapabilityDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-CAP-6> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-6" ;
+    spec:statement "normalizes — OPTIONAL, default false" ;
+    rdfs:comment "OPTIONAL normalized to MAY. The default's behavioural force (absent flag => byte-exact read-back) is certified via JLWSR-AB-1 and JLWSR-NORM-4; the member's presence itself cannot be violated."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#CapabilityDocument> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    sc:testGap <#gap-pure-permission> .
+
+<#JLWSR-CAP-7> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-7" ;
+    spec:statement "The storage description's conformsTo array MUST include https://w3id.org/jeswr/lws/transform/rdf-1 when any entry claims this profile." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#CapabilityDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/capability-requires-conformsto-profile/case.json> .
+
+<#JLWSR-CAP-8> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-8" ;
+    spec:statement "Clients MUST NOT attempt transformation-dependent behaviour (RDF conneg, RDF PATCH, SPARQL query) against a storage that does not advertise it; servers MUST NOT advertise pairs they do not implement" ;
+    rdfs:comment "Multi-obligation sentence; operative sub-clause here is the client side ('Clients MUST NOT attempt transformation-dependent behaviour … against a storage that does not advertise it'). The feature-detect duty also defines the RDF-aware client conformance class (#conformance). Tagged E on the client-evaluation seam the suite vectors (detect-transform-offer): a fail-open detection verdict is a deterministic violation."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfAwareClient> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/client-fail-closed-no-advertisement/case.json> ,
+                  <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/client-detects-transform-offer/case.json> .
+
+<#JLWSR-CAP-9> a spec:Requirement ;
+    dcterms:identifier "JLWSR-CAP-9" ;
+    spec:statement "Clients MUST NOT attempt transformation-dependent behaviour (RDF conneg, RDF PATCH, SPARQL query) against a storage that does not advertise it; servers MUST NOT advertise pairs they do not implement" ;
+    rdfs:comment "Multi-obligation sentence; operative sub-clause here is 'servers MUST NOT advertise pairs they do not implement' (the JLWS-CORE conformance rule scoped to this capability). The linked vector exercises an advertised pair positively; no vector yet probes a falsely-advertised pair (see the gap)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#capability> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/advertised-conneg-honoured/case.json> ;
+    sc:testGap <#gap-deferred> .
+
+### Transformation semantics (#round-trip) — inventory lws-rdf-transform:round-trip:01..10
+
+<#JLWSR-RT-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-1" ;
+    spec:statement "The derived representation MUST encode an RDF graph (or dataset, for dataset-capable pairs) isomorphic to that of the authoritative representation" ;
+    rdfs:comment "Condition: every advertised source -> target pair claiming this profile. Isomorphism per RDF 1.1 Concepts §3.6 (same triples up to blank-node relabelling); the keywordless 'Blank-node identifiers are NOT stable across representations or requests' bullet is this rule's flip side, covered by the blank-node-isomorphism vector."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/turtle-to-jsonld-isomorphic/case.json> ,
+                  <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/jsonld-to-turtle-isomorphic/case.json> ,
+                  <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/blank-node-isomorphism/case.json> .
+
+<#JLWSR-RT-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-2" ;
+    spec:statement "Transformation MUST NOT apply inference, schema expansion, or vocabulary rewriting: no triples added, none removed." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/no-inference-applied/case.json> .
+
+<#JLWSR-RT-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-3" ;
+    spec:statement "Relative IRIs MUST be resolved against the resource URI as base, identically in every representation." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/relative-iris-resolve-against-resource-uri/case.json> .
+
+<#JLWSR-RT-4> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-4" ;
+    spec:statement "For JSON-LD targets: when the authoritative representation is JSON-LD with a declared @context, servers MUST serialise derived JSON-LD using that context" ;
+    rdfs:comment "The sentence continues with the no-dereference allowlist gate; its fail-closed halves are JLWSR-RT-5/6. The declared-context-reuse vector is deferred (GAPS.md)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-RT-5> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-5" ;
+    spec:statement "A compacted JSON-LD source declaring a remote context outside that allowlist cannot even be interpreted as an RDF graph without resolving that context, so the server MUST decline the transformation for that resource (406 + problem details, as for an unparseable source) — it MUST NOT resolve the context with a network fetch." ;
+    rdfs:comment "Multi-obligation sentence; operative sub-clause here is 'the server MUST decline the transformation for that resource (406 + problem details)'. The following 'Only when the source is context-independent … may the server transform it' sentence uses lowercase 'may' and restates this rule's complement; not separately recorded."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/remote-context-declined-not-fetched/case.json> .
+
+<#JLWSR-RT-6> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-6" ;
+    spec:statement "A compacted JSON-LD source declaring a remote context outside that allowlist cannot even be interpreted as an RDF graph without resolving that context, so the server MUST decline the transformation for that resource (406 + problem details, as for an unparseable source) — it MUST NOT resolve the context with a network fetch." ;
+    rdfs:comment "Multi-obligation sentence; operative sub-clause here is 'it MUST NOT resolve the context with a network fetch' — the SSRF guard, testable at the transform seam with a fetch spy (the vector asserts declined-not-fetched). See also JLWSR-SP-3."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/remote-context-declined-not-fetched/case.json> .
+
+<#JLWSR-RT-7> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-7" ;
+    spec:statement "When the source has no context (e.g. Turtle), the server MUST use a documented, stable context or expanded form." ;
+    rdfs:comment "The 'stable' half is mechanically testable (two reads of one state use the same context / expanded form); the 'documented' half is only auditable as the existence of documentation. Tagged E for the stable half; vector deferred."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-RT-8> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-8" ;
+    spec:statement "In every case clients MUST NOT depend on any particular compaction beyond the graph contract." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfAwareClient> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    sc:testGap <#gap-client-conduct> .
+
+<#JLWSR-RT-9> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-9" ;
+    spec:statement "If the authoritative representation fails to parse under its stored media type, the server MUST answer requests for derived representations with 406 Not Acceptable carrying a problem details body of type https://w3id.org/jeswr/lws/problems/unparseable-source — the stored bytes remain readable in the stored media type." ;
+    rdfs:comment "Operative sub-clause here is the 406 + problem-details answer for derived representations."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/unparseable-source-degrades-per-resource/case.json> .
+
+<#JLWSR-RT-10> a spec:Requirement ;
+    dcterms:identifier "JLWSR-RT-10" ;
+    spec:statement "If the authoritative representation fails to parse under its stored media type, the server MUST answer requests for derived representations with 406 Not Acceptable carrying a problem details body of type https://w3id.org/jeswr/lws/problems/unparseable-source — the stored bytes remain readable in the stored media type." ;
+    rdfs:comment "Operative sub-clause here is 'the stored bytes remain readable in the stored media type' — the per-resource degradation guarantee ('A byte store never breaks because a transform does'). The em-dash clause carries no keyword of its own; level MUST is the governing sentence's (adjudicated at extraction)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#round-trip> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/unparseable-source-degrades-per-resource/case.json> .
+
+### Authoritative bytes, entity-tags, preconditions (#authoritative-bytes)
+### — inventory lws-rdf-transform:authoritative-bytes:01..06,08,09 (07 and 10 are extraction notes)
+
+<#JLWSR-AB-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-1" ;
+    spec:statement "A read in the stored media type MUST return those bytes exactly, unless normalizes is declared for that source type" ;
+    rdfs:comment "'Those bytes' = the byte stream accepted at write time (the authoritative representation). Restated with an explicit keyword in JLWSR-NORM-4."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/stored-bytes-byte-exact/case.json> .
+
+<#JLWSR-AB-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-2" ;
+    spec:statement "responses vary by representation, so responses to requests subject to transformation MUST carry Vary: Accept." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/per-representation-etags-differ/case.json> ,
+                  <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/advertised-conneg-honoured/case.json> .
+
+<#JLWSR-AB-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-3" ;
+    spec:statement "The ETag returned with a Turtle response and the ETag returned with a JSON-LD response of the same resource state MUST differ, and each MUST change whenever the resource state changes." ;
+    rdfs:comment "Multi-obligation sentence; operative sub-clause here is 'MUST differ' (per-representation entity-tags, RFC 9110 §8.8.3)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/per-representation-etags-differ/case.json> .
+
+<#JLWSR-AB-4> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-4" ;
+    spec:statement "The ETag returned with a Turtle response and the ETag returned with a JSON-LD response of the same resource state MUST differ, and each MUST change whenever the resource state changes." ;
+    rdfs:comment "Multi-obligation sentence; operative sub-clause here is 'each MUST change whenever the resource state changes' (the ETag rotation matrix)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/write-rotates-every-representation-etag/case.json> .
+
+<#JLWSR-AB-5> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-5" ;
+    spec:statement "A server MUST accept an If-Match carrying either the authoritative representation's current ETag or the current ETag of the derived representation the client last read; both name the same resource state." ;
+    rdfs:comment "The lost-update fix: write preconditions evaluate against the representation the ETag names."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/if-match-derived-etag-accepted/case.json> .
+
+<#JLWSR-AB-6> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-6" ;
+    spec:statement "Stale values of either MUST yield 412." ;
+    rdfs:comment "'Either' = the If-Match value of either the authoritative or a derived representation. The acceptance side is vectored (JLWSR-AB-5); the stale-412 side is not yet."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-AB-7> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-7" ;
+    spec:statement "a server MAY accept a PUT whose Content-Type is an advertised type reachable from the stored type, but ONLY when the written type is itself advertised as a source in a ContentNegotiation capability (bidirectional coverage)." ;
+    rdfs:comment "The testable half is the ONLY-when restriction (a conforming server never accepts a write in a type lacking a source entry — observable as 415); the permission itself cannot be violated. Derived-type-writes vectors are deferred (GAPS.md). The following rationale sentence (stranded stored type) is rationale, not separately recorded."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-AB-8> a spec:Requirement ;
+    dcterms:identifier "JLWSR-AB-8" ;
+    spec:statement "Servers MUST NOT silently transcode a write into a different stored type unless normalizes is declared." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#authoritative-bytes> ;
+    sc:testGap <#gap-deferred> .
+
+### The normalizes flag (#normalizes) — inventory lws-rdf-transform:normalizes:01,03..06
+### (02 is an extraction note)
+
+<#JLWSR-NORM-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-NORM-1" ;
+    spec:statement "Such a server MUST declare \"normalizes\": true on the affected source entry." ;
+    rdfs:comment "'Such a server' = one that cannot preserve written bytes for a media type (e.g. a quad-store-backed server that parses on ingest and reserialises on read). Violation is observable as its contrapositive: a non-byte-identical read-back on a source type whose entry lacks the flag (the JLWSR-AB-1 probe)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#normalizes> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-NORM-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-NORM-2" ;
+    spec:statement "clients MUST NOT rely on formatting, comment preservation, prefix labels, or blank-node identifiers." ;
+    rdfs:comment "Condition: normalizes is declared for the source media type. Same sentence as the keywordless isomorphic-read-back semantics (see the extraction notes)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfAwareClient> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#normalizes> ;
+    sc:testGap <#gap-client-conduct> .
+
+<#JLWSR-NORM-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-NORM-3" ;
+    spec:statement "The normalisation MUST be deterministic for a given resource state (two reads without an intervening write return identical bytes), so ETags remain coherent." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#normalizes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/normalizes-deterministic-readback/case.json> .
+
+<#JLWSR-NORM-4> a spec:Requirement ;
+    dcterms:identifier "JLWSR-NORM-4" ;
+    spec:statement "Without the flag (the default), byte-exact read-back is a MUST — the core's byte-native promise." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#normalizes> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/stored-bytes-byte-exact/case.json> ;
+    sc:restates <#JLWSR-AB-1> .
+
+<#JLWSR-NORM-5> a spec:Requirement ;
+    dcterms:identifier "JLWSR-NORM-5" ;
+    spec:statement "Servers SHOULD prefer byte-preserving storage; normalizes is an honest escape hatch, not the recommended mode." ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#normalizes> ;
+    sc:testGap <#gap-guidance> .
+
+### RDF PATCH formats (#rdf-patch) — inventory lws-rdf-transform:rdf-patch:01,04..09
+### (02 and 03 are extraction notes)
+
+<#JLWSR-PATCH-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-1" ;
+    spec:statement "A server MUST NOT advertise an RDF patch format (application/sparql-update, text/n3 for N3 Patch N3-PATCH) in Accept-Patch or in a PatchSupport capability entry for a media type unless this profile is on for that media type" ;
+    rdfs:comment "'N3-PATCH' is the source's citation marker as it appears in the normalized (tag-stripped, ref-unbracketed) text."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/rdf-patch-not-advertised-when-off/case.json> .
+
+<#JLWSR-PATCH-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-2" ;
+    spec:statement "a server MAY preserve unaffected formatting but clients MUST NOT rely on it." ;
+    rdfs:comment "Condition: after an RDF patch. Operative sub-clause here is the server permission; preserving or not preserving are both conformant, so no violation is possible."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> ;
+    sc:testGap <#gap-pure-permission> .
+
+<#JLWSR-PATCH-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-3" ;
+    spec:statement "a server MAY preserve unaffected formatting but clients MUST NOT rely on it." ;
+    rdfs:comment "Condition: after an RDF patch. Operative sub-clause here is 'clients MUST NOT rely on it'."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfAwareClient> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> ;
+    sc:testGap <#gap-client-conduct> .
+
+<#JLWSR-PATCH-4> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-4" ;
+    spec:statement "A server for which this matters SHOULD declare normalizes for patched types." ;
+    rdfs:comment "The recommended artifact (the normalizes flag on the patched type's entry) is auditable in the storage description; whether 'this matters' held for a given server is not."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> .
+
+<#JLWSR-PATCH-5> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-5" ;
+    spec:statement "Patch evaluation MUST be atomic and MUST enforce the same authorization as a content write; conditional patch semantics (e.g. an N3 Patch ?conditions that fails to match) yield 409 Conflict with problem details." ;
+    rdfs:comment "Operative sub-clause here is 'Patch evaluation MUST be atomic': a failing patch leaves the resource (and its ETags) unchanged — observable as all-or-nothing state. The RDF PATCH application tranche is deferred (GAPS.md)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-PATCH-6> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-6" ;
+    spec:statement "Patch evaluation MUST be atomic and MUST enforce the same authorization as a content write; conditional patch semantics (e.g. an N3 Patch ?conditions that fails to match) yield 409 Conflict with problem details." ;
+    rdfs:comment "Operative sub-clause here is 'MUST enforce the same authorization as a content write' — security-critical: PATCH is not an authorization bypass."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-PATCH-7> a spec:Requirement ;
+    dcterms:identifier "JLWSR-PATCH-7" ;
+    spec:statement "Patch evaluation MUST be atomic and MUST enforce the same authorization as a content write; conditional patch semantics (e.g. an N3 Patch ?conditions that fails to match) yield 409 Conflict with problem details." ;
+    rdfs:comment "Operative sub-clause here is 'conditional patch semantics … yield 409 Conflict with problem details' — an indicative error-shape clause (the sentence's MUSTs govern atomicity and authorization); level MUST adjudicated at extraction as a mandated error shape. Errata candidate: 'yield' -> 'MUST yield'."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#rdf-patch> ;
+    sc:testGap <#gap-deferred> .
+
+### Indexing and query enrichment (#indexing) — inventory lws-rdf-transform:indexing:01..03
+### (04 is an extraction note)
+
+<#JLWSR-IDX-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-IDX-1" ;
+    spec:statement "When this profile is on, the server MAY additionally derive index entries from the parsed RDF content of RDF-readable resources (rdf:type statements and descriptive properties), ranked equally with header-derived entries" ;
+    rdfs:comment "The searchindex draft's 'MAY derive from content' hook, made well-defined by this profile's parse contract. The embedded 'ranked equally' constraint is observable only when the optional feature is exercised; the derived views' oracle bounds are JLWSR-SP-5."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#indexing> ;
+    sc:testGap <#gap-pure-permission> .
+
+<#JLWSR-IDX-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-IDX-2" ;
+    spec:statement "The SparqlQueryService (JLWS-CORE Query services) MUST only be advertised when this profile is on" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#indexing> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/sparql-service-requires-profile-on/case.json> .
+
+<#JLWSR-IDX-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-IDX-3" ;
+    spec:statement "The SparqlQueryService (JLWS-CORE Query services) MUST only be advertised when this profile is on, and its access-control semantics (per-solution authorization filtering) follow AC-SPARQL." ;
+    rdfs:comment "Operative sub-clause here is 'its access-control semantics (per-solution authorization filtering) follow AC-SPARQL' — keywordless incorporation whose operative rules live in the referenced AC-SPARQL contract; the sentence's MUST governs the advertisement condition (JLWSR-IDX-2). Errata candidate: 'follow' -> 'MUST follow'."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#indexing> ;
+    sc:testGap <#gap-companion-planned> .
+
+### Security and privacy (#security-privacy) — inventory lws-rdf-transform:security-privacy:01..03,05,06
+### (04 is an extraction note)
+
+<#JLWSR-SP-1> a spec:Requirement ;
+    dcterms:identifier "JLWSR-SP-1" ;
+    spec:statement "Parsers MUST be resource-bounded (document size, triple count, nesting depth, parse time); parse failures are per-resource errors" ;
+    rdfs:comment "Operative sub-clause here is the resource-bounding mandate; testable with adversarial size/depth bombs. The suite defers these vectors (GAPS.md: 'bounded-parser rejection of depth/size bombs')."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-SP-2> a spec:Requirement ;
+    dcterms:identifier "JLWSR-SP-2" ;
+    spec:statement "Parsers MUST be resource-bounded (document size, triple count, nesting depth, parse time); parse failures are per-resource errors" ;
+    rdfs:comment "Operative sub-clause here is 'parse failures are per-resource errors …, never server faults' — indicative (no keyword of its own; level MUST adjudicated at extraction); a parse-bomb in one resource yields the 406 unparseable-source path (JLWSR-RT-9) while the server and sibling resources stay healthy. Errata candidate: 'are' -> 'MUST be'."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-SP-3> a spec:Requirement ;
+    dcterms:identifier "JLWSR-SP-3" ;
+    spec:statement "serialisation and parsing MUST NOT fetch remote documents — no JSON-LD remote @context resolution beyond a server-configured allowlist of cached contexts, no owl:imports, no follow-your-nose." ;
+    rdfs:comment "The no-dereference rule (SSRF guard); the JSON-LD-specific application is JLWSR-RT-5/6. Testable at the transform seam with a network observer on attacker-supplied content."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> ;
+    spec:testCase <https://jeswr.github.io/lws-spec/test-vectors/vectors/rdf-transform/cases/remote-context-declined-not-fetched/case.json> .
+
+<#JLWSR-SP-5> a spec:Requirement ;
+    dcterms:identifier "JLWSR-SP-5" ;
+    spec:statement "is bound by the core's oracle-freedom rules, and index visibility MUST match resource read visibility per-agent." ;
+    rdfs:comment "Quote starts mid-sentence because the subject ('the enrichment hook') is followed by an empty ReSpec cross-reference to #indexing. Full clause: the enrichment hook is bound by the core's oracle-freedom rules, and index visibility MUST match resource read visibility per-agent. An agent without read access to a resource must see no content-derived index entries for it."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSR-SP-6> a spec:Requirement ;
+    dcterms:identifier "JLWSR-SP-6" ;
+    spec:statement "per-representation ETags MUST NOT embed content digests that let an agent with access to one representation infer bytes of another it cannot read" ;
+    rdfs:comment "Condition: representation-scoped authorization extensions are in effect (with resource-scoped authorization all representations share visibility)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#RdfTransformingServer> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/rdf-transform.html#security-privacy> ;
+    sc:testGap <#gap-etag-construction> .

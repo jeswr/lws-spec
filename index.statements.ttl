@@ -1,0 +1,2353 @@
+# AUTHORED-BY Claude Fable 5
+#
+# Machine-readable normative-statement companion for the JLWS Core Protocol (index.html).
+# COMPLEMENTARY: the full-text spec is the normative document and is unchanged; this graph
+# enumerates its normative statements so tooling (the test-vector suite, coverage gates, the
+# interop map) can consume them. It doubles as the JLWS test-suite REQUIREMENT INDEX: every
+# statement links its conformance vector(s) in test-vectors/ where one exists, and carries an
+# honest sc:testGap where none does (the statements with gaps ARE the vector backlog).
+#
+# Format: jeswr/spec-companion (http://www.w3.org/ns/spec# requirement markup as a sidecar
+# graph + the certification testability spine E / A-int / A-exist / P + per-statement
+# test-gap accounting). Statement texts are VERBATIM quotes of the spec source,
+# validator-enforced against the pinned index.html (tags stripped, entities decoded,
+# [[refs]] unbracketed — so a quote spanning a citation reads e.g. "!RFC9110" — whitespace
+# collapsed; an empty ReSpec cross-reference <a href="#x"></a> vanishes, which several
+# quotes note). Extracted directly from index.html by the companion author (no prior
+# inventory existed for the core document).
+#
+# Keywordless normative clauses are NOT modelled as statements (a clause without a BCP 14
+# keyword cannot honestly carry a requirement level); each is recorded as an
+# sc:extractionNote errata candidate below, with the vectors that pin it named in the note.
+#
+# Test-case IRIs are RELATIVE and resolve against @base to
+# https://jeswr.github.io/lws-spec/test-vectors/vectors/<suite>/cases/<case>/case.json .
+
+@base <https://jeswr.github.io/lws-spec/index.statements.ttl> .
+@prefix sc:      <https://w3id.org/jeswr/spec-companion#> .
+@prefix spec:    <http://www.w3.org/ns/spec#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# The companion document
+#################################################################
+
+<> a sc:CompanionDocument ;
+    dcterms:title "JLWS Core Protocol normative-statement companion"@en ;
+    sc:companionOf <https://jeswr.github.io/lws-spec/> ;
+    sc:specVersion "c933aee98f95025ee38781a399f17a0347c5633d" ;
+    dcterms:created "2026-07-06"^^xsd:date ;
+    prov:wasAttributedTo <https://jeswr.org/#me> ;
+    dcterms:description "Extracted with AI assistance (Claude Fable 5, Anthropic) from the pinned spec source; awaiting review by the human editor, like the spec itself."@en ;
+    sc:extractionNote "The namespace-alias MUST (JLWSC-NS-1) lives inside a 'Divergence from lws10-core' note div — a container ReSpec renders as informative. It is vectored (containers/post-create-container-namespace-alias, discovery/storage-description-link-on-get) and clearly intended normatively. Errata candidate: move the alias rule out of the note." ;
+    sc:extractionNote "'This personal draft MUST NOT mint or squat identifiers in the w3.org namespace' (#namespace note) is an editorial self-obligation about the document, not an implementation requirement; not modelled." ;
+    sc:extractionNote "The POST error shapes (#http-create-post: 'the server responds 404; on a naming conflict the server assigns a different URI or responds 409') are indicative — no BCP 14 keyword — yet vectored (containers/post-to-missing-container-404, containers/post-slug-conflict). Errata candidate: 'responds' -> 'MUST respond'." ;
+    sc:extractionNote "The GET read-back sentence (#http-read, 'GET on a data resource returns its stored representation with the stored media type …') is indicative; the byte-exactness MUST lives in #content-transformation (JLWSC-CT-3, vectored by resources/byte-exact-roundtrip)." ;
+    sc:extractionNote "The validation-failure error shapes (#rs-validation: 'On validation failure the server responds 401 with an appropriate error parameter. If the token is valid but the operation is not allowed: 403 … otherwise 404') are indicative; the 404/403 oracle rule is normative in #oracle-freedom (JLWSC-OF-1), and the 401 error-parameter half is vectored (auth/challenge-rejected-token-error) via the keywordless RFC 6750 incorporation in #authz-discovery. Errata candidate: give both a keyword; the MUST NOT half is JLWSC-AD-3." ;
+    sc:extractionNote "The #identity-documents SSRF incorporation ('All server-side dereferencing performed during validation is subject to the SSRF requirements of #ssrf') is keywordless; the operative MUSTs are JLWSC-SSRF-1..3. Errata candidate." ;
+    sc:extractionNote "'issuers SHOULD serve CIDs with caching headers that make such caching effective' (#identity-documents) and 'Issuers of authentication credentials are responsible for validating client identifiers and MAY use this mechanism …' (#client-identity) bind identity-document publishers and credential issuers — parties outside the declared conformance classes; not modelled. Errata candidate: declare the class or mark informative." ;
+    sc:extractionNote "The ODRL target-matcher semantics (#odrl-profile 'Targets:' bullet — DataResource / Container + jlws:recursive / StorageResource) and the public-assignee rule ('public access is expressed with http://xmlns.com/foaf/0.1/Agent') are keywordless definitional prose, yet vectored (access-grants/container-recursive-covers-descendant, container-nonrecursive-excludes-descendant, storage-resource-target-covers-storage, public-assignee-foaf-agent). Errata candidate: give the matcher semantics BCP 14 force." ;
+    sc:extractionNote "The WebAuthn wire-contract packaging (#suite-webauthn, 'packaged for presentation as an RFC 8693 subject_token exactly as specified by the wire contract of WEBAUTHN-REAUTH') is keywordless, yet its fail-closed decode is vectored (auth/webauthn-bundle-decode-ok, auth/webauthn-bundle-noncanonical-b64url-rejected). Errata candidate: 'packaged' -> a MUST." ;
+    sc:extractionNote "The SSE 'source' member ('The subscription response includes source: the event-stream URL') and the WebSocket 'receiveFrom' member ('The subscription response includes receiveFrom: a wss: URL — a capability URL with the same binding, entropy, expiry, and revocation requirements as SSE capability-URL mode') are keywordless, yet vectored (notifications/sse-subscription-returns-source, notifications/websocket-subscription-returns-receivefrom; wired here to JLWSC-SUB-3). Errata candidate: 'includes' -> 'MUST include'; the WebSocket capability-URL requirements inherit JLWSC-SSE-2 only by simile." ;
+    sc:extractionNote "'A subscription to a container is recursive: events for the container and all descendants.' and 'Paginated responses use status 200.' and 'When paginated, items contains the current page while id, type, and totalItems reflect the whole (visible) membership.' are keywordless definitional prose; not modelled." ;
+    sc:extractionNote "The webhook delivery-side SSRF sentence ('Delivery-side SSRF discipline applies to the storage server's outbound POST: inbox URIs are untrusted input.') is keywordless incorporation of #ssrf; not modelled (JLWSC-SSRF-1..3 carry the MUSTs)." ;
+    sc:extractionNote "Four of the six #ssrf bullets (Scheme, Address policy, Rebinding, Caps) carry no keyword of their own — normative only via the umbrella 'Every such fetch MUST apply all of the following' (JLWSC-SSRF-1, whose comment enumerates them); the Redirects and No-credential-forwarding bullets carry their own keywords (JLWSC-SSRF-2/3)." ;
+    sc:extractionNote "#versioning-slot ('Version resources are read-only and subject to the same authorization as their originals at read time') is a keywordless companion-slot reservation; not modelled (the Versioning companion will carry the requirements)." .
+
+#################################################################
+# Conformance classes
+#################################################################
+
+<#Server> a sc:ConformanceClass ;
+    rdfs:label "JLWS server"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#conformance> .
+
+<#Client> a sc:ConformanceClass ;
+    rdfs:label "JLWS client"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#conformance> .
+
+<#AuthorizationServer> a sc:ConformanceClass ;
+    rdfs:label "JLWS authorization server"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#conformance> .
+
+<#NotificationServer> a sc:ConformanceClass ;
+    rdfs:label "notification server"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#conformance> .
+
+<#PopCapableServer> a sc:ConformanceClass ;
+    rdfs:label "PoP-capable server"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#conformance> .
+
+# The spec's #conformance section does not list the webhook receiver, but #discovery-binding
+# and #webhook-binding bind it normatively ('A webhook receiver is not a storage client');
+# declared here where its duties are defined. Errata candidate: list it in #conformance.
+<#WebhookReceiver> a sc:ConformanceClass ;
+    rdfs:label "webhook receiver"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#webhook-binding> .
+
+# Classes of products in the SpecGL "content" sense (documents with a validator seam):
+<#StorageDescriptionDocument> a sc:ConformanceClass ;
+    rdfs:label "storage description document"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#discovery-model> .
+
+<#AccessDocument> a sc:ConformanceClass ;
+    rdfs:label "access document (ODRL request/grant)"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#odrl-profile> .
+
+<#AuthenticationCredentialDocument> a sc:ConformanceClass ;
+    rdfs:label "authentication credential"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#credential-model> .
+
+<#StorageController> a sc:ConformanceClass ;
+    rdfs:label "storage controller"@en ;
+    sc:definedBy <https://jeswr.github.io/lws-spec/#terminology> .
+
+#################################################################
+# Test gaps (honest no-vector justifications; legend follows
+# test-vectors/GAPS.md)
+#################################################################
+
+<#gap-deferred> a sc:TestGap ;
+    dcterms:description "Deterministic and vectorable but not yet written (GAPS.md 'vectorable, deferred'): strong-ETag / weak-If-Match probes, HEAD-error header mirror, client-ID metadata document shapes, falsely-advertised capability probes, guarded-delete If-Match, group semantics, VC-receipt status, discovery-oracle enumeration, CORS shapes, self-signed-CID and did:key offline validation, and similar. These statements are the suite's next-tranche backlog."@en .
+
+<#gap-pure-permission> a sc:TestGap ;
+    dcterms:description "Pure permission: both exercising and not exercising the option are conformant, so no deterministic vector can pin a violation of the permission itself. Constraints on the exercised option are their own statements where the text gives them force."@en .
+
+<#gap-client-conduct> a sc:TestGap ;
+    dcterms:description "Client-side conduct not observable from server-side data vectors (GAPS.md 'client-behavioural'); a client-under-test harness tranche is deferred. Where a counterpart server rejection is mandated, the server-side statement carries the vector."@en .
+
+<#gap-deployment-policy> a sc:TestGap ;
+    dcterms:description "Deployment policy: the trigger (a server-determined threshold, policy, or sizing choice) cannot be forced by a portable harness (GAPS.md 'deployment-policy'). Vectorable for implementations exposing the relevant knob."@en .
+
+<#gap-stateful-temporal> a sc:TestGap ;
+    dcterms:description "Spans multiple observations over time, concurrency, or a streaming connection; a request/response vector cannot express it (GAPS.md 'stateful/temporal' — SSE resumption/reset, delivery cessation on revocation, immediate-revocation propagation)."@en .
+
+<#gap-network-trust> a sc:TestGap ;
+    dcterms:description "Governs live-network interaction or whom to trust (GAPS.md 'network/trust'): suite credential validation dereferences live documents (CID, OIDC discovery, JWKS), TLS/certificate behaviour, and outbound-fetch discipline need a live harness or an instrumented network observer, not a data vector."@en .
+
+<#gap-meta> a sc:TestGap ;
+    dcterms:description "Meta-requirement whose evidence is the behaviour of the whole suite (the HTTP binding itself, RFC 9110 semantics): no single vector pins it; every HTTP-suite case exercises it."@en .
+
+<#gap-companion-planned> a sc:TestGap ;
+    dcterms:description "The surface belongs to a planned companion specification (query services, versioning); the core only reserves slots and fixes invariants the companion's own suite must pin (GAPS.md 'companion-planned')."@en .
+
+#################################################################
+# Normative statements
+#################################################################
+
+### Namespace and context (#namespace)
+
+<#JLWSC-NS-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-NS-1" ;
+    spec:statement "implementations MUST also accept the corresponding https://www.w3.org/ns/lws# URI as an equivalent alias, preserving interoperability with Working-Draft implementations." ;
+    rdfs:comment "Condition: wherever this specification requires a https://w3id.org/jeswr/lws# URI in a link relation or type position. NOTE: the sentence sits inside a divergence note div (see the extraction notes — errata candidate)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#namespace> ;
+    spec:testCase <test-vectors/vectors/containers/cases/post-create-container-namespace-alias/case.json> ,
+                  <test-vectors/vectors/discovery/cases/storage-description-link-on-get/case.json> .
+
+### Conformance (#conformance)
+
+<#JLWSC-CONF-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CONF-1" ;
+    spec:statement "a server MUST NOT advertise a capability, service, or profile it does not implement." ;
+    rdfs:comment "The advertise-implies-implement rule every capability leans on. Vectors exercise advertised features positively (e.g. rdf-transform/advertised-conneg-honoured for one pair); no vector yet probes a falsely-advertised capability."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#conformance> ;
+    sc:testGap <#gap-deferred> .
+
+### Resource classes (#resource-classes)
+
+<#JLWSC-RC-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RC-1" ;
+    spec:statement "a server MUST NOT require any particular content type or structure of data-resource content." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#resource-classes> ;
+    spec:testCase <test-vectors/vectors/resources/cases/byte-exact-roundtrip/case.json> .
+
+<#JLWSC-RC-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RC-2" ;
+    spec:statement "A server MAY enforce media-type or size policy per storage" ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    rdfs:comment "Deployment-policy permission; the trigger cannot be forced portably."@en ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#resource-classes> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-RC-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RC-3" ;
+    spec:statement "MUST advertise any such restriction as problem details on rejection." ;
+    rdfs:comment "Subject of the fragment: a server enforcing a media-type/size policy (JLWSC-RC-2). The problem-details envelope itself is pinned by errors/problem-details-on-4xx; the policy trigger cannot be forced."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#resource-classes> ;
+    sc:testGap <#gap-deployment-policy> .
+
+### Containers are not data resources (#container-vs-data)
+
+<#JLWSC-CVD-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CVD-1" ;
+    spec:statement "A resource MUST be exactly one of container or data resource." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-vs-data> ;
+    spec:testCase <test-vectors/vectors/containers/cases/put-content-to-container-rejected/case.json> .
+
+<#JLWSC-CVD-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CVD-2" ;
+    spec:statement "A server MUST NOT serve client-authored content as the representation of a container" ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-vs-data> ;
+    spec:testCase <test-vectors/vectors/containers/cases/put-content-to-container-rejected/case.json> .
+
+### Containment (#containment)
+
+<#JLWSC-CTN-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CTN-1" ;
+    spec:statement "Servers MUST include a Link header with rel=\"up\" pointing to the parent container in responses to GET and HEAD requests on any non-root resource." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#containment> ;
+    spec:testCase <test-vectors/vectors/containers/cases/rel-up-on-non-root/case.json> .
+
+<#JLWSC-CTN-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CTN-2" ;
+    spec:statement "clients MUST NOT be able to modify it directly; membership changes occur only as a side effect of resource creation, deletion, and (where supported) move." ;
+    rdfs:comment "'It' = a container's server-managed items list. Server-enforced impossibility (the server rejects the attempt), so bound to the server."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#containment> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/system-managed-links-immutable/case.json> .
+
+<#JLWSC-CTN-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CTN-3" ;
+    spec:statement "when a resource is created in a container, the server MUST atomically add it to that container's items list." ;
+    rdfs:comment "The sequential membership update is black-box observable; the 'atomically' qualifier under concurrency is not (GAPS.md 'stateful/temporal'). The create-side membership vector is deferred; the delete side is pinned (JLWSC-CTN-4)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#containment> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-CTN-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CTN-4" ;
+    spec:statement "when a resource is deleted, the server MUST atomically remove it from its parent container's items list." ;
+    rdfs:comment "Sequential before/after pinned by the vector; concurrency atomicity is not black-box observable."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#containment> ;
+    spec:testCase <test-vectors/vectors/containers/cases/delete-rotates-parent-etag-and-membership/case.json> .
+
+<#JLWSC-CTN-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CTN-5" ;
+    spec:statement "every non-root resource MUST be reachable from the storage root through the containment hierarchy." ;
+    rdfs:comment "Universal state invariant ('no orphans'): spot-checkable per resource but not enumerable black-box over all server behaviour; audit-level."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#containment> .
+
+<#JLWSC-CTN-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CTN-6" ;
+    spec:statement "a container MUST NOT directly or indirectly contain itself." ;
+    rdfs:comment "State invariant ('no cycles'); a move-supporting server exposes a rejectable probe (move a container into its own descendant), otherwise audit-level."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#containment> .
+
+### URI-path alignment (#path-alignment)
+
+<#JLWSC-PA-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PA-1" ;
+    spec:statement "The URI of every resource MUST be the URI of its parent container extended by exactly one non-empty path segment (for containers, followed by a terminating /)." ;
+    rdfs:comment "The create vectors assert path-aligned Location values; the universal quantifier over all minted URIs is not black-box enumerable (GAPS.md). The keywordless 'The storage root's URI is the prefix of every resource URI in the storage.' is this rule's transitive consequence."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#path-alignment> ;
+    spec:testCase <test-vectors/vectors/containers/cases/post-create-data-resource/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-aud-prefix-containment/case.json> .
+
+<#JLWSC-PA-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PA-2" ;
+    spec:statement "Container URIs MUST end in /; data-resource URIs MUST NOT." ;
+    rdfs:comment "Two levels in one sentence; operative sub-clause here is 'Container URIs MUST end in /' (split — see JLWSC-PA-3)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#path-alignment> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-create-container-trailing-slash/case.json> .
+
+<#JLWSC-PA-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PA-3" ;
+    spec:statement "Container URIs MUST end in /; data-resource URIs MUST NOT." ;
+    rdfs:comment "Operative sub-clause here is 'data-resource URIs MUST NOT [end in /]'."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#path-alignment> ;
+    sc:testGap <#gap-deferred> .
+
+### Container membership and authorization (#membership-authorization)
+
+<#JLWSC-MA-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MA-1" ;
+    spec:statement "MUST include the identifiers of all member resources to which that agent has access" ;
+    rdfs:comment "Subject of the fragment: the complete container listing (the union of the items arrays across all pages), for an agent with read access to the container."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#membership-authorization> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-shape/case.json> ,
+                  <test-vectors/vectors/containers/cases/listing-excludes-inaccessible-members/case.json> .
+
+<#JLWSC-MA-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MA-2" ;
+    spec:statement "The representation MUST NOT include members the agent has no access to" ;
+    rdfs:comment "The fail-closed listing rule (divergence D12 from the Working Draft's permissive MAY)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#membership-authorization> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-excludes-inaccessible-members/case.json> .
+
+<#JLWSC-MA-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MA-3" ;
+    spec:statement "totalItems MUST count only the members visible to the requesting agent (across the whole collection, not the current page)." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#membership-authorization> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-excludes-inaccessible-members/case.json> .
+
+### Container properties (#container-properties)
+
+<#JLWSC-CP-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CP-1" ;
+    spec:statement "A container representation MUST include:" ;
+    rdfs:comment "The REQUIRED members enumerated by the following list: id (the container's URI), type (\"Container\"), totalItems (integer count of members disclosable to the requesting agent), items (flat array of member descriptions; empty array when empty; current page only when paginated)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-shape/case.json> .
+
+<#JLWSC-CP-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CP-2" ;
+    spec:statement "Each member description MUST include id and type" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-shape/case.json> .
+
+<#JLWSC-CP-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CP-3" ;
+    spec:statement "It SHOULD include size (bytes) and modified (ISO 8601), and MUST include mediaType for data resources." ;
+    rdfs:comment "'It' = each member description. Operative sub-clause here is the SHOULD (size/modified); split — see JLWSC-CP-4."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> .
+
+<#JLWSC-CP-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CP-4" ;
+    spec:statement "It SHOULD include size (bytes) and modified (ISO 8601), and MUST include mediaType for data resources." ;
+    rdfs:comment "Operative sub-clause here is 'MUST include mediaType for data resources'."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-shape/case.json> .
+
+<#JLWSC-CP-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CP-5" ;
+    spec:statement "SHOULD be exact, and MAY be approximate only when the approximation is computed exclusively from the caller-visible view — never derived from an unfiltered membership total, which would leak the existence of hidden members" ;
+    rdfs:comment "Subject of the fragment: totalItems. Operative sub-clause here is 'SHOULD be exact'; split — see JLWSC-CP-6."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> .
+
+<#JLWSC-CP-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CP-6" ;
+    spec:statement "SHOULD be exact, and MAY be approximate only when the approximation is computed exclusively from the caller-visible view — never derived from an unfiltered membership total, which would leak the existence of hidden members" ;
+    rdfs:comment "Operative sub-clause here is the constrained MAY: how an approximation is computed is internal (a caller-visible-derived approximation is indistinguishable black-box from a leaky one), so accountability only."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-properties> .
+
+### Container media type (#container-media-type)
+
+<#JLWSC-CMT-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CMT-1" ;
+    spec:statement "Container representations (and the storage description) MUST be available as application/ld+json; profile=\"https://w3id.org/jeswr/lws/v1\"." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-media-type> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-shape/case.json> .
+
+<#JLWSC-CMT-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CMT-2" ;
+    spec:statement "Servers MUST also answer requests for application/lws+json, application/ld+json, and application/json with the identical payload bytes — only the Content-Type header varies" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-media-type> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-conneg-identical-bytes/case.json> .
+
+<#JLWSC-CMT-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CMT-3" ;
+    spec:statement "Servers MAY offer additional serialisations (e.g. text/turtle) via content negotiation" ;
+    rdfs:comment "The RDF Content Transformation companion makes exercised support advertisable and precise (its companion carries the exercised contract)."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#container-media-type> ;
+    sc:testGap <#gap-pure-permission> .
+
+### Pagination (#pagination)
+
+<#JLWSC-PAG-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PAG-1" ;
+    spec:statement "Servers SHOULD paginate container listings whose membership exceeds a server-determined threshold." ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#pagination> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-PAG-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PAG-2" ;
+    spec:statement "paginated responses MUST carry rel=\"first\", MUST carry rel=\"next\" on all but the last page, MUST omit rel=\"next\" on the last page, MAY carry rel=\"prev\" and rel=\"last\"" ;
+    rdfs:comment "Condition: the listing is paginated — a server-determined threshold the harness cannot force portably; vectorable for implementations exposing a threshold knob (GAPS.md). The keywordless 'Paginated responses use status 200.' and the whole-membership totalItems sentence ride with this rule."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#pagination> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-PAG-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PAG-3" ;
+    spec:statement "page URIs are opaque — clients SHOULD NOT construct or modify them." ;
+    spec:requirementLevel spec:SHOULDNOT ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#pagination> ;
+    sc:testGap <#gap-client-conduct> .
+
+### Metadata (#metadata)
+
+<#JLWSC-MD-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MD-1" ;
+    spec:statement "For each resource, the server MUST make its metadata available as a standalone linkset resource per !RFC9264, available as application/linkset+json, discoverable via a Link header with rel=\"linkset\" on GET/HEAD responses." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/linkset-discoverable-and-served/case.json> .
+
+<#JLWSC-MD-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MD-2" ;
+    spec:statement "Linkset updates MUST be atomic with the associated resource operations." ;
+    rdfs:comment "Concurrency atomicity: exercisable only by nondeterministic race probing, not deterministic vectors."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata> .
+
+<#JLWSC-MD-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MD-3" ;
+    spec:statement "Deleting a resource MUST delete its linkset resource." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/delete-removes-linkset/case.json> .
+
+### Updating metadata (#metadata-updates)
+
+<#JLWSC-MU-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MU-1" ;
+    spec:statement "Servers MUST support PATCH on the linkset resource with application/merge-patch+json (!RFC7386) and MUST advertise it via Accept-Patch" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata-updates> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/linkset-merge-patch-updates-user-links/case.json> ,
+                  <test-vectors/vectors/metadata/cases/linkset-advertises-accept-patch/case.json> .
+
+<#JLWSC-MU-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MU-2" ;
+    spec:statement "PUT and additional patch formats are OPTIONAL and MUST be advertised via Allow / Accept-Patch when supported." ;
+    rdfs:comment "Operative obligation: the advertisement duty when supported (the OPTIONAL half is a permission)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata-updates> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-MU-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MU-3" ;
+    spec:statement "Linkset GET/HEAD responses MUST carry an ETag; successful updates MUST rotate it." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata-updates> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/linkset-discoverable-and-served/case.json> ,
+                  <test-vectors/vectors/metadata/cases/linkset-merge-patch-updates-user-links/case.json> .
+
+<#JLWSC-MU-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MU-4" ;
+    spec:statement "A PUT or PATCH on a linkset resource without If-Match MUST be rejected with 428 Precondition Required (!RFC6585); a stale If-Match MUST be rejected with 412 Precondition Failed." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata-updates> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/linkset-patch-without-if-match-428/case.json> ,
+                  <test-vectors/vectors/metadata/cases/linkset-patch-stale-if-match-412/case.json> .
+
+<#JLWSC-MU-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MU-5" ;
+    spec:statement "Servers MUST reject attempts to modify system-managed links (e.g. with a problem details response of type https://w3id.org/jeswr/lws/problems/system-managed-metadata)." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata-updates> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/system-managed-links-immutable/case.json> .
+
+### Operations (#operations)
+
+<#JLWSC-OP-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-OP-1" ;
+    spec:statement "is the only binding defined here and is REQUIRED for conformance" ;
+    rdfs:comment "Subject of the fragment: the HTTP binding (#http-binding); the sentence opens 'The HTTP binding in <a href=\"#http-binding\"></a> is …' — the empty ReSpec cross-reference vanishes in the normalized text. Meta-requirement: every HTTP-suite vector is its evidence."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> , <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#operations> ;
+    sc:testGap <#gap-meta> .
+
+### HTTP binding — general (#http-general)
+
+<#JLWSC-HG-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-1" ;
+    spec:statement "Servers MUST implement HTTP semantics per !RFC9110 and SHOULD implement caching per !RFC9111." ;
+    rdfs:comment "Operative sub-clause here is the RFC 9110 MUST; meta-requirement exercised by the whole suite."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    sc:testGap <#gap-meta> .
+
+<#JLWSC-HG-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-2" ;
+    spec:statement "Servers MUST implement HTTP semantics per !RFC9110 and SHOULD implement caching per !RFC9111." ;
+    rdfs:comment "Operative sub-clause here is the RFC 9111 caching SHOULD (deployment policy, GAPS.md)."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-HG-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-3" ;
+    spec:statement "Every GET/HEAD response for a storage resource MUST carry an ETag, the rel=\"linkset\", rel=\"up\" (non-root), and rel=\"type\" links, and the storage-description link" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    spec:testCase <test-vectors/vectors/resources/cases/required-links-on-get/case.json> .
+
+<#JLWSC-HG-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-4" ;
+    spec:statement "These entity-tags MUST be strong" ;
+    rdfs:comment "A weak validator can never satisfy the If-Match strong-comparison discipline; not-W/-prefixed assertion + weak-If-Match rejection case is vectorable, deferred (GAPS.md)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-HG-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-5" ;
+    spec:statement "All 4xx and 5xx responses MUST carry an !RFC9457 problem details body (application/problem+json), except where HTTP semantics do not permit response content" ;
+    rdfs:comment "The sentence continues with the HEAD header-mirror and 304 carve-outs (the HEAD-error mirror vector is deferred — GAPS.md). Divergence D17: the Working Draft SHOULDs problem details."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    spec:testCase <test-vectors/vectors/errors/cases/problem-details-on-4xx/case.json> ,
+                  <test-vectors/vectors/resources/cases/error-carries-problem-details/case.json> .
+
+<#JLWSC-HG-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-6" ;
+    spec:statement "Storage-quota exhaustion MUST be reported as 507 Insufficient Storage." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    spec:testCase <test-vectors/vectors/resources/cases/quota-exhaustion-507/case.json> .
+
+<#JLWSC-HG-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-HG-7" ;
+    spec:statement "Servers MUST reject request targets containing path-traversal sequences (.., %2e%2e, and equivalents) before any authorization matching" ;
+    rdfs:comment "Only the rejection is black-box observable; the before-authorization ordering is internal (GAPS.md 'network/trust')."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-general> ;
+    spec:testCase <test-vectors/vectors/resources/cases/path-traversal-rejected/case.json> .
+
+### Create — POST (#http-create-post)
+
+<#JLWSC-POST-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-POST-1" ;
+    spec:statement "the server MAY decline the hint on conflict or naming policy." ;
+    rdfs:comment "'The hint' = the Slug header. The conflict half is pinned by containers/post-slug-conflict; the naming-policy trigger is a deployment choice."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-POST-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-POST-2" ;
+    spec:statement "To create a container, the client MUST include Link: <https://w3id.org/jeswr/lws#Container>; rel=\"type\"" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> ;
+    spec:testCase <test-vectors/vectors/containers/cases/post-create-container-typed-link/case.json> .
+
+<#JLWSC-POST-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-POST-3" ;
+    spec:statement "the w3.org/ns/lws#Container alias MUST be accepted" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> ;
+    spec:testCase <test-vectors/vectors/containers/cases/post-create-container-namespace-alias/case.json> ;
+    sc:restates <#JLWSC-NS-1> .
+
+<#JLWSC-POST-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-POST-4" ;
+    spec:statement "server-managed metadata MUST be generated by the server and MUST NOT be overridable by client links." ;
+    rdfs:comment "The preceding permission ('Clients MAY seed user-managed metadata via Link headers') rides this sentence; operative obligation here is the not-overridable rule."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-POST-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-POST-5" ;
+    spec:statement "On success the server MUST return 201 Created with the new URI in Location and the rel=\"up\", rel=\"linkset\", and rel=\"type\" links." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> ;
+    spec:testCase <test-vectors/vectors/containers/cases/post-create-data-resource/case.json> ,
+                  <test-vectors/vectors/containers/cases/post-create-container-typed-link/case.json> .
+
+<#JLWSC-POST-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-POST-6" ;
+    spec:statement "Resource, metadata, and membership creation MUST be atomic." ;
+    rdfs:comment "Concurrency atomicity; the sequential effects are pinned by the create vectors, the atomicity itself is not black-box observable."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> .
+
+### Create — idempotent PUT (#http-create-put)
+
+<#JLWSC-PUT-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-1" ;
+    spec:statement "Servers MUST support creation by PUT to the desired resource URI carrying If-None-Match: *" ;
+    rdfs:comment "Divergence D2 (idempotent create). The keywordless 'On success: 201 Created, with the same links and atomicity requirements as POST-create.' rides this rule and is asserted by the vector."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-create-if-none-match/case.json> .
+
+<#JLWSC-PUT-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-2" ;
+    spec:statement "the server MUST NOT auto-create intermediate containers" ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-create-missing-parent-409/case.json> .
+
+<#JLWSC-PUT-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-3" ;
+    spec:statement "MUST respond 409 Conflict (problem type …/problems/missing-parent) when the parent does not exist." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-create-missing-parent-409/case.json> .
+
+<#JLWSC-PUT-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-4" ;
+    spec:statement "If the target already exists, the server MUST respond 412 Precondition Failed and MUST NOT modify the resource — making retries safe." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-create-existing-412/case.json> .
+
+<#JLWSC-PUT-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-5" ;
+    spec:statement "Creation via PUT MUST carry If-None-Match: *." ;
+    rdfs:comment "Client-side duty; its server-side counterpart rejection is JLWSC-PUT-6 (vectored)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    sc:testGap <#gap-client-conduct> .
+
+<#JLWSC-PUT-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-6" ;
+    spec:statement "when its target URI does not identify an existing resource, the server MUST respond 428 Precondition Required (!RFC6585) rather than create the resource." ;
+    rdfs:comment "'Its' = an unconditional PUT (one carrying neither If-None-Match: * nor If-Match) — never a create; with the existing-resource 428 rule (JLWSC-UPD-1), every PUT in JLWS is explicitly conditional."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-unconditional-nonexistent-428/case.json> .
+
+<#JLWSC-PUT-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PUT-7" ;
+    spec:statement "A URI ending in / creates a container (the request body MUST be empty); otherwise a data resource is created from the body and Content-Type." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> , <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-put> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-create-container-trailing-slash/case.json> .
+
+### Read (#http-read)
+
+<#JLWSC-RD-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RD-1" ;
+    spec:statement "Servers MUST support range requests (!RFC9110 Section 14) for data resources." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-read> ;
+    spec:testCase <test-vectors/vectors/resources/cases/range-request-206/case.json> ,
+                  <test-vectors/vectors/resources/cases/range-unsatisfiable-416/case.json> .
+
+<#JLWSC-RD-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RD-2" ;
+    spec:statement "Servers MUST support HEAD, returning GET's headers without a body." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-read> ;
+    spec:testCase <test-vectors/vectors/resources/cases/head-mirrors-get/case.json> .
+
+<#JLWSC-RD-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RD-3" ;
+    spec:statement "Servers MUST support conditional GET (If-None-Match; If-Modified-Since) answering 304 Not Modified when applicable." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-read> ;
+    spec:testCase <test-vectors/vectors/resources/cases/conditional-get-if-none-match-304/case.json> ,
+                  <test-vectors/vectors/resources/cases/conditional-get-if-modified-since-304/case.json> .
+
+### Update (#http-update)
+
+<#JLWSC-UPD-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-UPD-1" ;
+    spec:statement "it MUST reject an unconditional PUT to an existing resource (one carrying neither If-Match nor If-None-Match: *) with 428 Precondition Required, and a stale If-Match with 412 Precondition Failed." ;
+    rdfs:comment "'It' = a server supporting ETags for the resource (which it MUST — JLWSC-HG-3). The content-resource stale-412 case is deferred; the linkset counterpart is vectored (JLWSC-MU-4). The rdf-transform suite re-pins the 428 rule on RDF-readable resources (unconditional-put-still-428)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-update> ;
+    spec:testCase <test-vectors/vectors/resources/cases/put-unconditional-existing-428/case.json> ,
+                  <test-vectors/vectors/rdf-transform/cases/unconditional-put-still-428/case.json> .
+
+<#JLWSC-UPD-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-UPD-2" ;
+    spec:statement "Servers MUST support application/merge-patch+json (!RFC7386) for JSON-family data resources and for linkset resources" ;
+    rdfs:comment "The linkset half is vectored (JLWSC-MU-1); the JSON-family content-PATCH half is deferred."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-update> ;
+    spec:testCase <test-vectors/vectors/metadata/cases/linkset-merge-patch-updates-user-links/case.json> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-UPD-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-UPD-3" ;
+    spec:statement "support for further formats (per media type) MUST be advertised via Accept-Patch and the PatchSupport capability" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-update> ;
+    spec:testCase <test-vectors/vectors/rdf-transform/cases/rdf-patch-not-advertised-when-off/case.json> .
+
+<#JLWSC-UPD-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-UPD-4" ;
+    spec:statement "RDF patch formats are defined by the RDF Content Transformation companion and MUST NOT be advertised without it." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-update> ;
+    spec:testCase <test-vectors/vectors/rdf-transform/cases/rdf-patch-not-advertised-when-off/case.json> .
+
+<#JLWSC-UPD-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-UPD-5" ;
+    spec:statement "PUT/PATCH on a resource URI modifies content only, never the linkset, except under the explicit Prefer: set-linkset mechanism of LWS10-CORE Update Resource, which servers MAY implement." ;
+    rdfs:comment "Operative keyword is the MAY (Prefer: set-linkset optional); the content-only/never-the-linkset separation is the sentence's keywordless body. The Prefer mechanism vector is deferred (GAPS.md)."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-update> ;
+    sc:testGap <#gap-deferred> .
+
+### Delete (#http-delete)
+
+<#JLWSC-DEL-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DEL-1" ;
+    spec:statement "The parent container's ETag MUST change." ;
+    rdfs:comment "Condition: a successful DELETE ('DELETE removes a resource, its linkset, and its membership entry atomically; on success 204 No Content.' — the removal effects are pinned by the same vector and JLWSC-MD-3)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-delete> ;
+    spec:testCase <test-vectors/vectors/containers/cases/delete-rotates-parent-etag-and-membership/case.json> .
+
+<#JLWSC-DEL-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DEL-2" ;
+    spec:statement "DELETE on a non-empty container without recursion MUST be rejected with 409 Conflict." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-delete> ;
+    spec:testCase <test-vectors/vectors/containers/cases/delete-nonempty-no-depth-409/case.json> .
+
+<#JLWSC-DEL-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DEL-3" ;
+    spec:statement "servers advertising the RecursiveDelete capability MUST honour it, deleting the subtree atomically." ;
+    rdfs:comment "The preceding 'Servers MAY support recursive deletion; clients request it with Depth: infinity (!RFC4918)' permission rides this rule."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-delete> ;
+    spec:testCase <test-vectors/vectors/containers/cases/delete-depth-infinity-recursive/case.json> .
+
+<#JLWSC-DEL-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DEL-4" ;
+    spec:statement "Clients MAY (and SHOULD, for guarded deletes) send If-Match; servers MUST honour it." ;
+    rdfs:comment "Operative obligation: servers MUST honour a DELETE If-Match. Guarded-delete vector deferred."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-delete> ;
+    sc:testGap <#gap-deferred> .
+
+### Move (#http-move)
+
+<#JLWSC-MV-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MV-1" ;
+    spec:statement "Servers advertising the MoveResource capability MUST implement move as follows" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-move> ;
+    spec:testCase <test-vectors/vectors/containers/cases/move-reparents-with-new-uri/case.json> .
+
+<#JLWSC-MV-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MV-2" ;
+    spec:statement "On success the server MUST: (a) assign the resource a new URI path-aligned under the destination container, preserving the final path segment unless it conflicts; (b) atomically update both containers' membership; (c) respond 200 with the new URI in Location; and (d) SHOULD answer subsequent requests for the old URI with 308 Permanent Redirect for an implementation-defined period." ;
+    rdfs:comment "Operative sub-clauses here are the MUSTs (a)-(c); the (d) SHOULD is split as JLWSC-MV-3."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-move> ;
+    spec:testCase <test-vectors/vectors/containers/cases/move-reparents-with-new-uri/case.json> .
+
+<#JLWSC-MV-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-MV-3" ;
+    spec:statement "On success the server MUST: (a) assign the resource a new URI path-aligned under the destination container, preserving the final path segment unless it conflicts; (b) atomically update both containers' membership; (c) respond 200 with the new URI in Location; and (d) SHOULD answer subsequent requests for the old URI with 308 Permanent Redirect for an implementation-defined period." ;
+    rdfs:comment "Operative sub-clause here is (d): the 308 window is implementation-defined and temporal (GAPS.md 'stateful/temporal + deployment-policy')."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-move> ;
+    sc:testGap <#gap-deployment-policy> .
+
+### Authentication — credential model (#credential-model)
+
+<#JLWSC-CRED-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-1" ;
+    spec:statement "An authentication credential MUST include tamper-evident claims:" ;
+    rdfs:comment "The REQUIRED claims enumerated by the following list: subject (absolute URI of the agent), issuer (absolute URI of the issuing entity), client (identifier for the client application). The WebAuthn suite's credential serialization is exercised by the linked wire-contract decode vectors; suite-generic credential-shape cases (self-signed CID, did:key) are deferred (GAPS.md)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthenticationCredentialDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> ;
+    spec:testCase <test-vectors/vectors/auth/cases/webauthn-bundle-decode-ok/case.json> ,
+                  <test-vectors/vectors/auth/cases/webauthn-bundle-noncanonical-b64url-rejected/case.json> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-CRED-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-2" ;
+    spec:statement "audience restriction (RECOMMENDED) — a list of values that SHOULD include an authorization server identifier." ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthenticationCredentialDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> .
+
+<#JLWSC-CRED-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-3" ;
+    spec:statement "A credential MUST be signed" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthenticationCredentialDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-CRED-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-4" ;
+    spec:statement "JWT-serialised credentials MUST NOT use the none algorithm." ;
+    rdfs:comment "The linked vector pins the same rule at the access-token validation seam (alg none rejected); a credential-side case is part of the deferred suite-validation tranche."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#AuthenticationCredentialDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-alg-none-rejected/case.json> .
+
+<#JLWSC-CRED-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-5" ;
+    spec:statement "asymmetric signatures are RECOMMENDED" ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthenticationCredentialDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> .
+
+<#JLWSC-CRED-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-6" ;
+    spec:statement "Each authentication suite MUST be associated with a token-type URI, preferably one registered in the IANA OAuth URI registry" ;
+    rdfs:comment "A constraint on suite definitions (the four shipped suites each declare theirs); auditable against the suite texts rather than a wire exchange."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> .
+
+<#JLWSC-CRED-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CRED-7" ;
+    spec:statement "authorization servers SHOULD advertise supported suites via subject_token_types_supported in their RFC 8414 metadata" ;
+    rdfs:comment "SHOULD rather than MUST for the privacy reason in #privacy-considerations (a self-hosting individual may not wish to advertise their authentication technology)."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#credential-model> ;
+    spec:testCase <test-vectors/vectors/auth/cases/webauthn-suite-advertised/case.json> ,
+                  <test-vectors/vectors/auth/cases/webauthn-suite-omitted-flagged/case.json> .
+
+### Identity documents (#identity-documents)
+
+<#JLWSC-ID-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ID-1" ;
+    spec:statement "In the absence of a pre-existing trust relationship, a verifier MUST dereference the credential's subject URI and obtain a valid CID whose id equals the subject identifier" ;
+    rdfs:comment "Suite validation dereferences live documents (GAPS.md 'network/trust'); the self-signed-CID and did:key offline-verifiable halves are a deferred tranche."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#identity-documents> ;
+    sc:testGap <#gap-network-trust> .
+
+<#JLWSC-ID-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ID-2" ;
+    spec:statement "Verifiers SHOULD cache CID-derived keys respecting HTTP caching metadata" ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:AccountableExistence ;
+    rdfs:comment "Caching behaviour spans observations over time (GAPS.md 'network/trust + stateful')."@en ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#identity-documents> .
+
+### Authentication suites (#suites, #suite-webauthn)
+
+<#JLWSC-SUITE-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SUITE-1" ;
+    spec:statement "a conforming JLWS authorization server MUST implement at least one." ;
+    rdfs:comment "'One' = an authentication suite. Evidenced functionally by any successful suite-authenticated exchange; the exchange vectors abstract the credential as pre-validated, so a live-suite case is deferred."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#suites> ;
+    sc:testGap <#gap-network-trust> .
+
+<#JLWSC-SUITE-WA-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SUITE-WA-1" ;
+    spec:statement "the authorization server validates the assertion against the credential public key registered for the subject and MUST enforce challenge freshness, origin/RP-ID binding, and signature-counter or device-attestation policy per WebAuthn Level 3." ;
+    rdfs:comment "The OP-side verification matrix (origin/RP-ID binding, signCount policy, challenge freshness/replay) belongs to solid-webauthn-reauth-spec's planned vectors (GAPS.md); the wire-contract decode is pinned here (see JLWSC-CRED-1's vectors), and the issued-token PoP-binding consequence by the linked case."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#suite-webauthn> ;
+    spec:testCase <test-vectors/vectors/auth/cases/webauthn-issued-token-never-bare/case.json> ;
+    sc:testGap <#gap-network-trust> .
+
+### Client identity (#client-identity)
+
+<#JLWSC-CLID-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CLID-1" ;
+    spec:statement "Client identifiers SHOULD be absolute URIs dereferencing to an OAuth Client ID Metadata Document" ;
+    rdfs:comment "Divergence D8 (plain-JSON client documents replace Solid-OIDC's JSON-LD CIDs). Accept/reject document-shape cases are vectorable, deferred (GAPS.md)."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-identity> .
+
+### Authorization server discovery (#authz-discovery)
+
+<#JLWSC-AD-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AD-1" ;
+    spec:statement "A storage server generating a 401 Unauthorized response MUST send a WWW-Authenticate challenge containing:" ;
+    rdfs:comment "The REQUIRED members enumerated by the following list: resource_metadata (the RFC 9728 §5.1 metadata URI) and realm (an absolute URI indicating the scope of protection — the token-exchange resource parameter and the access token's aud)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#authz-discovery> ;
+    spec:testCase <test-vectors/vectors/auth/cases/challenge-401-shape/case.json> .
+
+<#JLWSC-AD-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AD-2" ;
+    spec:statement "A client MUST verify that the URI of the originating request is logically contained within the presented realm before using it" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#authz-discovery> ;
+    spec:testCase <test-vectors/vectors/auth/cases/realm-contains-request/case.json> ,
+                  <test-vectors/vectors/auth/cases/realm-disjoint-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/realm-segment-prefix-trap-rejected/case.json> .
+
+<#JLWSC-AD-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AD-3" ;
+    spec:statement "a challenge answering a request that bore no credentials — as in the example above — MUST NOT include an error parameter." ;
+    rdfs:comment "RFC 6750 §3.1 discipline; the positive half (error carried only for a rejected presented token) is keywordless incorporation — see the extraction notes — and pinned by auth/challenge-rejected-token-error."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#authz-discovery> ;
+    spec:testCase <test-vectors/vectors/auth/cases/challenge-401-shape/case.json> .
+
+<#JLWSC-AD-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AD-4" ;
+    spec:statement "The protected resource metadata document (!RFC9728 Section 2) MUST include resource and authorization_servers (the trusted authorization servers — the storage server manages this canonical list), and MUST include the extension member jlws_storage_description: the URI of the storage description resource." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#authz-discovery> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/protected-resource-metadata-document/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/prm-carries-pop-session/case.json> .
+
+<#JLWSC-AD-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AD-5" ;
+    spec:statement "Authorization server metadata is served per !RFC8414 at its registered well-known URI (/.well-known/oauth-authorization-server), and SHOULD include subject_token_types_supported listing the authentication suites accepted at the token endpoint." ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#authz-discovery> ;
+    spec:testCase <test-vectors/vectors/auth/cases/webauthn-suite-advertised/case.json> ;
+    sc:restates <#JLWSC-CRED-7> .
+
+### Token exchange (#token-exchange)
+
+<#JLWSC-TE-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-TE-1" ;
+    spec:statement "The authorization server's token endpoint MUST support urn:ietf:params:oauth:grant-type:token-exchange" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#token-exchange> ;
+    spec:testCase <test-vectors/vectors/auth/cases/exchange-issues-single-audience-at-jwt/case.json> .
+
+<#JLWSC-TE-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-TE-2" ;
+    spec:statement "The resource parameter is REQUIRED, MUST be an absolute URI, populates the access token's aud, and equals the challenge's realm." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> , <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#token-exchange> ;
+    spec:testCase <test-vectors/vectors/auth/cases/exchange-missing-resource-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/exchange-relative-resource-rejected/case.json> .
+
+<#JLWSC-TE-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-TE-3" ;
+    spec:statement "The authorization server MUST reject a resource identifying an unknown or untrusted storage." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#token-exchange> ;
+    spec:testCase <test-vectors/vectors/auth/cases/exchange-untrusted-storage-rejected/case.json> .
+
+<#JLWSC-TE-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-TE-4" ;
+    spec:statement "The subject_token parameter is REQUIRED and carries a valid authentication credential; subject_token_type names its suite." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> , <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#token-exchange> ;
+    spec:testCase <test-vectors/vectors/auth/cases/exchange-issues-single-audience-at-jwt/case.json> .
+
+<#JLWSC-TE-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-TE-5" ;
+    spec:statement "The authorization server MUST validate all presented tokens before issuing." ;
+    rdfs:comment "Subject-token validation is suite-specific and dereferences live documents (GAPS.md 'network/trust'); the resource-parameter handling is pinned separately (JLWSC-TE-2/3)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#token-exchange> ;
+    sc:testGap <#gap-network-trust> .
+
+### Access token (#access-token, #rar)
+
+<#JLWSC-AT-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AT-1" ;
+    spec:statement "The issued access token MUST conform to !RFC9068 (at+jwt) with:" ;
+    rdfs:comment "The REQUIRED claims enumerated by the following list: sub, iss, client_id, aud (exactly one value — JLWSC-AT-2), exp, iat, jti."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#access-token> ;
+    spec:testCase <test-vectors/vectors/auth/cases/exchange-issues-single-audience-at-jwt/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-wrong-typ-rejected/case.json> .
+
+<#JLWSC-AT-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AT-2" ;
+    spec:statement "aud — REQUIRED; exactly one value: the absolute URI supplied as resource." ;
+    rdfs:comment "Divergence D11: single-valued aud everywhere for access tokens (where the replay risk lives)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#access-token> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-multi-audience-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/exchange-issues-single-audience-at-jwt/case.json> .
+
+<#JLWSC-AT-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AT-3" ;
+    spec:statement "a suite's subject token, e.g. an OIDC ID token, may carry multi-valued aud as its suite specifies, and MUST NOT be rejected for that." ;
+    rdfs:comment "The single-aud constraint binds ACCESS tokens, not authentication credentials; a multi-aud subject-token acceptance case is deferred."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#access-token> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-AT-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-AT-4" ;
+    spec:statement "exp — REQUIRED; lifetimes of 300 seconds or less are RECOMMENDED;" ;
+    rdfs:comment "Operative sub-clause here is the RECOMMENDED lifetime ceiling (the exp REQUIRED half is part of JLWSC-AT-1's claim list)."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#access-token> ;
+    spec:testCase <test-vectors/vectors/auth/cases/exchange-lifetime-recommended/case.json> .
+
+<#JLWSC-RAR-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RAR-1" ;
+    spec:statement "Authorization servers MAY evaluate fine-grained requests and encode the decision in an authorization_details claim" ;
+    rdfs:comment "RFC 9396 rich authorization (divergence D16), with the approved/deferred duality; the exercised contract is pinned by the linked cases."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rar> ;
+    spec:testCase <test-vectors/vectors/auth/cases/rar-covering-claim-permits/case.json> ,
+                  <test-vectors/vectors/auth/cases/rar-narrows-locations/case.json> .
+
+<#JLWSC-RAR-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RAR-2" ;
+    spec:statement "A storage server MUST NOT treat an authorization_details claim as widening access beyond its own policy: the claim can only narrow." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rar> ;
+    spec:testCase <test-vectors/vectors/auth/cases/rar-cannot-widen/case.json> ,
+                  <test-vectors/vectors/auth/cases/rar-absent-policy-alone/case.json> ,
+                  <test-vectors/vectors/auth/cases/rar-narrows-locations/case.json> .
+
+### Token presentation (#presentation-bearer, #presentation-pop)
+
+<#JLWSC-PB-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PB-1" ;
+    spec:statement "A JLWS server MUST accept Bearer presentation for every realm except one it has designated proof-of-possession-required" ;
+    rdfs:comment "The Bearer baseline (design principle 3 / divergence D9): PoP is negotiated on top, never a reversal."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#presentation-bearer> ;
+    spec:testCase <test-vectors/vectors/auth/cases/bearer-accepted-baseline/case.json> ,
+                  <test-vectors/vectors/auth/cases/pop-required-realm-rejects-bearer/case.json> .
+
+<#JLWSC-PP-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PP-1" ;
+    spec:statement "A server MAY additionally offer sender-constrained presentation, advertised through its RFC 9728 protected resource metadata" ;
+    rdfs:comment "The two defined profiles are DPoP (RFC 9449) and DPoP-SK; their own normative statements are companioned in dpop-sk-spec's companion, and the composed surface is pinned by the dpop-sk vector suite here."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#PopCapableServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#presentation-pop> ;
+    spec:testCase <test-vectors/vectors/auth/cases/pop-advertised-in-resource-metadata/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/prm-carries-pop-session/case.json> .
+
+<#JLWSC-PP-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PP-2" ;
+    spec:statement "A server MAY, by deployment policy, require a proof-of-possession profile for a designated realm" ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#PopCapableServer> ;
+    sc:testability sc:Premature ;
+    rdfs:comment "Deployment-policy permission; its concrete signal when exercised is JLWSC-PP-3/4 (vectored)."@en ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#presentation-pop> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-PP-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PP-3" ;
+    spec:statement "the realm's protected resource metadata MUST set dpop_bound_access_tokens_required: true" ;
+    rdfs:comment "Condition: the realm is designated PoP-required. The same member governs DPoP-SK (established FROM a DPoP-bound token), so no separate required-member exists."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#PopCapableServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#presentation-pop> ;
+    spec:testCase <test-vectors/vectors/auth/cases/pop-required-realm-rejects-bearer/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/pop-required-covers-dpop-sk/case.json> .
+
+<#JLWSC-PP-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PP-4" ;
+    spec:statement "The realm's 401 challenges MUST list only the required profile's scheme(s) (e.g. WWW-Authenticate: DPoP … per !RFC9449 Section 7.1), omitting the Bearer scheme." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#PopCapableServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#presentation-pop> ;
+    spec:testCase <test-vectors/vectors/auth/cases/pop-required-realm-rejects-bearer/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/pop-required-covers-dpop-sk/case.json> .
+
+### Validation by the storage server (#rs-validation)
+
+<#JLWSC-RSV-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-1" ;
+    spec:statement "A storage server MUST validate a presented access token by, in order (jeswr/lws-keycloak spec/authz.md §4.4.2): Signature — verify the JWT signature against the authorization server's JWKS (from its RFC 8414 metadata); cache keys; support rotation; reject alg: none and unexpected algorithms." ;
+    rdfs:comment "The lead-in MUST governs the ordered list; step 1 (Signature) carries no keyword of its own, so the quote spans lead-in + step. JWKS caching / key rotation are stateful network behaviour (GAPS.md); the rejection halves are vectored."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-valid-accepted/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-tampered-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-alg-none-rejected/case.json> .
+
+<#JLWSC-RSV-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-2" ;
+    spec:statement "iss MUST match a member of the storage server's explicit trusted-issuer allowlist" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-untrusted-issuer-rejected/case.json> .
+
+<#JLWSC-RSV-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-3" ;
+    spec:statement "aud MUST contain exactly one value, an absolute URI that logically contains the target resource." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-multi-audience-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-aud-not-containing-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-aud-prefix-containment/case.json> .
+
+<#JLWSC-RSV-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-4" ;
+    spec:statement "Logical containment is evaluated over parsed, normalized URIs (!RFC3986 Section 6) — never by raw string prefix: the audience and the target MUST have the same origin (scheme, host, port), and the audience's path MUST equal the target's path or be an ancestor of it on complete /-delimited segment boundaries." ;
+    rdfs:comment "The segment-boundary rule that defeats the …/alicemalicious sibling trap; security-critical."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-aud-segment-prefix-trap-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-aud-prefix-containment/case.json> .
+
+<#JLWSC-RSV-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-5" ;
+    spec:statement "Multi-tenant deployments MUST scope acceptance to the current storage (the tenant-replay rule, spec/authz.md §7.5.1)." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-aud-not-containing-rejected/case.json> .
+
+<#JLWSC-RSV-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-6" ;
+    spec:statement "Temporal — exp in the future, nbf (if present) passed, iat not in the future; clock skew tolerance of at most 60 seconds is RECOMMENDED; tokens with exp more than one hour ahead MUST be rejected." ;
+    rdfs:comment "Operative sub-clauses here are the temporal checks (governed by the JLWSC-RSV-1 lead-in MUST) and the one-hour-exp MUST; the skew RECOMMENDED is split as JLWSC-RSV-7."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-expired-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-nbf-future-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-iat-future-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/token-exp-too-far-rejected/case.json> .
+
+<#JLWSC-RSV-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-7" ;
+    spec:statement "Temporal — exp in the future, nbf (if present) passed, iat not in the future; clock skew tolerance of at most 60 seconds is RECOMMENDED; tokens with exp more than one hour ahead MUST be rejected." ;
+    rdfs:comment "Operative sub-clause here is the ≤60 s clock-skew RECOMMENDED."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> .
+
+<#JLWSC-RSV-8> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-8" ;
+    spec:statement "when the token is PoP-bound (cnf present), the corresponding proof MUST be validated per the profile in use, and the token MUST NOT be accepted bare." ;
+    rdfs:comment "Operative sub-clause here is the proof-validation MUST; the plain-DPoP proof matrix is RFC 9449's own test surface (GAPS.md), and the DPoP-SK attestation matrix is pinned by the dpop-sk suite (linked)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/dpop-sk/cases/attest-ok/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/attest-cross-target-transplant-rejected/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/attest-token-substitution-rejected/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/attest-replay-rejected/case.json> .
+
+<#JLWSC-RSV-9> a spec:Requirement ;
+    dcterms:identifier "JLWSC-RSV-9" ;
+    spec:statement "when the token is PoP-bound (cnf present), the corresponding proof MUST be validated per the profile in use, and the token MUST NOT be accepted bare." ;
+    rdfs:comment "Operative sub-clause here is 'the token MUST NOT be accepted bare' — the Bearer baseline is never weakened by a PoP binding."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#rs-validation> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-pop-bound-presented-bare-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/webauthn-issued-token-never-bare/case.json> ,
+                  <test-vectors/vectors/dpop-sk/cases/attest-stripped-signature-no-bearer-fallback/case.json> .
+
+### Client-side rules (#client-rules)
+
+<#JLWSC-CR-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CR-1" ;
+    spec:statement "A client MUST verify realm containment before requesting a token for it" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-rules> ;
+    spec:testCase <test-vectors/vectors/auth/cases/realm-contains-request/case.json> ,
+                  <test-vectors/vectors/auth/cases/realm-disjoint-rejected/case.json> ,
+                  <test-vectors/vectors/auth/cases/realm-segment-prefix-trap-rejected/case.json> ;
+    sc:restates <#JLWSC-AD-2> .
+
+<#JLWSC-CR-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CR-2" ;
+    spec:statement "A client MUST NOT present a token whose aud does not logically contain the target resource, MUST NOT present a token with more than one aud value, and SHOULD NOT share a token with any party other than the storage server it is scoped to." ;
+    rdfs:comment "Operative sub-clauses here are the two MUST NOTs (presentation discipline). Client conduct is auditable against a client-under-test transcript; the server-side counterparts are JLWSC-RSV-3 (vectored)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-rules> .
+
+<#JLWSC-CR-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CR-3" ;
+    spec:statement "A client MUST NOT present a token whose aud does not logically contain the target resource, MUST NOT present a token with more than one aud value, and SHOULD NOT share a token with any party other than the storage server it is scoped to." ;
+    rdfs:comment "Operative sub-clause here is the SHOULD NOT (token sharing) — not wire-observable at all."@en ;
+    spec:requirementLevel spec:SHOULDNOT ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-rules> ;
+    sc:testGap <#gap-client-conduct> .
+
+<#JLWSC-CR-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CR-4" ;
+    spec:statement "A client SHOULD NOT proactively obtain tokens from an authorization server before receiving a 401 challenge for a resource in that realm" ;
+    rdfs:comment "Defence against the colluding-RS/AS intent probe (#sec-collusion); auditable against a client transcript."@en ;
+    spec:requirementLevel spec:SHOULDNOT ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-rules> .
+
+<#JLWSC-CR-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CR-5" ;
+    spec:statement "Clients SHOULD cache tokens and reuse them proactively for further resources logically contained in the token's aud during its lifetime." ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#client-rules> .
+
+### The ODRL access profile (#odrl-profile)
+
+<#JLWSC-ODRL-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-1" ;
+    spec:statement "Documents are JSON-LD using the ODRL context plus the JLWS context, and MUST declare profile equal to https://w3id.org/jeswr/lws/access-profile/odrl-1" ;
+    rdfs:comment "Per PR #109, an unprofiled ODRL document is not a conforming access document."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AccessDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/document-missing-profile-rejected/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/grant-document-valid/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/request-document-valid/case.json> .
+
+<#JLWSC-ODRL-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-2" ;
+    spec:statement "Each rule MUST have exactly one action and exactly one target" ;
+    rdfs:comment "Singular per rule (PR #109); compose multiple rules for multiple actions/targets."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#AccessDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/document-multi-action-rule-rejected/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/document-multi-target-rule-rejected/case.json> .
+
+<#JLWSC-ODRL-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-3" ;
+    spec:statement "The inclusion is one-directional: a grant of odrl:modify also permits the narrower jlws:create and jlws:append operations, but a create-only or append-only grant MUST NOT be widened to modify." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/create-only-not-widened-to-modify/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/modify-includes-create/case.json> .
+
+<#JLWSC-ODRL-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-4" ;
+    spec:statement "An enforcement layer that does not understand a profile-defined action MUST NOT honour a rule granting it (fail closed — an unknown action grants nothing)" ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/unknown-action-fail-closed/case.json> .
+
+<#JLWSC-ODRL-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-5" ;
+    spec:statement "When multiple constraints are present, all MUST be satisfied." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/constraints-conjunctive-satisfied/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/constraint-datetime-expired-denied/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/constraint-purpose-mismatch-denied/case.json> .
+
+### Grant endpoints and records (#grant-endpoints, #grants-are-records)
+
+<#JLWSC-GE-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GE-1" ;
+    spec:statement "Servers SHOULD deliver notification of new requests and of grant creation/revocation to the affected agents' inboxes or subscriptions" ;
+    rdfs:comment "Behavioural emission (GAPS.md): what a server publishes as a side effect, auditable rather than vectorable."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grant-endpoints> .
+
+<#JLWSC-GR-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-1" ;
+    spec:statement "A grant records what the storage controller decided; the server MUST realise that decision in its internal enforcement:" ;
+    rdfs:comment "Grants are records, not tokens (never presented as authorization tokens); the record binds observable behaviour, not internals."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/grant-permits-read/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/request-denied-without-grant/case.json> .
+
+<#JLWSC-GR-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-2" ;
+    spec:statement "Grant creation and revocation MUST be reflected in enforcement within a bounded, documented interval (SHOULD be immediate)." ;
+    rdfs:comment "Operative sub-clause here is the bounded-documented-interval MUST: the bound is a documented artifact (audit), the reflection temporal."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> .
+
+<#JLWSC-GR-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-3" ;
+    spec:statement "Grant creation and revocation MUST be reflected in enforcement within a bounded, documented interval (SHOULD be immediate)." ;
+    rdfs:comment "Operative sub-clause here is the SHOULD-be-immediate recommendation."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> .
+
+<#JLWSC-GR-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-4" ;
+    spec:statement "Derived views — container listings, type indexes, query results — MUST reflect revocation immediately" ;
+    rdfs:comment "The live-authorization rule (LWS-SEARCHINDEX-ED, generalised); immediacy is temporal (GAPS.md 'stateful/temporal') — the sequential enforcement half is pinned by the listing/oracle vectors (JLWSC-MA-2, JLWSC-OF-2)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+### Consent receipts, delegation, groups (#consent-receipts, #delegation, #groups)
+
+<#JLWSC-VC-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-VC-1" ;
+    spec:statement "A storage controller MAY issue an access grant additionally as a W3C Verifiable Credential" ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#StorageController> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#consent-receipts> ;
+    sc:testGap <#gap-pure-permission> .
+
+<#JLWSC-VC-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-VC-2" ;
+    spec:statement "Revocation of the grant MUST be reflected in the credential's status mechanism." ;
+    rdfs:comment "Condition: the VC consent-receipt option is exercised. Status-mechanism reflection is deterministic once issued; vector deferred."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> , <#StorageController> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#consent-receipts> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-DLG-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DLG-1" ;
+    spec:statement "Servers MAY support delegated grants" ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#delegation> ;
+    sc:testGap <#gap-pure-permission> .
+
+<#JLWSC-DLG-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DLG-2" ;
+    spec:statement "a delegated grant MUST NOT exceed its parent in actions, targets, constraints, or duration" ;
+    rdfs:comment "Condition: delegation is supported. Chain semantics (monotonic narrowing, expiry/revocation propagation, cycle rejection) follow the delegation-chain model implemented in SOLID-ODRL; covered by the solid-odrl delegation vectors in agentic-solid-conformance, adopted by reference (spec #test-vectors appendix)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#delegation> ;
+    spec:testCase <https://github.com/jeswr/agentic-solid-conformance/tree/main/vectors/odrl-delegation> .
+
+<#JLWSC-GRP-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GRP-1" ;
+    spec:statement "Servers MAY advertise a GroupService" ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#groups> ;
+    sc:testGap <#gap-pure-permission> .
+
+<#JLWSC-GRP-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GRP-2" ;
+    spec:statement "membership changes MUST take effect like grant changes" ;
+    rdfs:comment "Condition: a GroupService is advertised. Group-semantics vectors are deferred."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#groups> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-GRP-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GRP-3" ;
+    spec:statement "Cyclic group membership MUST be rejected." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#groups> ;
+    sc:testGap <#gap-deferred> .
+
+### Discovery binding (#discovery-binding)
+
+<#JLWSC-DB-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DB-1" ;
+    spec:statement "All responses to GET and HEAD requests targeting storage resources MUST include a Link header targeting the storage description with rel=\"https://w3id.org/jeswr/lws#storageDescription\"" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-binding> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-link-on-get/case.json> ,
+                  <test-vectors/vectors/resources/cases/required-links-on-get/case.json> .
+
+<#JLWSC-DB-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DB-2" ;
+    spec:statement "servers SHOULD include it on 401 responses to guide unauthenticated clients" ;
+    rdfs:comment "'It' = the storage-description Link header."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-binding> .
+
+<#JLWSC-DB-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DB-3" ;
+    spec:statement "The document MUST be readable by any agent that can read the storage root, and MAY be public." ;
+    rdfs:comment "'The document' = the storage description resource."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-binding> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-DB-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DB-4" ;
+    spec:statement "the verificationMethod key material that notification keyid values resolve to MUST nonetheless be fetchable without storage credentials" ;
+    rdfs:comment "Condition: the storage description is not public AND the storage delivers signed webhook notifications. 'A webhook receiver is not a storage client and cannot be assumed to hold read access; a signature it cannot verify is a signature it will be tempted to skip.'"@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-binding> ;
+    sc:testGap <#gap-deployment-policy> .
+
+### Storage description data model (#discovery-model)
+
+<#JLWSC-DM-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-1" ;
+    spec:statement "id — REQUIRED; the storage's URI;" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#StorageDescriptionDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-valid/case.json> .
+
+<#JLWSC-DM-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-2" ;
+    spec:statement "type — REQUIRED; includes Storage;" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#StorageDescriptionDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-valid/case.json> .
+
+<#JLWSC-DM-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-3" ;
+    spec:statement "conformsTo — REQUIRED; an array of protocol version URIs the storage implements" ;
+    rdfs:comment "Convention adopted from fedreg:StorageDescription (FEDREG) — federations can index JLWS storages natively."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#StorageDescriptionDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-missing-conformsto/case.json> .
+
+<#JLWSC-DM-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-4" ;
+    spec:statement "service — REQUIRED; a set of {id?, type, serviceEndpoint, …} entries, including one of type StorageDescription whose serviceEndpoint is the document's own URL;" ;
+    rdfs:comment "Extension services use absolute URIs; the a2a-rdf AgentInteractionService entry is the vectored extension example (consumption fail-closes on a non-https endpoint — see JLWSC-SSRF-1)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#StorageDescriptionDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-missing-self-service/case.json> ,
+                  <test-vectors/vectors/discovery/cases/sd-agent-interaction-service/case.json> .
+
+<#JLWSC-DM-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-5" ;
+    spec:statement "verificationMethod — OPTIONAL (REQUIRED for notification servers); the storage's signing keys as !CID-1.0 verification methods" ;
+    rdfs:comment "Operative obligation: REQUIRED for notification servers (webhook signature keyid values resolve into this set)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#StorageDescriptionDocument> , <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/webhook-signature-valid/case.json> .
+
+<#JLWSC-DM-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-6" ;
+    spec:statement "Consumers MUST ignore unrecognised capability and service types (forward compatibility)." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-unknown-capability-ignored/case.json> .
+
+<#JLWSC-DM-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-DM-7" ;
+    spec:statement "The document MUST validate as a controlled identifier document when verificationMethod is present." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#StorageDescriptionDocument> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#discovery-model> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/storage-description-valid/case.json> .
+
+### Notifications — subscription API (#subscription-api)
+
+<#JLWSC-SUB-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SUB-1" ;
+    spec:statement "The server MUST reject a subscription whose agent lacks read access to every topic" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#subscription-api> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/subscription-requires-read-on-all-topics/case.json> .
+
+<#JLWSC-SUB-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SUB-2" ;
+    spec:statement "if the subscriber's read access to a topic is revoked, deliveries for it MUST cease immediately." ;
+    rdfs:comment "Authorization is enforced at subscription AND delivery time; cessation spans observations over a live channel (GAPS.md 'stateful/temporal')."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#subscription-api> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-SUB-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SUB-3" ;
+    spec:statement "topic — REQUIRED array of resource URIs" ;
+    rdfs:comment "The subscription-creation body contract (authenticated POST to the NotificationService endpoint; type = an advertised subscription type; expires OPTIONAL). The linked binding cases create subscriptions and assert the response contract; the keywordless source/receiveFrom member rules ride them (see the extraction notes)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> , <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#subscription-api> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/sse-subscription-returns-source/case.json> ,
+                  <test-vectors/vectors/notifications/cases/websocket-subscription-returns-receivefrom/case.json> .
+
+### Notification envelope (#notification-envelope)
+
+<#JLWSC-ENV-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ENV-1" ;
+    spec:statement "Notifications MUST NOT include resource content." ;
+    rdfs:comment "The envelope wraps an AS2 Create/Update/Delete whose object carries the affected resource's id and type only (keywordless shape, asserted by notifications/envelope-valid)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#notification-envelope> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/envelope-must-not-carry-content/case.json> ,
+                  <test-vectors/vectors/notifications/cases/envelope-valid/case.json> .
+
+<#JLWSC-ENV-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ENV-2" ;
+    spec:statement "published is REQUIRED; actor MUST be omitted unless the subscriber is authorised to learn it (privacy default of LWS-NOTIFICATIONS-ED)." ;
+    rdfs:comment "Operative sub-clause here is 'published is REQUIRED'."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#notification-envelope> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/envelope-published-required/case.json> .
+
+<#JLWSC-ENV-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ENV-3" ;
+    spec:statement "published is REQUIRED; actor MUST be omitted unless the subscriber is authorised to learn it (privacy default of LWS-NOTIFICATIONS-ED)." ;
+    rdfs:comment "Operative sub-clause here is the actor privacy default."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#notification-envelope> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/envelope-actor-omitted-by-default/case.json> .
+
+<#JLWSC-ENV-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ENV-4" ;
+    spec:statement "Servers MAY batch multiple activities per delivery." ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#notification-envelope> ;
+    sc:testGap <#gap-pure-permission> .
+
+### Webhook binding (#webhook-binding)
+
+<#JLWSC-WH-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-WH-1" ;
+    spec:statement "Deliveries MUST be signed with HTTP Message Signatures !RFC9421 covering at least @method, @scheme/@authority/@path (or @target-uri), content-type, and content-digest (!RFC9530)." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#webhook-binding> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/webhook-signature-valid/case.json> ,
+                  <test-vectors/vectors/notifications/cases/webhook-insufficient-coverage-rejected/case.json> ,
+                  <test-vectors/vectors/notifications/cases/webhook-body-tampered-rejected/case.json> .
+
+<#JLWSC-WH-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-WH-2" ;
+    spec:statement "The signature's keyid MUST be a URL-with-fragment resolving into the storage description's verificationMethod set" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#webhook-binding> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/webhook-signature-valid/case.json> ,
+                  <test-vectors/vectors/notifications/cases/webhook-unknown-keyid-rejected/case.json> .
+
+<#JLWSC-WH-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-WH-3" ;
+    spec:statement "receivers MUST verify the signature before processing" ;
+    rdfs:comment "The receiver-side fetch of the storage description is subject to #ssrf (the sentence's tail embeds a ReSpec cross-reference)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#WebhookReceiver> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#webhook-binding> ;
+    spec:testCase <test-vectors/vectors/notifications/cases/webhook-bad-signature-rejected/case.json> ,
+                  <test-vectors/vectors/notifications/cases/webhook-unknown-keyid-rejected/case.json> ,
+                  <test-vectors/vectors/notifications/cases/webhook-body-tampered-rejected/case.json> .
+
+### SSE binding (#sse-binding)
+
+<#JLWSC-SSE-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSE-1" ;
+    spec:statement "the server MUST support at least one of, and the subscription response states which apply" ;
+    rdfs:comment "'At least one of' = the two stream-authentication modes (header mode; capability-URL mode). Streaming behaviour (GAPS.md 'stateful/temporal')."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sse-binding> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-SSE-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSE-2" ;
+    spec:statement "It MUST be bound to the subscription, MUST expire no later than the subscription, MUST be revoked with it, and MUST only be issued over TLS." ;
+    rdfs:comment "'It' = the capability-URL-mode source URL (single-subscription, unguessable, ≥128 bits of entropy, expiring). The WebSocket receiveFrom URL carries the same requirements by simile (see the extraction notes)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sse-binding> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-SSE-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSE-3" ;
+    spec:statement "Every event MUST carry an id field." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sse-binding> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-SSE-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSE-4" ;
+    spec:statement "the server MUST either replay all events after that id (it MUST retain events for a documented retention window) or, when the id has aged out, send a control event of type reset telling the client to re-synchronise state by reading the topics." ;
+    rdfs:comment "Condition: reconnection with Last-Event-ID. GAPS.md names SSE resumption/reset explicitly as un-vectorable (streaming)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sse-binding> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+### WebSocket binding (#websocket-binding)
+
+<#JLWSC-WS-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-WS-1" ;
+    spec:statement "Servers SHOULD ping periodically; clients re-subscribe (obtaining a fresh receiveFrom) after close or expiry." ;
+    rdfs:comment "There is no replay on this binding; clients needing gapless delivery use SSE or webhooks."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#NotificationServer> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#websocket-binding> .
+
+### Content transformation hook (#content-transformation)
+
+<#JLWSC-CT-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CT-1" ;
+    spec:statement "A server MUST NOT perform transformation it does not advertise, and clients MUST NOT expect any transformation that is not advertised: absent the capability, a data resource has exactly its stored representation." ;
+    rdfs:comment "Operative sub-clause here is the server side."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#content-transformation> ;
+    spec:testCase <test-vectors/vectors/rdf-transform/cases/transform-off-byte-native-only/case.json> .
+
+<#JLWSC-CT-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CT-2" ;
+    spec:statement "A server MUST NOT perform transformation it does not advertise, and clients MUST NOT expect any transformation that is not advertised: absent the capability, a data resource has exactly its stored representation." ;
+    rdfs:comment "Operative sub-clause here is the client side (feature-detect before relying); the rdf-1 client fail-closed vector pins the RDF instance of this rule (rdf-transform/client-fail-closed-no-advertisement)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#content-transformation> ;
+    spec:testCase <test-vectors/vectors/rdf-transform/cases/client-fail-closed-no-advertisement/case.json> .
+
+<#JLWSC-CT-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CT-3" ;
+    spec:statement "reads in the stored media type MUST return the stored bytes exactly (unless normalizes is declared)" ;
+    rdfs:comment "The byte-native promise, stated here for the general (transformation-advertising) case; the keywordless #http-read read-back sentence rides it (see the extraction notes)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#content-transformation> ;
+    spec:testCase <test-vectors/vectors/resources/cases/byte-exact-roundtrip/case.json> ,
+                  <test-vectors/vectors/rdf-transform/cases/stored-bytes-byte-exact/case.json> .
+
+<#JLWSC-CT-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CT-4" ;
+    spec:statement "A server MAY offer server-side transformation between representations of a data resource" ;
+    rdfs:comment "The exercised contract (advertised pair actually negotiable, Vary: Accept) is pinned by the rdf-1 suite."@en ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#content-transformation> ;
+    spec:testCase <test-vectors/vectors/rdf-transform/cases/advertised-conneg-honoured/case.json> .
+
+### Query services (#query-services)
+
+<#JLWSC-QS-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-QS-1" ;
+    spec:statement "results MUST be filtered by the requesting agent's live authorization on every request (revocations take effect immediately); counts MUST reflect only the caller-visible view" ;
+    rdfs:comment "Invariants normative for any advertised query service; the query companion's own suite must pin them (the rdf-1 suite pins only the SparqlQueryService advertisement condition)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#query-services> ;
+    sc:testGap <#gap-companion-planned> .
+
+<#JLWSC-QS-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-QS-2" ;
+    spec:statement "index derivation MAY be eventually consistent but authorization filtering MUST NOT be; and a query service MUST NOT reveal the existence of resources the agent cannot read" ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#query-services> ;
+    sc:testGap <#gap-companion-planned> .
+
+<#JLWSC-QS-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-QS-3" ;
+    spec:statement "QUERY MUST NOT be the only binding" ;
+    rdfs:comment "The type-search service's optional HTTP QUERY binding is additional to the equivalent GET and POST forms (deployment objection, 2026-06-29 minutes)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#query-services> ;
+    sc:testGap <#gap-companion-planned> .
+
+### Security — transport and tokens (#sec-transport, #sec-tokens)
+
+<#JLWSC-ST-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ST-1" ;
+    spec:statement "All protocol interactions MUST use TLS; clients MUST validate server certificates (service identity) per !RFC6125 and follow the TLS configuration recommendations of BCP 195 (!RFC9325)." ;
+    rdfs:comment "Operative sub-clause here is the TLS-everywhere MUST (all parties); transport behaviour needs a live harness (GAPS.md 'network/trust')."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> , <#Client> , <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-transport> ;
+    sc:testGap <#gap-network-trust> .
+
+<#JLWSC-ST-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ST-2" ;
+    spec:statement "All protocol interactions MUST use TLS; clients MUST validate server certificates (service identity) per !RFC6125 and follow the TLS configuration recommendations of BCP 195 (!RFC9325)." ;
+    rdfs:comment "Operative sub-clause here is the client certificate-validation MUST (probe: a bad-certificate endpoint must be refused)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-transport> ;
+    sc:testGap <#gap-network-trust> .
+
+<#JLWSC-ST-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ST-3" ;
+    spec:statement "Tokens MUST NOT appear in URLs, browser storage accessible to untrusted scripts, or logs (log truncated/hashed values if needed)." ;
+    rdfs:comment "Negative internal property (audit/code-review only). Capability URLs are the deliberate, constrained exception (single-purpose, expiring, revocable, TLS-only — JLWSC-SSE-2)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> , <#Client> , <#AuthorizationServer> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-transport> .
+
+<#JLWSC-SECT-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SECT-1" ;
+    spec:statement "Deployments handling high-value data SHOULD offer — and MAY require — a proof-of-possession profile" ;
+    rdfs:comment "Deployment-posture recommendation; auditable, not vectorable (whether data is 'high-value' is a policy judgement)."@en ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-tokens> .
+
+<#JLWSC-SECT-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SECT-2" ;
+    spec:statement "Storage servers MUST maintain an explicit allowlist of trusted authorization-server issuers and reject all others" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-tokens> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-untrusted-issuer-rejected/case.json> ;
+    sc:restates <#JLWSC-RSV-2> .
+
+<#JLWSC-SECT-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SECT-3" ;
+    spec:statement "Multi-tenant instances MUST NOT accept a token whose aud is scoped outside the current storage (tenant-replay isolation, jeswr/lws-keycloak spec/authz.md §7.5.1)." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-tokens> ;
+    spec:testCase <test-vectors/vectors/auth/cases/token-aud-not-containing-rejected/case.json> ;
+    sc:restates <#JLWSC-RSV-5> .
+
+<#JLWSC-SECT-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SECT-4" ;
+    spec:statement "Servers MAY maintain a jti replay cache (bounded, sized against DoS) for single-use token policies." ;
+    spec:requirementLevel spec:MAY ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Premature ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-tokens> ;
+    sc:testGap <#gap-deployment-policy> .
+
+<#JLWSC-SECT-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SECT-5" ;
+    spec:statement "Authentication credentials with unrestricted audiences MUST NOT be presented to untrusted authorization servers" ;
+    rdfs:comment "Client presentation conduct; auditable against a client-under-test transcript."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-tokens> .
+
+<#JLWSC-SECT-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SECT-6" ;
+    spec:statement "clients SHOULD obtain audience-restricted credentials (RFC 8707 resource indicators, or token exchange) first." ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-tokens> .
+
+### Server-side request forgery (#ssrf)
+
+<#JLWSC-SSRF-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSRF-1" ;
+    spec:statement "Every such fetch MUST apply all of the following:" ;
+    rdfs:comment "'Every such fetch' = outbound requests to attacker-influenced URLs (CID/subject dereferencing, JWKS and metadata fetches, client-ID metadata fetches, webhook inbox delivery, storage-description fetches by webhook receivers). The six bullets: https-only scheme; resolved-address policy rejecting loopback/private/link-local/unique-local/cloud-metadata (IPv4 and IPv6, incl. mapped/compatible forms); DNS pinning (connect to the validated resolved address); no automatic redirects (JLWSC-SSRF-2); response-size/time caps + bounded concurrency; no credential forwarding (JLWSC-SSRF-3). The vectored case pins the fail-closed non-https extension-endpoint half; the network-behaviour halves need an instrumented harness."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> , <#AuthorizationServer> , <#WebhookReceiver> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#ssrf> ;
+    spec:testCase <test-vectors/vectors/discovery/cases/sd-agent-interaction-service-hostile-fails-closed/case.json> ;
+    sc:testGap <#gap-network-trust> .
+
+<#JLWSC-SSRF-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSRF-2" ;
+    spec:statement "if followed, each hop MUST re-pass the full policy." ;
+    rdfs:comment "Condition: redirects are followed at all (the default is not to follow them automatically)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> , <#AuthorizationServer> , <#WebhookReceiver> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#ssrf> ;
+    sc:testGap <#gap-network-trust> .
+
+<#JLWSC-SSRF-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-SSRF-3" ;
+    spec:statement "outbound fetches MUST NOT attach the inbound request's credentials." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> , <#AuthorizationServer> , <#WebhookReceiver> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#ssrf> ;
+    sc:testGap <#gap-network-trust> .
+
+### Oracle freedom (#oracle-freedom)
+
+<#JLWSC-OF-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-OF-1" ;
+    spec:statement "the server MUST respond 404 (not 403), indistinguishable from a genuinely absent resource" ;
+    rdfs:comment "Condition: the agent has no permitted operation on the resource and is not otherwise authorized to learn that it exists. 403 is reserved for agents with partial access (already entitled to know the resource exists)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#oracle-freedom> ;
+    spec:testCase <test-vectors/vectors/errors/cases/no-access-hidden-as-404/case.json> ,
+                  <test-vectors/vectors/errors/cases/hidden-indistinguishable-from-missing/case.json> ,
+                  <test-vectors/vectors/errors/cases/partial-access-403/case.json> .
+
+<#JLWSC-OF-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-OF-2" ;
+    spec:statement "Container listings, totalItems, query results, and notification streams MUST expose only what the requesting agent can read" ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#oracle-freedom> ;
+    spec:testCase <test-vectors/vectors/containers/cases/listing-excludes-inaccessible-members/case.json> ;
+    sc:restates <#JLWSC-MA-2> , <#JLWSC-MA-3> .
+
+<#JLWSC-OF-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-OF-3" ;
+    spec:statement "Servers MUST NOT enumerate, in any discovery surface, the set of link relations or types they index (no discovery oracle — LWS-SEARCHINDEX-ED)." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#oracle-freedom> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-OF-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-OF-4" ;
+    spec:statement "Error responses (including problem details) MUST NOT leak the existence, size, or type of resources the agent cannot read." ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#oracle-freedom> ;
+    spec:testCase <test-vectors/vectors/errors/cases/hidden-indistinguishable-from-missing/case.json> .
+
+### Web-platform integration (#sec-cors)
+
+<#JLWSC-CORS-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CORS-1" ;
+    spec:statement "Servers supporting browser clients MUST validate Origin and use restrictive CORS policies; wildcard credentialed CORS MUST NOT be used." ;
+    rdfs:comment "Operative sub-clause here is the Origin-validation MUST."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-cors> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-CORS-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CORS-2" ;
+    spec:statement "Servers supporting browser clients MUST validate Origin and use restrictive CORS policies; wildcard credentialed CORS MUST NOT be used." ;
+    rdfs:comment "Operative sub-clause here is the wildcard-credentialed-CORS MUST NOT."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-cors> ;
+    sc:testGap <#gap-deferred> .
+
+<#JLWSC-CORS-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-CORS-3" ;
+    spec:statement "Servers SHOULD emit X-Content-Type-Options: nosniff on data-resource responses and treat stored content as untrusted when serving to browsers" ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#sec-cors> .
+
+### Privacy considerations (#privacy-considerations)
+
+<#JLWSC-PRIV-1> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PRIV-1" ;
+    spec:statement "authorization servers SHOULD issue tokens containing only what authorization needs" ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#privacy-considerations> .
+
+<#JLWSC-PRIV-2> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PRIV-2" ;
+    spec:statement "when pseudonymous subject identifiers are used, clients SHOULD request batch issuance and use each token once, preventing the storage server from correlating requests by identifier" ;
+    spec:requirementLevel spec:SHOULD ;
+    spec:requirementSubject <#Client> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#privacy-considerations> .
+
+<#JLWSC-PRIV-3> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PRIV-3" ;
+    spec:statement "an authorization server SHOULD NOT issue the same pseudonymous identifier twice" ;
+    rdfs:comment "IP-address and policy-shape correlation remain (the spec's own caveat)."@en ;
+    spec:requirementLevel spec:SHOULDNOT ;
+    spec:requirementSubject <#AuthorizationServer> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#privacy-considerations> .
+
+<#JLWSC-PRIV-4> a spec:Requirement ;
+    dcterms:identifier "JLWSC-PRIV-4" ;
+    spec:statement "implementations SHOULD NOT log full tokens, credentials, or capability URLs." ;
+    spec:requirementLevel spec:SHOULDNOT ;
+    spec:requirementSubject <#Server> , <#Client> , <#AuthorizationServer> ;
+    sc:testability sc:AccountableExistence ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#privacy-considerations> .
+
+#################################################################
+# The specification (statement enumeration generated from the
+# statement blocks above; order = document order)
+#################################################################
+
+<https://jeswr.github.io/lws-spec/> a spec:Specification ;
+    dcterms:title "JLWS Core Protocol — A Clean-Slate Linked Web Storage Design"@en ;
+    spec:conformance <https://jeswr.github.io/lws-spec/#conformance> ;
+    spec:consideration <https://jeswr.github.io/lws-spec/#security-considerations> ,
+                       <https://jeswr.github.io/lws-spec/#privacy-considerations> ;
+    spec:requirement
+        <#JLWSC-NS-1> ,
+        <#JLWSC-CONF-1> ,
+        <#JLWSC-RC-1> ,
+        <#JLWSC-RC-2> ,
+        <#JLWSC-RC-3> ,
+        <#JLWSC-CVD-1> ,
+        <#JLWSC-CVD-2> ,
+        <#JLWSC-CTN-1> ,
+        <#JLWSC-CTN-2> ,
+        <#JLWSC-CTN-3> ,
+        <#JLWSC-CTN-4> ,
+        <#JLWSC-CTN-5> ,
+        <#JLWSC-CTN-6> ,
+        <#JLWSC-PA-1> ,
+        <#JLWSC-PA-2> ,
+        <#JLWSC-PA-3> ,
+        <#JLWSC-MA-1> ,
+        <#JLWSC-MA-2> ,
+        <#JLWSC-MA-3> ,
+        <#JLWSC-CP-1> ,
+        <#JLWSC-CP-2> ,
+        <#JLWSC-CP-3> ,
+        <#JLWSC-CP-4> ,
+        <#JLWSC-CP-5> ,
+        <#JLWSC-CP-6> ,
+        <#JLWSC-CMT-1> ,
+        <#JLWSC-CMT-2> ,
+        <#JLWSC-CMT-3> ,
+        <#JLWSC-PAG-1> ,
+        <#JLWSC-PAG-2> ,
+        <#JLWSC-PAG-3> ,
+        <#JLWSC-MD-1> ,
+        <#JLWSC-MD-2> ,
+        <#JLWSC-MD-3> ,
+        <#JLWSC-MU-1> ,
+        <#JLWSC-MU-2> ,
+        <#JLWSC-MU-3> ,
+        <#JLWSC-MU-4> ,
+        <#JLWSC-MU-5> ,
+        <#JLWSC-OP-1> ,
+        <#JLWSC-HG-1> ,
+        <#JLWSC-HG-2> ,
+        <#JLWSC-HG-3> ,
+        <#JLWSC-HG-4> ,
+        <#JLWSC-HG-5> ,
+        <#JLWSC-HG-6> ,
+        <#JLWSC-HG-7> ,
+        <#JLWSC-POST-1> ,
+        <#JLWSC-POST-2> ,
+        <#JLWSC-POST-3> ,
+        <#JLWSC-POST-4> ,
+        <#JLWSC-POST-5> ,
+        <#JLWSC-POST-6> ,
+        <#JLWSC-PUT-1> ,
+        <#JLWSC-PUT-2> ,
+        <#JLWSC-PUT-3> ,
+        <#JLWSC-PUT-4> ,
+        <#JLWSC-PUT-5> ,
+        <#JLWSC-PUT-6> ,
+        <#JLWSC-PUT-7> ,
+        <#JLWSC-RD-1> ,
+        <#JLWSC-RD-2> ,
+        <#JLWSC-RD-3> ,
+        <#JLWSC-UPD-1> ,
+        <#JLWSC-UPD-2> ,
+        <#JLWSC-UPD-3> ,
+        <#JLWSC-UPD-4> ,
+        <#JLWSC-UPD-5> ,
+        <#JLWSC-DEL-1> ,
+        <#JLWSC-DEL-2> ,
+        <#JLWSC-DEL-3> ,
+        <#JLWSC-DEL-4> ,
+        <#JLWSC-MV-1> ,
+        <#JLWSC-MV-2> ,
+        <#JLWSC-MV-3> ,
+        <#JLWSC-CRED-1> ,
+        <#JLWSC-CRED-2> ,
+        <#JLWSC-CRED-3> ,
+        <#JLWSC-CRED-4> ,
+        <#JLWSC-CRED-5> ,
+        <#JLWSC-CRED-6> ,
+        <#JLWSC-CRED-7> ,
+        <#JLWSC-ID-1> ,
+        <#JLWSC-ID-2> ,
+        <#JLWSC-SUITE-1> ,
+        <#JLWSC-SUITE-WA-1> ,
+        <#JLWSC-CLID-1> ,
+        <#JLWSC-AD-1> ,
+        <#JLWSC-AD-2> ,
+        <#JLWSC-AD-3> ,
+        <#JLWSC-AD-4> ,
+        <#JLWSC-AD-5> ,
+        <#JLWSC-TE-1> ,
+        <#JLWSC-TE-2> ,
+        <#JLWSC-TE-3> ,
+        <#JLWSC-TE-4> ,
+        <#JLWSC-TE-5> ,
+        <#JLWSC-AT-1> ,
+        <#JLWSC-AT-2> ,
+        <#JLWSC-AT-3> ,
+        <#JLWSC-AT-4> ,
+        <#JLWSC-RAR-1> ,
+        <#JLWSC-RAR-2> ,
+        <#JLWSC-PB-1> ,
+        <#JLWSC-PP-1> ,
+        <#JLWSC-PP-2> ,
+        <#JLWSC-PP-3> ,
+        <#JLWSC-PP-4> ,
+        <#JLWSC-RSV-1> ,
+        <#JLWSC-RSV-2> ,
+        <#JLWSC-RSV-3> ,
+        <#JLWSC-RSV-4> ,
+        <#JLWSC-RSV-5> ,
+        <#JLWSC-RSV-6> ,
+        <#JLWSC-RSV-7> ,
+        <#JLWSC-RSV-8> ,
+        <#JLWSC-RSV-9> ,
+        <#JLWSC-CR-1> ,
+        <#JLWSC-CR-2> ,
+        <#JLWSC-CR-3> ,
+        <#JLWSC-CR-4> ,
+        <#JLWSC-CR-5> ,
+        <#JLWSC-ODRL-1> ,
+        <#JLWSC-ODRL-2> ,
+        <#JLWSC-ODRL-3> ,
+        <#JLWSC-ODRL-4> ,
+        <#JLWSC-ODRL-5> ,
+        <#JLWSC-GE-1> ,
+        <#JLWSC-GR-1> ,
+        <#JLWSC-GR-2> ,
+        <#JLWSC-GR-3> ,
+        <#JLWSC-GR-4> ,
+        <#JLWSC-VC-1> ,
+        <#JLWSC-VC-2> ,
+        <#JLWSC-DLG-1> ,
+        <#JLWSC-DLG-2> ,
+        <#JLWSC-GRP-1> ,
+        <#JLWSC-GRP-2> ,
+        <#JLWSC-GRP-3> ,
+        <#JLWSC-DB-1> ,
+        <#JLWSC-DB-2> ,
+        <#JLWSC-DB-3> ,
+        <#JLWSC-DB-4> ,
+        <#JLWSC-DM-1> ,
+        <#JLWSC-DM-2> ,
+        <#JLWSC-DM-3> ,
+        <#JLWSC-DM-4> ,
+        <#JLWSC-DM-5> ,
+        <#JLWSC-DM-6> ,
+        <#JLWSC-DM-7> ,
+        <#JLWSC-SUB-1> ,
+        <#JLWSC-SUB-2> ,
+        <#JLWSC-SUB-3> ,
+        <#JLWSC-ENV-1> ,
+        <#JLWSC-ENV-2> ,
+        <#JLWSC-ENV-3> ,
+        <#JLWSC-ENV-4> ,
+        <#JLWSC-WH-1> ,
+        <#JLWSC-WH-2> ,
+        <#JLWSC-WH-3> ,
+        <#JLWSC-SSE-1> ,
+        <#JLWSC-SSE-2> ,
+        <#JLWSC-SSE-3> ,
+        <#JLWSC-SSE-4> ,
+        <#JLWSC-WS-1> ,
+        <#JLWSC-CT-1> ,
+        <#JLWSC-CT-2> ,
+        <#JLWSC-CT-3> ,
+        <#JLWSC-CT-4> ,
+        <#JLWSC-QS-1> ,
+        <#JLWSC-QS-2> ,
+        <#JLWSC-QS-3> ,
+        <#JLWSC-ST-1> ,
+        <#JLWSC-ST-2> ,
+        <#JLWSC-ST-3> ,
+        <#JLWSC-SECT-1> ,
+        <#JLWSC-SECT-2> ,
+        <#JLWSC-SECT-3> ,
+        <#JLWSC-SECT-4> ,
+        <#JLWSC-SECT-5> ,
+        <#JLWSC-SECT-6> ,
+        <#JLWSC-SSRF-1> ,
+        <#JLWSC-SSRF-2> ,
+        <#JLWSC-SSRF-3> ,
+        <#JLWSC-OF-1> ,
+        <#JLWSC-OF-2> ,
+        <#JLWSC-OF-3> ,
+        <#JLWSC-OF-4> ,
+        <#JLWSC-CORS-1> ,
+        <#JLWSC-CORS-2> ,
+        <#JLWSC-CORS-3> ,
+        <#JLWSC-PRIV-1> ,
+        <#JLWSC-PRIV-2> ,
+        <#JLWSC-PRIV-3> ,
+        <#JLWSC-PRIV-4> .
+
+<https://jeswr.github.io/lws-spec/#security-considerations> a spec:SecurityConsiderations .

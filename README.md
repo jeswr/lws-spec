@@ -61,6 +61,17 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   expected verdicts are spec-derived (no reference implementation exists yet — see the suite
   README's provenance note); this suite is the conformance target the first implementation
   (the planned `solid-server-rs` LWS work) builds to.
+- **`index.statements.ttl`** / **`rdf-transform.statements.ttl`** — the **machine-readable
+  normative-statement companions** (the `jeswr/spec-companion` format: W3C `spec:` requirement
+  markup as a sidecar graph + the E / A-int / A-exist / P testability spine). One
+  `spec:Requirement` per BCP 14 statement — stable id, verbatim validator-checked quote,
+  canonical RFC 2119 level, conformance-class binding, section anchor — wired to its
+  test-vector case(s) where one exists and to an honest `sc:testGap` where none does, so each
+  companion doubles as the **test-suite requirement index** (statements with gaps = the vector
+  backlog). Keywordless normative clauses are catalogued as `sc:extractionNote` errata
+  candidates rather than dressed up as statements. The full-text specs stay the normative
+  documents; the companions are derived sidecars, re-extracted in the same commit as any
+  normative-text change.
 
 Companion specs planned (slots reserved in the core): query services (TypeIndex/TypeSearch +
 access-controlled SPARQL), versioning (RFC 5829 + Memento), and the full Solid-on-JLWS
@@ -77,6 +88,9 @@ the emitted files):
 node tools/check-html.mjs index.html rdf-transform.html
 node test-vectors/tools/check.mjs
 node test-vectors/tools/generate.mjs   # regenerate; git diff must stay clean
+# statement companions (validator + shapes live in jeswr/spec-companion):
+node <spec-companion>/tools/validate.mjs index.statements.ttl --spec-html index.html
+node <spec-companion>/tools/validate.mjs rdf-transform.statements.ttl --spec-html rdf-transform.html
 ```
 
 (stdlib-only tag-balance + structure check; Node ≥ 20). Plus roborev on every commit
