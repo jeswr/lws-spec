@@ -35,8 +35,11 @@ executed MUST/MUST NOT-level statement fails — for CI over a real JLWS impleme
 baseline run over a non-JLWS server stays exit 0), and `--controller-bearer <token>` (bearer
 credential for storage-controller requests — a per-run credential belongs on the command line,
 never committed inside a `targets/*.json`; a fail-closed target like `solid-server-rs` needs it
-for the harness to realise state at all). **Local servers only** — never point the
-suite at a production deployment: it creates and deletes real resources under
+for the harness to realise state at all). Value-taking flags are **presence-checked and
+fail-closed** (`lib/cli.mjs`): a flag given without a value is a hard error, and
+`--controller-bearer ""` is rejected by config validation — a malformed credential can never
+silently downgrade the run to anonymous/config credentials. **Local servers only** — never
+point the suite at a production deployment: it creates and deletes real resources under
 `<target>/jlws-<runid>/…`.
 
 ### Target configuration (`targets/*.json`)
@@ -106,10 +109,47 @@ statement passes (`--strict` gates exactly that), `untested (library-level)` sta
 covered by binding the abstract operations in that implementation's own test suite, and
 `evidence-check` rows are answered in its conformance documentation.
 
+### Reproducing the solid-server-rs scoreboard
+
+[`reports/solid-server-rs-baseline-2026-07-06.md`](./reports/solid-server-rs-baseline-2026-07-06.md)
+is the first run against a target that **claims** JLWS conformance: `solid-server-rs`
+(EXPERIMENTAL, branch `feat/lws` — the exact sha is in the report header). That server's WAC is
+fail-closed, so the run needs an **authenticated storage controller**: a committed local mock
+authorization server ([`tools/mock-as.mjs`](./tools/mock-as.mjs), stdlib-only, loopback-bound)
+serves OIDC discovery + JWKS and mints the RFC 9068 `at+jwt` Bearer token the server's LWS auth
+chain verifies. The committed target config
+([`targets/solid-server-rs.json`](./targets/solid-server-rs.json)) stays **credential-free** —
+the token is minted per run and passed via `--controller-bearer`. Three local processes:
+
+```sh
+# 1. the mock AS (discovery + JWKS + /token on 127.0.0.1:3999)
+node tools/mock-as.mjs
+
+# 2. solid-server-rs @ the report-header sha, branch feat/lws, from its repo:
+SOLID_SERVER_BASE_URL=http://127.0.0.1:3000 \
+SOLID_SERVER_TRUSTED_ISSUER=http://127.0.0.1:3999 \
+SOLID_SERVER_ALLOW_LOOPBACK=1 \
+SOLID_SERVER_SEED_CONFORMANCE=1 \
+SOLID_SERVER_LWS=1 \
+SOLID_SERVER_LWS_STRICT_PUT=1 \
+  cargo run
+# (the seed writes alice's WebID with solid:oidcIssuer = the mock AS; the default
+#  audience is the base URL, matching the minted token's aud and sub)
+
+# 3. mint the controller token and run, targeting inside the seeded pod:
+TOKEN="$(curl -s http://127.0.0.1:3999/token)"
+node bin/run.mjs --config targets/solid-server-rs.json \
+  --target http://127.0.0.1:3000/alice \
+  --controller-bearer "$TOKEN" \
+  --out-json reports/solid-server-rs-baseline-$(date +%F).json \
+  --out-md reports/solid-server-rs-baseline-$(date +%F).md
+```
+
 ## Layout
 
 ```
 bin/run.mjs        CLI
+lib/cli.mjs        presence-checked, fail-closed CLI flag parsing
 lib/companion.mjs  statement-companion loader (n3) — the requirement index
 lib/vectors.mjs    test-vector manifests/cases loader
 lib/exchange.mjs   http-exchange planner + executor (state realisation, placeholders, teardown)
@@ -119,6 +159,8 @@ lib/plan.mjs       statement classification + verdict aggregation
 lib/report.mjs     markdown scoreboard renderer
 lib/runner.mjs     run orchestration
 targets/           committed target configs
+tools/mock-as.mjs  local mock OIDC AS (stdlib-only, loopback) minting the per-run
+                   controller Bearer token for the solid-server-rs reproduction
 reports/           committed dated reports (generated — re-run, don't edit)
 test/              self-tests (node --test), incl. strict/lenient mock servers as
                    positive/negative controls for the runner itself

@@ -19,7 +19,10 @@
 //                         bearer token for storage-controller requests
 //                         (overrides config.controllerBearer — a per-run
 //                         credential should be passed here, never committed
-//                         in a targets/*.json)
+//                         in a targets/*.json; see tools/mock-as.mjs for the
+//                         local mock AS that mints one. Presence-checked:
+//                         a missing or empty value is a hard error, never a
+//                         silent fall-back to anonymous/config credentials)
 //   --strict              exit 1 when any executed MUST-level statement fails
 //                         (for CI against a real JLWS implementation; a
 //                         baseline run over a non-JLWS server stays exit 0)
@@ -28,24 +31,22 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cliConfigOverrides, flagValue } from '../lib/cli.mjs';
 import { loadConfig } from '../lib/config.mjs';
 import { runSuite } from '../lib/runner.mjs';
 import { renderMarkdown } from '../lib/report.mjs';
 
 const args = process.argv.slice(2);
-const flag = (name) => {
-  const i = args.indexOf(`--${name}`);
-  return i === -1 ? null : args[i + 1];
-};
+// Presence-based, fail-closed flag handling (lib/cli.mjs): a value-taking
+// flag with a missing value is a hard error; a present-but-malformed value
+// (e.g. --controller-bearer "") is rejected by loadConfig, never silently
+// dropped back to the anonymous/config path.
+const flag = (name) => flagValue(args, name);
 const has = (name) => args.includes(`--${name}`);
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
-const overrides = {};
-if (flag('target')) overrides.target = flag('target');
-if (flag('label')) overrides.label = flag('label');
-if (flag('controller-bearer')) overrides.controllerBearer = flag('controller-bearer');
-const config = loadConfig({ configPath: flag('config'), overrides });
+const config = loadConfig({ configPath: flag('config'), overrides: cliConfigOverrides(args) });
 
 const only = flag('only');
 const report = await runSuite(repoRoot, config, {
