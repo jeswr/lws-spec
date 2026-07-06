@@ -73,12 +73,16 @@ export default function rdfTransform(ctx) {
     description:
       'The RDF Content Transformation Profile (the opt-in that makes a '
       + 'byte-native storage RDF-aware): capability/conformsTo consistency, '
-      + 'graph-isomorphic source→target transformation with no inference and '
-      + 'resource-URI base resolution, authoritative stored bytes with '
-      + 'per-representation ETags + Vary: Accept + cross-representation '
-      + 'If-Match, deterministic normalizes read-back, 406 degradation for '
-      + 'unparseable sources, RDF PATCH formats scoped to the profile, and '
-      + 'exact byte-native behaviour when the opt-in is off.',
+      + 'the advertisement contract (an advertised pair is actually '
+      + 'negotiable with Vary: Accept; RDF-aware clients feature-detect '
+      + 'fail-closed — a profile-less ContentNegotiation entry makes no rdf-1 '
+      + 'claim; a SparqlQueryService MUST NOT be advertised without the '
+      + 'profile), graph-isomorphic source→target transformation with no '
+      + 'inference and resource-URI base resolution, authoritative stored '
+      + 'bytes with per-representation ETags + Vary: Accept + '
+      + 'cross-representation If-Match, deterministic normalizes read-back, '
+      + '406 degradation for unparseable sources, RDF PATCH formats scoped to '
+      + 'the profile, and exact byte-native behaviour when the opt-in is off.',
     cases: [
       // ------------------------------------------------------------------
       // Capability declaration (rdf#capability)

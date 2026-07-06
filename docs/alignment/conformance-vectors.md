@@ -11,7 +11,8 @@ agent-authz-credential / a2a-rdf).
 
 agentic-solid-conformance is not a protocol; it is the **measurability artifact** ("make
 the second independent implementation measurable"). JLWS already composes with it in the
-deepest way available: this repo's `test-vectors/` suite (125 cases) is **written in its
+deepest way available: this repo's `test-vectors/` suite (150 cases across 10 suites,
+including the composition suites this alignment specifies) is **written in its
 format** (per-case clause pins, `anyOf`/`errorOneOf`, `preconditions`, `GAPS.md`,
 committed TEST-ONLY keys — D20), and `index.html#test-vectors` names it as the format
 source. The alignment work is therefore not a relationship section but a **division of

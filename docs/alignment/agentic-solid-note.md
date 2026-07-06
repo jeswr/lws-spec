@@ -50,7 +50,7 @@ depend on its umbrella.)
    "personal editor's draft (public), with a flag-gated implementation in
    `solid-server-rs` `feat/lws` (M1 discovery/containers/RDF-transform, M2 auth chain,
    M3 linksets/pagination/RAR landed; M4 notifications/PoP/query deferred) and a
-   125-case spec-derived vector suite"; *venue* "personal draft; W3C LWS WG is the
+   150-case spec-derived vector suite"; *venue* "personal draft; W3C LWS WG is the
    standards-track home".
 
 No AS-x profile redefinition: AS-0 stays "exactly Solid-Protocol + WAC/ACP + Solid-OIDC"
