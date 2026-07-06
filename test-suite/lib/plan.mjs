@@ -96,16 +96,14 @@ export function classifyStatement(statement, caseResults) {
   const pick = (d) => dispositions.includes(d);
   if (pick('fail')) return { category: 'fail', detail: 'at least one wired vector failed', cases };
   // A partial run must never claim statement-level pass: a filtered-out
-  // sibling vector means the statement was not fully exercised (a FAIL above
-  // still dominates — filtering must not mask a real failure either).
-  if (pick('skip-filtered')) {
-    return {
-      category: 'untested-filtered',
-      detail: 'wired vectors excluded by the case filter (partial run — not a full report)',
-      cases,
-    };
+  // sibling vector blocks the pass verdict (a FAIL above still dominates —
+  // filtering must not mask a real failure). The filtered category itself
+  // ranks BELOW the specific non-execution diagnostics (setup error,
+  // unrealizable, precondition), so an actionable reason is never hidden
+  // behind "partial run".
+  if (pick('pass') && !pick('skip-filtered')) {
+    return { category: 'pass', detail: 'all executed wired vectors passed', cases };
   }
-  if (pick('pass')) return { category: 'pass', detail: 'all executed wired vectors passed', cases };
   if (pick('error-setup')) {
     return { category: 'untested-setup-error', detail: 'state realisation failed on this target', cases };
   }
@@ -120,6 +118,13 @@ export function classifyStatement(statement, caseResults) {
     return {
       category: 'untested-precondition',
       detail: 'optional feature not provided by the target — skipping is conformant',
+      cases,
+    };
+  }
+  if (pick('skip-filtered')) {
+    return {
+      category: 'untested-filtered',
+      detail: 'wired vectors excluded by the case filter (partial run — not a full report)',
       cases,
     };
   }
