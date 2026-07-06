@@ -1,0 +1,13 @@
+{
+  "//": "solid-server-rs (EXPERIMENTAL Rust Solid server, branch feat/lws) with its opt-in JLWS surface ON: SOLID_SERVER_LWS=1, SOLID_SERVER_LWS_STRICT_PUT=1 (the pure-LWS D2/D3 PUT discipline), RDF transform on (default), in-memory store, SOLID_SERVER_SEED_CONFORMANCE=1. Auth: the LWS RFC 9068 at+jwt Bearer chain against a local mock AS (loopback allowed, dev-only) — controllerBearer is the seeded alice's token, so controller requests are authenticated and WAC-authorized inside /alice/; point --target at http://127.0.0.1:3000/alice so the per-run scope lands inside the seeded pod (the server's WAC is fail-closed: with no ACL anywhere access is denied, so an unauthenticated CSS-style run cannot create state). Declarations mirror the storage description at /.well-known/lws honestly: ContentNegotiation (rdf-1) yes; RecursiveDelete/MoveResource no (deliberately not offered); notification subscriptions + PoP/DPoP-SK features not declared (the harness's auth seam is Bearer-only; DPoP-SK needs a PoP client seam the black-box harness does not have). The bearer token is minted per run by a local mock AS — see the committed report header for the exact server sha.",
+  "target": "http://localhost:3000/alice",
+  "label": "solid-server-rs feat/lws (EXPERIMENTAL, in-memory, LWS surface + strict PUT, authenticated controller)",
+  "features": [],
+  "capabilities": ["ContentNegotiation"],
+  "conformsTo": [
+    "https://w3id.org/jeswr/lws/protocol/core/1.0",
+    "https://w3id.org/jeswr/lws/transform/rdf-1"
+  ],
+  "agents": {},
+  "accessRealizer": "none"
+}
