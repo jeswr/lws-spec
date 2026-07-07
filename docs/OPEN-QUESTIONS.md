@@ -10,16 +10,20 @@ step they gate; the rest are adopted defaults you can correct at review.
 
 1. **Name + namespace confirm.** Working name "JLWS" and namespace
    `https://w3id.org/jeswr/lws#` (context `https://w3id.org/jeswr/lws/v1`, profiles under
-   `https://w3id.org/jeswr/lws/…`) are placeholders. Confirm or rename; then the w3id redirect
-   PR becomes a follow-up. Also the posture question: *personal editor's draft shaped for
-   eventual WG contribution* (the draft is built this way — wire-compatible superset, S1) vs
-   *competing design* (would free further divergence).
+   `https://w3id.org/jeswr/lws/…`) are placeholders. NB the suite's persistent-ID rule
+   (maintainer directive 2026-07-06): NO w3id PR — persistent IDs serve from `jeswr.org`
+   (`jeswr.org/ns/*` / `jeswr.org/spec/*` via the `jeswr/portfolio` redirect layer), and the
+   as-minted `w3id.org/jeswr/*` IRIs here are legacy identifiers that re-mint to `jeswr.org`
+   per that scheme's staged migration. Confirm the name, then the re-mint is the follow-up.
+   Also the posture question: *personal editor's draft shaped for eventual WG contribution*
+   (the draft is built this way — wire-compatible superset, S1) vs *competing design* (would
+   free further divergence).
 
-2. **Publication.** You were asked and have not answered; **nothing is published**. This repo
-   is local-only, unpushed, no GitHub repo exists, `edDraftURI` is unset, and no one is tagged.
-   The editor-hat optics are yours to weigh: you edit the WG core spec, and a published
-   personal fork-spec will be read as a position statement. On your go-ahead: create
-   `jeswr/lws-spec` (public), push, optionally GitHub Pages, and set `edDraftURI`.
+2. **Publication — RESOLVED 2026-07-05** (maintainer-authorised): published as a PUBLIC
+   EXPERIMENT at `github.com/jeswr/lws-spec` with the crystal-clear Fable-AI-rewrite framing
+   (commit `fcaa174`; see the README banner + each spec's SOTD). Still open within this item:
+   the GitHub Pages render + `edDraftURI`, and the ReSpec render smoke-test the README's Gate
+   section queues as a pre-Pages follow-up. No one is tagged anywhere, per the directive.
 
 3. **Container-as-data-resource.** The draft resolves WD #126 by strict separation (DECISIONS
    D3): a container's only representation is the server-managed listing; description attaches
