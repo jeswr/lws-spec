@@ -167,6 +167,15 @@ function evalBodyAssertion(res, assertion, failures) {
       case 'empty':
         if (res.body.length !== 0) failures.push(`body: expected empty, got ${res.body.length} bytes`);
         break;
+      case 'jsonParses': {
+        // Any valid JSON document — a top-level object OR array. Use this where the spec
+        // constrains the encoded CONTENT, not the JSON document shape (e.g. a derived JSON-LD
+        // representation: a JSON-LD serializer may legitimately emit a top-level node-object
+        // array; rdf-1 pins the encoded graph via the library isomorphism vectors, not the
+        // document shape).
+        parsed();
+        break;
+      }
       case 'jsonIsObject': {
         const j = parsed();
         if (j !== undefined && (j === null || typeof j !== 'object' || Array.isArray(j))) {

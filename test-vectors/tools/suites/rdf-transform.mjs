@@ -133,7 +133,11 @@ export default function rdfTransform(ctx) {
           + 'pinned by the transform-representation cases '
           + '(turtle-to-jsonld-isomorphic and siblings); this case pins that '
           + 'the advertised pair is actually negotiable and varies by '
-          + 'Accept.',
+          + 'Accept. The body check is jsonParses (not jsonIsObject): rdf-1 '
+          + 'constrains the encoded GRAPH, never the JSON document shape — a '
+          + 'JSON-LD serializer may legitimately emit a top-level node-object '
+          + 'array (JSON-LD 1.1 §9), and demanding an object here would '
+          + 'reject conformant servers.',
         input: {
           state: rdfOnState,
           request: {
@@ -148,7 +152,7 @@ export default function rdfTransform(ctx) {
             'Content-Type': { mediaType: 'application/ld+json' },
             Vary: { includesToken: 'Accept' },
           },
-          body: { jsonIsObject: true },
+          body: { jsonParses: true },
         },
       },
       {
