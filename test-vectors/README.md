@@ -286,7 +286,12 @@ whose action includes the requested action (`odrl:modify` includes `jlws:create`
 `jlws:append`, never the reverse; an ununderstood action grants nothing), whose typed
 target covers the request target (`DataResource` exactly; `Container` the container itself
 and, only when `recursive`, descendants; `StorageResource` the storage), and whose
-constraints are all satisfied.
+constraints are all satisfied (a constraint the layer cannot evaluate is unsatisfied).
+This operation's DEFINITION is the executable rule set
+[`semantics/access-decision.n3`](../semantics/access-decision.n3): permit ⟺ the rule set
+derives at least one `ax:permittedBy` justification; the oracle
+(`node test-suite/tools/oracle-access.mjs`, part of the repo gate) re-derives every one of
+these vectors from it.
 
 ### 8. `validate-storage-description` — discovery documents (core#discovery-model, rdf#capability)
 
