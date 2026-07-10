@@ -3,7 +3,7 @@
   "evaluationInstant": "2026-07-01T12:00:00Z",
   "name": "jlws-conformance-test-vectors",
   "schemaVersion": 1,
-  "specSource": "lws-spec@895391f",
+  "specSource": "lws-spec@0f6b80f",
   "specs": {
     "core": {
       "document": "../index.html",

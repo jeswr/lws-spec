@@ -78,7 +78,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@895391f core#presentation-pop + dpop-sk-spec@f485855 #attestation-verification (step 2), #lifetime (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#presentation-pop + dpop-sk-spec@f485855 #attestation-verification (step 2), #lifetime (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "an attestation under an expired session draws the standard challenge — the client re-establishes or falls back to per-request DPoP"
 }

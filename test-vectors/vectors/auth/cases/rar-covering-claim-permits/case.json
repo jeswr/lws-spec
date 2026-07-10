@@ -26,7 +26,7 @@
   },
   "level": "MUST",
   "operation": "enforce-authorization-details",
-  "source": "lws-spec@895391f core#rar (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#rar (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "when the server policy permits and the claim covers the target and action, the request is permitted"
 }

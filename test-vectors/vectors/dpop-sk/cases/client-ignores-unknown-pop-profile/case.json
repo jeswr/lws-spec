@@ -38,7 +38,7 @@
   },
   "level": "MUST",
   "operation": "evaluate-pop-session-offer",
-  "source": "lws-spec@895391f core#presentation-pop + dpop-sk-spec@f485855 #discovery (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#presentation-pop + dpop-sk-spec@f485855 #discovery (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a client MUST ignore a pop_session member whose profile it does not recognise (no establishment attempt)"
 }

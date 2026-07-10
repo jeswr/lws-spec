@@ -73,7 +73,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@895391f core#presentation-pop + dpop-sk-spec@f485855 #attestation-request, #attestation-verification (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#presentation-pop + dpop-sk-spec@f485855 #attestation-request, #attestation-verification (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a valid hmac-sha256 attestation under a live session, bound to the realm's single-aud token, is accepted (no DPoP header on the request)"
 }

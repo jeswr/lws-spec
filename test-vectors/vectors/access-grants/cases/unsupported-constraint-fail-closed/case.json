@@ -47,7 +47,7 @@
   },
   "level": "MUST",
   "operation": "evaluate-access",
-  "source": "lws-spec@895391f core#odrl-profile (spec-derived; decision reproduced by semantics/access-decision.n3)",
+  "source": "lws-spec@0f6b80f core#odrl-profile (spec-derived; decision reproduced by semantics/access-decision.n3)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a constraint the enforcement layer cannot evaluate is unsatisfied (fail closed): an extension left operand denies"
 }

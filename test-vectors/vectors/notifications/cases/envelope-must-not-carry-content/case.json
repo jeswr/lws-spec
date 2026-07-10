@@ -28,7 +28,7 @@
   },
   "level": "MUST",
   "operation": "validate-notification-envelope",
-  "source": "lws-spec@895391f core#notification-envelope (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#notification-envelope (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "an envelope whose object carries resource content is rejected"
 }

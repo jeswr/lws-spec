@@ -39,7 +39,7 @@
   },
   "level": "MUST",
   "operation": "validate-storage-description",
-  "source": "lws-spec@895391f rdf#capability (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f rdf#capability (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "a storage description with a ContentNegotiation entry claiming rdf-1 MUST list the profile URI in conformsTo"
 }

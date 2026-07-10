@@ -39,7 +39,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@895391f core#http-update (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#http-update (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "unconditional PUT to an existing resource is rejected 428 Precondition Required"
 }

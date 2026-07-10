@@ -34,7 +34,7 @@
   "level": "MUST",
   "notes": "rdf#indexing: \"The SparqlQueryService MUST only be advertised when this profile is on\" (SPARQL is meaningless over an opaque byte substrate). The document below advertises the service but neither an rdf-1 capability entry nor the profile URI in conformsTo. The full AC-SPARQL binding surface (gating behaviour, per-solution authorization filtering) is the planned ac-sparql suite, gated on its implementation (docs/alignment/ac-sparql.md); this case pins only the discovery-consistency half.",
   "operation": "validate-storage-description",
-  "source": "lws-spec@895391f rdf#indexing (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f rdf#indexing (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "a SparqlQueryService MUST only be advertised when the rdf-1 profile is on: advertising it without the profile is rejected"
 }

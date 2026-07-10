@@ -30,7 +30,7 @@
       "suite-webauthn"
     ]
   },
-  "source": "lws-spec@895391f core#credential-model + solid-webauthn-reauth@cf81736 src/protocol/constants.ts WEBAUTHN_ASSERTION_TOKEN_TYPE (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#credential-model + solid-webauthn-reauth@cf81736 src/protocol/constants.ts WEBAUTHN_ASSERTION_TOKEN_TYPE (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "metadata for an AS offering the WebAuthn suite that omits its token-type URI fails the advertisement check (advisory)"
 }

@@ -34,7 +34,7 @@
   },
   "level": "MUST",
   "operation": "validate-access-document",
-  "source": "lws-spec@895391f core#odrl-profile (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#odrl-profile (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a rule with more than one action is rejected (compose multiple rules instead)"
 }

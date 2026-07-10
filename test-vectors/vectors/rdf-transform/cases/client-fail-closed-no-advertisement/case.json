@@ -39,7 +39,7 @@
   "level": "MUST",
   "notes": "The trap: the document DOES carry a ContentNegotiation entry whose source/target cover the requested pair, but without the REQUIRED profile member it makes no semantics-preservation claim and is outside the rdf-1 contract (rdf#capability), and conformsTo does not list the profile URI. A client keying on source/target alone would wrongly rely on RDF conneg here.",
   "operation": "evaluate-transform-offer",
-  "source": "lws-spec@895391f rdf#capability (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f rdf#capability (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "clients MUST NOT attempt transformation-dependent behaviour against a storage that does not advertise the profile — a profile-less ContentNegotiation entry makes no rdf-1 claim"
 }

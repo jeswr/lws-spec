@@ -63,7 +63,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@895391f core#membership-authorization (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#membership-authorization (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "the listing MUST NOT include members the agent has no access to, and totalItems counts only the visible view"
 }

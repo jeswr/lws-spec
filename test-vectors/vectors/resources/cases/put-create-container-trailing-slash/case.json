@@ -60,7 +60,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@895391f core#http-create-put (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#http-create-put (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "PUT + If-None-Match: * to a URI ending in \"/\" with an empty body creates a container"
 }

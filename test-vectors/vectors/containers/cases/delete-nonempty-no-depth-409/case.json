@@ -41,7 +41,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@895391f core#http-delete (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@0f6b80f core#http-delete (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "DELETE on a non-empty container without recursion is rejected 409"
 }
