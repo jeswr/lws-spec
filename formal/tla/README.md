@@ -18,7 +18,7 @@ runner (`./run-tlc.sh`) therefore asserts the exact expected verdict per config,
 
 | Module | Spec sections | Companion statements | Configs (expected verdict) |
 |---|---|---|---|
-| `JlwsRevocation.tla` | `#grants-are-records`, `#oracle-freedom` | JLWSC-GR-2/3/4/5/6, JLWSC-SUB-2 | `JlwsRevocation.cfg` (pass); `-window.cfg` (violates `NoOracleWindow`); `-ackwindow.cfg` (violates `NoUseAfterAckedRevocation`); `-naive.cfg` (violates `NaiveRevocationDenies`) |
+| `JlwsRevocation.tla` | `#grants-are-records`, `#oracle-freedom` | JLWSC-GR-2/3/4/5/6/7, JLWSC-SUB-2 | `JlwsRevocation.cfg` (pass); `-window.cfg` (violates `NoOracleWindow`); `-ackwindow.cfg` (violates `NoUseAfterAckedRevocation`); `-createack.cfg` (violates `AckedCreateReflected`); `-naive.cfg` (violates `NaiveRevocationDenies`) |
 | `JlwsConditionalUpdate.tla` | `#http-update`, `#metadata-updates` | JLWSC-UPD-1, JLWSC-MU-4 | `JlwsConditionalUpdate.cfg` (pass); `-unconditional.cfg` (violates `NoLostUpdate`) |
 | `JlwsContainment.tla` | `#containment`, `#http-create-post`, `#http-delete`, `#metadata` | JLWSC-CTN-3/4, JLWSC-POST-6, JLWSC-MD-2 | `JlwsContainment.cfg` (pass); `-split.cfg` (violates `MembershipExact`) |
 
@@ -37,7 +37,7 @@ Model-checking that text (`SplitClockSpec` in `JlwsRevocation.tla`) refutes it. 
 
 ```
 State 1  Init                 recorded={}     decision={}     ackedRevoke={}
-State 2  Create(g1)           recorded={g1}   decision={}     ackedRevoke={}
+State 2  CreateImmediateAck   recorded={g1}   decision={}     ackedRevoke={}
 State 3  Propagate            recorded={g1}   decision={g1}   ackedRevoke={}
 State 4  RevokeImmediateAck   recorded={}     decision={g1}   ackedRevoke={g1}
                               → Invariant NoOracleWindow is violated
@@ -51,7 +51,9 @@ same trace). Any non-zero enforcement lag makes this state reachable. The window
 observable inconsistency that contradicts `#oracle-freedom`, which defines every derived
 surface by *what the requesting agent can read*: during the window the agent can read a
 resource the listing says it cannot. The creation direction is inconsistent too
-(`NoCreationWindow`: a listed member that direct requests still 404 — one `Create` step).
+(`NoCreationWindow`: a listed member that direct requests still 404 — one
+`CreateImmediateAck` step — and `-createack.cfg`: the create is acknowledged while the
+lagging decision state still refuses the agent the grant it was just confirmed).
 
 **The fix (now the spec text): one decision state, one clock, acknowledgment as the barrier.**
 
@@ -59,17 +61,24 @@ resource the listing says it cannot. The creation direction is inconsistent too
   the surfaces cannot disagree by construction (`SurfacesAgree`), which is the point: the
   window is eliminated structurally, not by tuning timing.
 - Propagation from the grant record into that decision state stays bounded (`Bound` ticks;
-  the SHOULD-immediate recommendation is `Bound = 0`), and the grant operation is
-  **acknowledged only after the decision state reflects it** (`AckRevoke` requires
-  `g ∉ decision`): after the revocation response returns, no request is honored under the
-  revoked grant on any surface (`NoUseAfterAckedRevocation`, `AckedNeverEnforced`).
+  the SHOULD-immediate recommendation is `Bound = 0` — the `Tick` action's deadline guard is
+  the standard TLA+ real-time-bound idiom: time cannot pass the documented interval while
+  stale, checked as `BoundedStaleness`, with `StalenessConverges` asserting propagation
+  actually happens rather than time merely stopping), and a grant operation — **creation and
+  revocation alike** — is **acknowledged only after the decision state reflects it**
+  (`AckRevoke` requires `g ∉ decision`; `AckCreate` requires `g ∈ decision`): after the
+  revocation response returns, no request is honored under the revoked grant on any surface
+  (`NoUseAfterAckedRevocation`, `AckedNeverEnforced`), and after the create response returns,
+  the grant is in force wherever it is still recorded (`AckedCreateReflected`).
 
 `JlwsRevocation.cfg` checks the fixed discipline: `TypeOK`, `SurfacesAgree`,
-`NoUseAfterAckedRevocation`, `AckedNeverEnforced`, `NoResurrection` (a revoked grant record
-never reappears — record URIs are not reused; re-granting mints a new record), plus the
-temporal properties `MonotonicRevocation`, `EveryRevocationAcked` (liveness: every revocation
-is eventually acknowledged) and `FullRevocationConverges` (once every covering grant is
-revoked, enforcement denies forever). `-naive.cfg` keeps the refuted *misreading* on file:
+`NoUseAfterAckedRevocation`, `AckedCreateReflected`, `AckedNeverEnforced`, `NoResurrection`
+(a revoked grant record never reappears — record URIs are not reused; re-granting mints a
+new record), `BoundedStaleness`, plus the temporal properties `MonotonicRevocation`,
+`StalenessConverges`, `EveryCreationSettled` (every pending create is answered —
+acknowledged, or settled by a superseding revoke), `EveryRevocationAcked` (liveness: every
+revocation is eventually acknowledged) and `FullRevocationConverges` (once every covering
+grant is revoked, enforcement denies forever). `-naive.cfg` keeps the refuted *misreading* on file:
 "revoking **a** covering grant denies the request" is violated even under the fixed
 discipline — another recorded grant may still cover it; deny is the closed-world absence of
 *every* covering grant (JLWSC-GR-5; the decision-level half is pinned by the
@@ -101,9 +110,10 @@ the vector suite's state-realizability rule, per `test-vectors/GAPS.md`).
   conformance to the temporal MUSTs remains black-box-unobservable (the companions keep their
   `sc:testGap`), but the *spec text itself* is now known consistent — the design-level property
   the two-clocks predecessor text lacked.
-- Creation acknowledgment is not separately tracked (only revocation carries the
-  security-critical barrier); the creation-direction consistency is still covered by
-  `SurfacesAgree`/`NoCreationWindow`.
+- A revoke racing an unacknowledged create settles that create operation (the record it made
+  is gone — the create is answered as superseded); `EveryCreationSettled` states the
+  liveness accordingly. The race's answer-ordering wire semantics is an HTTP concern outside
+  this model.
 
 ## Running
 
@@ -115,8 +125,8 @@ Needs java 11+; `tla2tools.jar` is resolved from `TLA_TOOLS_JAR`, a copy next to
 or a one-time download verified fail-closed against a pinned sha256 (the upstream v1.8.0
 GitHub artifact is a rolling pre-release; on mismatch, verify a copy yourself and pass
 `TLA_TOOLS_JAR`). Verified toolchain: TLC2 Version 2.19 of 08 August 2024 (rev: 5a47802),
-sha256 `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`. All eight
-expectations complete in well under a minute (the state spaces are tiny: ≤ 100 distinct
+sha256 `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`. All nine
+expectations complete in well under a minute (the state spaces are tiny: ≤ 250 distinct
 states each). The repo gate treats this as a required check **where the toolchain is
 available** (java + the jar); the models and configs are committed and internally consistent
 regardless.

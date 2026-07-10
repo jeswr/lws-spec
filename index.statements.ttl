@@ -1532,7 +1532,7 @@
 <#JLWSC-GR-2> a spec:Requirement ;
     dcterms:identifier "JLWSC-GR-2" ;
     spec:statement "Grant creation and revocation MUST be reflected in that decision state within a bounded, documented interval (SHOULD be immediate), and MUST be reflected before the server acknowledges the operation that changed the grant record" ;
-    rdfs:comment "Operative sub-clauses here are the bounded-documented-interval MUST (the bound is a documented artifact — audit; the reflection temporal) and the acknowledgment barrier (reflection completes before the grant operation's response returns). TLC-checked at the design level: formal/tla/JlwsRevocation.tla SingleClockSpec (the Bound-capped lag; AckRevoke gated on the decision state)."@en ;
+    rdfs:comment "Operative sub-clauses here are the bounded-documented-interval MUST (the bound is a documented artifact — audit; the reflection temporal) and the acknowledgment barrier (reflection completes before the grant operation's response returns — creation and revocation alike). TLC-checked at the design level: formal/tla/JlwsRevocation.tla SingleClockSpec (BoundedStaleness + StalenessConverges for the interval; AckCreate/AckRevoke gated on the decision state, AckedCreateReflected + NoUseAfterAckedRevocation for the barrier)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:AccountableExistence ;
@@ -1563,7 +1563,7 @@
 <#JLWSC-GR-6> a spec:Requirement ;
     dcterms:identifier "JLWSC-GR-6" ;
     spec:statement "A grant change MUST NOT be observable through one surface while another surface still answers from the prior state." ;
-    rdfs:comment "The no-split-clock-window rule — the observable half of JLWSC-GR-4. TLC exhibits the forbidden window under the refuted predecessor discipline (formal/tla/JlwsRevocation-window.cfg: Create, Propagate, RevokeImmediateAck reaches directly-readable-but-already-delisted) and the single-clock discipline excludes it by construction."@en ;
+    rdfs:comment "The no-split-clock-window rule — the observable half of JLWSC-GR-4. TLC exhibits the forbidden window under the refuted predecessor discipline (formal/tla/JlwsRevocation-window.cfg: CreateImmediateAck, Propagate, RevokeImmediateAck reaches directly-readable-but-already-delisted; -createack.cfg shows the creation-direction twin) and the single-clock discipline excludes it by construction."@en ;
     spec:requirementLevel spec:MUSTNOT ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;

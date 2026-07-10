@@ -325,11 +325,13 @@ Consequence honestly stated: a distributed implementation must complete propagat
 enforcement-cache invalidation) *before* answering the grant-record write, rather than
 acknowledging instantly and propagating lazily — the documented interval now bounds the
 response time of grant operations instead of a silent inconsistency window. TLC checks the
-fixed discipline clean (`SurfacesAgree`, `NoUseAfterAckedRevocation`, `AckedNeverEnforced`,
-`NoResurrection`, `MonotonicRevocation`, `EveryRevocationAcked`,
-`FullRevocationConverges`) and keeps the refuted disciplines on file as counterexample
-witnesses (`-window`/`-ackwindow`/`-naive` configs; `formal/tla/run-tlc.sh` asserts each
-config's expected verdict). Spec text, the `#subscription-api` delivery-cessation rule, and
+fixed discipline clean (`SurfacesAgree`; the barrier both ways — `NoUseAfterAckedRevocation`
++ `AckedNeverEnforced` for revocation, `AckedCreateReflected` for creation;
+`NoResurrection`; `BoundedStaleness` with `StalenessConverges` so the interval is a checked
+property, not a comment; `MonotonicRevocation`, `EveryCreationSettled`,
+`EveryRevocationAcked`, `FullRevocationConverges`) and keeps the refuted disciplines on file
+as counterexample witnesses (`-window`/`-ackwindow`/`-createack`/`-naive` configs;
+`formal/tla/run-tlc.sh` asserts each config's expected verdict). Spec text, the `#subscription-api` delivery-cessation rule, and
 the rdf-transform indexing clause all now reference the single clock; the statement
 companion carries the new JLWSC-GR-6/GR-7 and `sc:formalModel` links. The window itself is
 stateful and outside the vector suite's state-realizability rule, so no new vector — the

@@ -98,6 +98,7 @@ run() {
 run JlwsRevocation.tla        JlwsRevocation.cfg                       pass
 run JlwsRevocation.tla        JlwsRevocation-window.cfg                violates:NoOracleWindow
 run JlwsRevocation.tla        JlwsRevocation-ackwindow.cfg             violates:NoUseAfterAckedRevocation
+run JlwsRevocation.tla        JlwsRevocation-createack.cfg             violates:AckedCreateReflected
 run JlwsRevocation.tla        JlwsRevocation-naive.cfg                 violates:NaiveRevocationDenies
 run JlwsConditionalUpdate.tla JlwsConditionalUpdate.cfg                pass
 run JlwsConditionalUpdate.tla JlwsConditionalUpdate-unconditional.cfg  violates:NoLostUpdate
