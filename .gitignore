@@ -1,1 +1,5 @@
 node_modules/
+
+# TLC toolchain cache + model-checker scratch output (formal/tla/run-tlc.sh)
+formal/tla/.cache/
+formal/tla/states/

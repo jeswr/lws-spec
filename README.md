@@ -74,6 +74,15 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   the rule set must never disagree), and `test-suite/test/access-oracle.test.mjs` probes it
   adversarially (prefix escapes, widening-injection containment, malformed constraints).
   See `semantics/README.md`.
+- **`formal/tla/`** — the **TLC-checked TLA+ temporal models** of the stateful/temporal
+  normative statements no request/response vector can express (the `GAPS.md` class): the
+  access-grant + revocation lifecycle (`JlwsRevocation.tla` — where TLC **refuted the
+  original two-clocks text** of `#grants-are-records` and now checks the single-clock +
+  acknowledgment-barrier replacement clean, DECISIONS.md D22), lost-update freedom under
+  the strict If-Match/428 discipline (`JlwsConditionalUpdate.tla`), and atomic
+  containment/membership (`JlwsContainment.tla`). Counterexample configs are kept on file
+  as witnesses; `formal/tla/run-tlc.sh` asserts every config's expected verdict. Linked
+  from the affected companion statements via `sc:formalModel`. See `formal/tla/README.md`.
 - **`test-suite/`** — the **executable conformance suite**: a Node runner that plays the
   committed test-vectors against a target server URL and reports **per-normative-statement**
   pass / fail / untested verdicts keyed to the companion statement IDs, honouring the
@@ -141,6 +150,9 @@ node <spec-companion>/tools/validate.mjs index.statements.ttl --spec-html index.
 node <spec-companion>/tools/validate.mjs rdf-transform.statements.ttl --spec-html rdf-transform.html
 # document-conformance-class SHACL shapes vs their fixtures (needs pyshacl):
 sh scripts/validate-conformance.sh
+# TLA+ temporal models vs their expected TLC verdicts (needs java 11+; the
+# runner resolves tla2tools.jar fail-closed — see formal/tla/README.md):
+sh formal/tla/run-tlc.sh
 # executable conformance suite self-tests (needs `npm install` in test-suite/ once):
 cd test-suite && npm test
 ```

@@ -237,21 +237,23 @@
 <#JLWSC-CTN-3> a spec:Requirement ;
     dcterms:identifier "JLWSC-CTN-3" ;
     spec:statement "when a resource is created in a container, the server MUST atomically add it to that container's items list." ;
-    rdfs:comment "The sequential membership update is black-box observable; the 'atomically' qualifier under concurrency is not (GAPS.md 'stateful/temporal'). The create-side membership vector is deferred; the delete side is pinned (JLWSC-CTN-4)."@en ;
+    rdfs:comment "The sequential membership update is black-box observable; the 'atomically' qualifier under concurrency is not (GAPS.md 'stateful/temporal') — it is TLC-checked at the design level instead (formal/tla/JlwsContainment.tla: MembershipExact/NoOrphans hold under AtomicSpec; the split-phase implementation the MUST forbids is refuted in one step). The create-side membership vector is deferred; the delete side is pinned (JLWSC-CTN-4)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#containment> ;
+    sc:formalModel <formal/tla/JlwsContainment.tla> ;
     sc:testGap <#gap-deferred> .
 
 <#JLWSC-CTN-4> a spec:Requirement ;
     dcterms:identifier "JLWSC-CTN-4" ;
     spec:statement "when a resource is deleted, the server MUST atomically remove it from its parent container's items list." ;
-    rdfs:comment "Sequential before/after pinned by the vector; concurrency atomicity is not black-box observable."@en ;
+    rdfs:comment "Sequential before/after pinned by the vector; concurrency atomicity is not black-box observable — TLC-checked at the design level (formal/tla/JlwsContainment.tla: split-phase deletion leaves a dangling member, an existence oracle)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#containment> ;
+    sc:formalModel <formal/tla/JlwsContainment.tla> ;
     spec:testCase <test-vectors/vectors/containers/cases/delete-rotates-parent-etag-and-membership/case.json> .
 
 <#JLWSC-CTN-5> a spec:Requirement ;
@@ -471,11 +473,12 @@
 <#JLWSC-MD-2> a spec:Requirement ;
     dcterms:identifier "JLWSC-MD-2" ;
     spec:statement "Linkset updates MUST be atomic with the associated resource operations." ;
-    rdfs:comment "Concurrency atomicity: exercisable only by nondeterministic race probing, not deterministic vectors."@en ;
+    rdfs:comment "Concurrency atomicity: exercisable only by nondeterministic race probing, not deterministic vectors — TLC-checked at the design level (formal/tla/JlwsContainment.tla models the membership-projection half: a resource operation and its metadata update in one step)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:AccountableExistence ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#metadata> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#metadata> ;
+    sc:formalModel <formal/tla/JlwsContainment.tla> .
 
 <#JLWSC-MD-3> a spec:Requirement ;
     dcterms:identifier "JLWSC-MD-3" ;
@@ -521,10 +524,12 @@
 <#JLWSC-MU-4> a spec:Requirement ;
     dcterms:identifier "JLWSC-MU-4" ;
     spec:statement "A PUT or PATCH on a linkset resource without If-Match MUST be rejected with 428 Precondition Required (!RFC6585); a stale If-Match MUST be rejected with 412 Precondition Failed." ;
+    rdfs:comment "The linkset instance of the strict conditional-write discipline; lost-update freedom under it is TLC-checked (formal/tla/JlwsConditionalUpdate.tla)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#metadata-updates> ;
+    sc:formalModel <formal/tla/JlwsConditionalUpdate.tla> ;
     spec:testCase <test-vectors/vectors/metadata/cases/linkset-patch-without-if-match-428/case.json> ,
                   <test-vectors/vectors/metadata/cases/linkset-patch-stale-if-match-412/case.json> .
 
@@ -674,11 +679,12 @@
 <#JLWSC-POST-6> a spec:Requirement ;
     dcterms:identifier "JLWSC-POST-6" ;
     spec:statement "Resource, metadata, and membership creation MUST be atomic." ;
-    rdfs:comment "Concurrency atomicity; the sequential effects are pinned by the create vectors, the atomicity itself is not black-box observable."@en ;
+    rdfs:comment "Concurrency atomicity; the sequential effects are pinned by the create vectors, the atomicity itself is not black-box observable — TLC-checked at the design level (formal/tla/JlwsContainment.tla)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:AccountableExistence ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#http-create-post> ;
+    sc:formalModel <formal/tla/JlwsContainment.tla> .
 
 ### Create — idempotent PUT (#http-create-put)
 
@@ -784,11 +790,12 @@
 <#JLWSC-UPD-1> a spec:Requirement ;
     dcterms:identifier "JLWSC-UPD-1" ;
     spec:statement "it MUST reject an unconditional PUT to an existing resource (one carrying neither If-Match nor If-None-Match: *) with 428 Precondition Required, and a stale If-Match with 412 Precondition Failed." ;
-    rdfs:comment "'It' = a server supporting ETags for the resource (which it MUST — JLWSC-HG-3). The content-resource stale-412 case is deferred; the linkset counterpart is vectored (JLWSC-MU-4). The rdf-transform suite re-pins the 428 rule on RDF-readable resources (unconditional-put-still-428)."@en ;
+    rdfs:comment "'It' = a server supporting ETags for the resource (which it MUST — JLWSC-HG-3). The content-resource stale-412 case is deferred; the linkset counterpart is vectored (JLWSC-MU-4). The rdf-transform suite re-pins the 428 rule on RDF-readable resources (unconditional-put-still-428). The lost-update threat this discipline closes is TLC-checked: formal/tla/JlwsConditionalUpdate.tla (NoLostUpdate holds under StrictSpec; a server accepting unconditional overwrites is refuted in three steps)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#http-update> ;
+    sc:formalModel <formal/tla/JlwsConditionalUpdate.tla> ;
     spec:testCase <test-vectors/vectors/resources/cases/put-unconditional-existing-428/case.json> ,
                   <test-vectors/vectors/rdf-transform/cases/unconditional-put-still-428/case.json> .
 
@@ -1524,41 +1531,67 @@
 
 <#JLWSC-GR-2> a spec:Requirement ;
     dcterms:identifier "JLWSC-GR-2" ;
-    spec:statement "Grant creation and revocation MUST be reflected in enforcement within a bounded, documented interval (SHOULD be immediate)." ;
-    rdfs:comment "Operative sub-clause here is the bounded-documented-interval MUST: the bound is a documented artifact (audit), the reflection temporal."@en ;
+    spec:statement "Grant creation and revocation MUST be reflected in that decision state within a bounded, documented interval (SHOULD be immediate), and MUST be reflected before the server acknowledges the operation that changed the grant record" ;
+    rdfs:comment "Operative sub-clauses here are the bounded-documented-interval MUST (the bound is a documented artifact — audit; the reflection temporal) and the acknowledgment barrier (reflection completes before the grant operation's response returns). TLC-checked at the design level: formal/tla/JlwsRevocation.tla SingleClockSpec (the Bound-capped lag; AckRevoke gated on the decision state)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:AccountableExistence ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <formal/tla/JlwsRevocation.tla> .
 
 <#JLWSC-GR-3> a spec:Requirement ;
     dcterms:identifier "JLWSC-GR-3" ;
-    spec:statement "Grant creation and revocation MUST be reflected in enforcement within a bounded, documented interval (SHOULD be immediate)." ;
-    rdfs:comment "Operative sub-clause here is the SHOULD-be-immediate recommendation."@en ;
+    spec:statement "Grant creation and revocation MUST be reflected in that decision state within a bounded, documented interval (SHOULD be immediate), and MUST be reflected before the server acknowledges the operation that changed the grant record" ;
+    rdfs:comment "Operative sub-clause here is the SHOULD-be-immediate recommendation (the formal model's Bound = 0)."@en ;
     spec:requirementLevel spec:SHOULD ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:AccountableExistence ;
-    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> .
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <formal/tla/JlwsRevocation.tla> .
 
 <#JLWSC-GR-4> a spec:Requirement ;
     dcterms:identifier "JLWSC-GR-4" ;
-    spec:statement "Derived views — container listings, type indexes, query results — MUST reflect revocation immediately" ;
-    rdfs:comment "The live-authorization rule (LWS-SEARCHINDEX-ED, generalised); immediacy is temporal (GAPS.md 'stateful/temporal') — the sequential enforcement half is pinned by the listing/oracle vectors (JLWSC-MA-2, JLWSC-OF-2)."@en ;
+    spec:statement "Request enforcement and every derived view — container listings, totalItems, type indexes, query results, notification delivery filtering — MUST evaluate against the same decision state" ;
+    rdfs:comment "The single-clock rule (the LWS-SEARCHINDEX-ED live-authorization rule generalised to every authorization-observing surface). Replaces the TLC-refuted two-clocks predecessor text (enforcement bounded-interval vs derived-views immediate), whose split-clock window contradicted oracle-freedom — DECISIONS.md D22; formal/tla/JlwsRevocation.tla (NoOracleWindow violated on SplitClockSpec, SurfacesAgree by construction on SingleClockSpec). Temporal (GAPS.md 'stateful/temporal'); the steady-state enforcement half is pinned by the listing/oracle vectors (JLWSC-MA-2, JLWSC-OF-2)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <formal/tla/JlwsRevocation.tla> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-GR-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-6" ;
+    spec:statement "A grant change MUST NOT be observable through one surface while another surface still answers from the prior state." ;
+    rdfs:comment "The no-split-clock-window rule — the observable half of JLWSC-GR-4. TLC exhibits the forbidden window under the refuted predecessor discipline (formal/tla/JlwsRevocation-window.cfg: Create, Propagate, RevokeImmediateAck reaches directly-readable-but-already-delisted) and the single-clock discipline excludes it by construction."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <formal/tla/JlwsRevocation.tla> ;
+    sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-GR-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-7" ;
+    spec:statement "after a revocation is acknowledged, the server MUST NOT honor any request on the authority of the revoked grant and MUST NOT expose through any derived view what only that grant made visible" ;
+    rdfs:comment "The acknowledgment barrier: the response to the grant-record operation is the synchronization point, so a confirmed revocation means revoked on every surface. TLC-checked (NoUseAfterAckedRevocation and AckedNeverEnforced hold on SingleClockSpec; the predecessor immediate-ack discipline violates both — formal/tla/JlwsRevocation-ackwindow.cfg)."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <formal/tla/JlwsRevocation.tla> ;
     sc:testGap <#gap-stateful-temporal> .
 
 <#JLWSC-GR-5> a spec:Requirement ;
     dcterms:identifier "JLWSC-GR-5" ;
     spec:statement "Enforcement composes over the whole record: revoking one grant MUST NOT deny a request that another recorded grant still permits — deny is the closed-world absence, at decision time, of every covering grant" ;
-    rdfs:comment "Structural revocation composition: under the decision function (JLWSC-ODRL-7 / semantics/access-decision.n3) a permit is derivable from ANY recorded grant, so revocation removes one justification, never the composition. The naive reading 'revocation implies denial' is not expressible in the rule set."@en ;
+    rdfs:comment "Structural revocation composition: under the decision function (JLWSC-ODRL-7 / semantics/access-decision.n3) a permit is derivable from ANY recorded grant, so revocation removes one justification, never the composition. The naive reading 'revocation implies denial' is not expressible in the rule set, and TLC refutes it as an action property (NaiveRevocationDenies, formal/tla/JlwsRevocation-naive.cfg — the counterexample is the revoke-one-covering-grant-still-permitted vector)."@en ;
     spec:requirementLevel spec:MUSTNOT ;
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
-    sc:formalModel <semantics/access-decision.n3> ;
+    sc:formalModel <semantics/access-decision.n3> ,
+                   <formal/tla/JlwsRevocation.tla> ;
     spec:testCase <test-vectors/vectors/access-grants/cases/two-covering-grants-permit/case.json> ,
                   <test-vectors/vectors/access-grants/cases/revoke-one-covering-grant-still-permitted/case.json> ,
                   <test-vectors/vectors/access-grants/cases/revoke-all-covering-grants-denied/case.json> .
@@ -1755,12 +1788,13 @@
 
 <#JLWSC-SUB-2> a spec:Requirement ;
     dcterms:identifier "JLWSC-SUB-2" ;
-    spec:statement "if the subscriber's read access to a topic is revoked, deliveries for it MUST cease immediately." ;
-    rdfs:comment "Authorization is enforced at subscription AND delivery time; cessation spans observations over a live channel (GAPS.md 'stateful/temporal')."@en ;
+    spec:statement "if the subscriber's read access to a topic is revoked, deliveries for it MUST cease from the same decision state that request enforcement observes" ;
+    rdfs:comment "Authorization is enforced at subscription AND delivery time; cessation spans observations over a live channel (GAPS.md 'stateful/temporal'). Delivery filtering is one of the derived surfaces on the #grants-are-records single clock (D22), so the two-clocks window is excluded here too — TLC-checked via formal/tla/JlwsRevocation.tla (the model's derived-view surface abstracts over listings, query results, and delivery filtering alike)."@en ;
     spec:requirementLevel spec:MUST ;
     spec:requirementSubject <#NotificationServer> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#subscription-api> ;
+    sc:formalModel <formal/tla/JlwsRevocation.tla> ;
     sc:testGap <#gap-stateful-temporal> .
 
 <#JLWSC-SUB-3> a spec:Requirement ;
@@ -2350,6 +2384,8 @@
         <#JLWSC-GR-3> ,
         <#JLWSC-GR-4> ,
         <#JLWSC-GR-5> ,
+        <#JLWSC-GR-6> ,
+        <#JLWSC-GR-7> ,
         <#JLWSC-VC-1> ,
         <#JLWSC-VC-2> ,
         <#JLWSC-DLG-1> ,

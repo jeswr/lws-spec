@@ -14,8 +14,8 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const { statements, meta } = loadCompanions(repoRoot);
 
 test('loads every statement from both companions', () => {
-  assert.equal(statements.length, 245);
-  assert.equal(statements.filter((s) => s.spec === 'core').length, 198);
+  assert.equal(statements.length, 247);
+  assert.equal(statements.filter((s) => s.spec === 'core').length, 200);
   assert.equal(statements.filter((s) => s.spec === 'rdf-transform').length, 47);
 });
 

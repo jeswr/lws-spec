@@ -290,3 +290,53 @@ rationale + edits + vectors + implementation seams in `docs/alignment/` (2026-07
 No new core capability term was needed by any of the six — evidence the D5 registry +
 extension-URI design carries its weight. Also repointed the `[[AC-SPARQL]]` biblio to
 the published editor's draft (it predated `jeswr/solid-sparql-query`).
+
+## D22. Revocation runs on one clock: the TLC-refuted two-clocks oracle window, fixed
+
+`#grants-are-records` originally ran on **two clocks**: enforcement had to reflect grant
+creation/revocation "within a bounded, documented interval (SHOULD be immediate)" while
+derived views had to reflect revocation "immediately" (the searchindex live-authorization
+rule, generalised). Model-checking the lifecycle (TLA+/TLC, `formal/tla/JlwsRevocation.tla`)
+**refutes that text**: with any non-zero enforcement lag, the state
+`Create → Propagate → Revoke(ack at once)` is reachable, in which a direct request is still
+honored (enforcement consults the lagging decision state, as the interval permits) while
+every derived view already hides the resource (they consult the record, as "immediately"
+demands) — *after* the server has acknowledged the revocation. The window is an observable
+split-clock inconsistency that contradicts `#oracle-freedom` (which defines every derived
+surface by what the requesting agent can read: during the window the agent can read a
+resource the listing denies knowing about), and it falsifies the natural reading of a 2xx on
+the grant DELETE. The creation direction is inconsistent symmetrically (a listed member that
+direct requests still 404).
+
+Two candidate resolutions were considered: (a) normatively acknowledge the window (document
+that surfaces may disagree for up to the bounded interval) or (b) align the clocks. (a) was
+rejected — it would bake an existence-oracle-shaped inconsistency into the normative surface
+and make "revoked" unanswerable during the window. Adopted: **(b) one decision state, one
+clock, acknowledgment as the barrier** —
+
+- request enforcement and every derived view (listings, `totalItems`, type indexes, query
+  results, notification delivery filtering) MUST evaluate against the **same decision
+  state**, so the surfaces cannot disagree by construction;
+- record→decision-state propagation stays bounded (SHOULD immediate), and the grant
+  operation is **acknowledged only after** the decision state reflects it — after the
+  revocation response returns, no request is honored under the revoked grant on any surface.
+
+Consequence honestly stated: a distributed implementation must complete propagation (e.g.
+enforcement-cache invalidation) *before* answering the grant-record write, rather than
+acknowledging instantly and propagating lazily — the documented interval now bounds the
+response time of grant operations instead of a silent inconsistency window. TLC checks the
+fixed discipline clean (`SurfacesAgree`, `NoUseAfterAckedRevocation`, `AckedNeverEnforced`,
+`NoResurrection`, `MonotonicRevocation`, `EveryRevocationAcked`,
+`FullRevocationConverges`) and keeps the refuted disciplines on file as counterexample
+witnesses (`-window`/`-ackwindow`/`-naive` configs; `formal/tla/run-tlc.sh` asserts each
+config's expected verdict). Spec text, the `#subscription-api` delivery-cessation rule, and
+the rdf-transform indexing clause all now reference the single clock; the statement
+companion carries the new JLWSC-GR-6/GR-7 and `sc:formalModel` links. The window itself is
+stateful and outside the vector suite's state-realizability rule, so no new vector — the
+decision-level composition half stays pinned by the existing revoke-* vectors (D20/GAPS.md).
+
+Alongside the revocation model, `formal/tla/` also carries TLC models for the other two
+un-vectorable temporal MUST families: `JlwsConditionalUpdate.tla` (lost-update freedom under
+the strict If-Match/428 discipline; the unconditional-overwrite server is refuted) and
+`JlwsContainment.tla` (atomic containment/membership; the split-phase implementation is
+refuted, its deletion window being itself an existence oracle).

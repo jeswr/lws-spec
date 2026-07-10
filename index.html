@@ -1391,11 +1391,19 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
       decided; the server MUST realise that decision in its internal enforcement:
     </p>
     <ul>
-      <li>Grant creation and revocation MUST be reflected in enforcement within a bounded,
-        documented interval (SHOULD be immediate).</li>
-      <li>Derived views — container listings, type indexes, query results — MUST reflect
-        revocation immediately (the live-authorization rule of [[LWS-SEARCHINDEX-ED]],
-        generalised).</li>
+      <li>Request enforcement and every derived view — container listings,
+        <code>totalItems</code>, type indexes, query results, notification delivery
+        filtering — MUST evaluate against the same decision state: one shared view of the
+        recorded grants (the live-authorization rule of [[LWS-SEARCHINDEX-ED]], generalised
+        to every authorization-observing surface and aligned to a single clock). A grant
+        change MUST NOT be observable through one surface while another surface still
+        answers from the prior state.</li>
+      <li>Grant creation and revocation MUST be reflected in that decision state within a
+        bounded, documented interval (SHOULD be immediate), and MUST be reflected before the
+        server acknowledges the operation that changed the grant record: after a revocation
+        is acknowledged, the server MUST NOT honor any request on the authority of the
+        revoked grant and MUST NOT expose through any derived view what only that grant made
+        visible.</li>
       <li>Enforcement composes over the whole record: revoking one grant MUST NOT deny a
         request that another recorded grant still permits — deny is the closed-world absence,
         at decision time, of every covering grant (the decision function of
@@ -1408,6 +1416,21 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
         resolved here at the interface: the record binds observable behaviour, not
         internals).</li>
     </ul>
+    <p class="note">
+      The first two rules deliberately share one clock. A previous revision of this section
+      required enforcement to reflect grant changes "within a bounded, documented interval"
+      while derived views reflected revocation "immediately" — two clocks. Model-checking the
+      lifecycle (TLC, <a href="formal/tla/JlwsRevocation.tla">formal/tla/JlwsRevocation.tla</a>)
+      refutes that phrasing: any non-zero enforcement lag reaches a state in which a directly
+      readable resource is already hidden from listings — after the server has acknowledged
+      the revocation — and, in the creation direction, a listed member is not yet readable.
+      That split-clock window contradicts <a href="#oracle-freedom"></a>, which defines every
+      derived surface by what the requesting agent can read. The single-decision-state
+      discipline above eliminates the window structurally, and the acknowledgment barrier
+      makes a confirmed revocation mean revoked on every surface; the checked properties and
+      the refuting trace are in <a href="formal/tla/README.md">formal/tla/</a>
+      (DECISIONS.md D22).
+    </p>
   </section>
 
   <section id="consent-receipts">
@@ -1642,8 +1665,10 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
       <li>A subscription to a container is recursive: events for the container and all
         descendants.</li>
       <li>Authorization is enforced at subscription <em>and</em> delivery time: if the
-        subscriber's read access to a topic is revoked, deliveries for it MUST cease
-        immediately.</li>
+        subscriber's read access to a topic is revoked, deliveries for it MUST cease from the
+        same decision state that request enforcement observes
+        (<a href="#grants-are-records"></a> — delivery filtering is one of the derived
+        surfaces on the single clock).</li>
       <li>The response returns the subscription resource (its URI allows GET inspection and
         DELETE cancellation) and binding-specific connection details.</li>
     </ul>

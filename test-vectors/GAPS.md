@@ -12,7 +12,13 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
 - **network/trust** — governs live-network interaction or whom to trust; a data vector
   cannot observe it (the classic example: proving a fetch was *not* made).
 - **stateful/temporal** — spans multiple observations over time, concurrency, or a
-  streaming connection; a request/response vector cannot express it.
+  streaming connection; a request/response vector cannot express it. The load-bearing
+  members of this class are now **model-checked at the design level** instead: the
+  TLC-checked TLA+ models in `formal/tla/` (revocation single-clock lifecycle,
+  conditional-update lost-update freedom, containment/membership atomicity), linked from
+  the statement companions via `sc:formalModel`. That checks the *spec text's* temporal
+  consistency; an *implementation's* conformance to these MUSTs remains
+  black-box-unobservable, so the rows stay gaps here.
 - **behavioural emission** — says what an implementation must *do or publish* as a side
   effect (deliver, cease, log, retain), not what a decision returns.
 - **deployment-policy** — a per-deployment MAY/SHOULD whose trigger the harness cannot
@@ -31,7 +37,7 @@ Legend for *why not* (extending the `agentic-solid-conformance` legend):
 
 | Clause | Requirement | Why no vector |
 |---|---|---|
-| core#containment | Creation/deletion updates membership **atomically**; no orphans; no cycles | stateful/temporal — atomicity is a concurrent-visibility property; the vectors pin only the sequential before/after (delete-rotates-parent-etag-and-membership) |
+| core#containment | Creation/deletion updates membership **atomically**; no orphans; no cycles | stateful/temporal — atomicity is a concurrent-visibility property; the vectors pin only the sequential before/after (delete-rotates-parent-etag-and-membership); design-level model-checked by `formal/tla/JlwsContainment.tla` (atomic discipline holds; split-phase refuted) |
 | core#path-alignment | Every minted URI is path-aligned; the root prefixes every resource URI | partially pinned (create cases assert Location prefixes; move asserts the realigned URI); the universal quantifier over all server behaviour is not black-box enumerable |
 | core#resource-classes | A server MAY enforce media-type/size policy and MUST advertise it as problem details on rejection | deployment-policy — the trigger (a server policy) cannot be forced; the problem-details envelope itself is pinned by errors/problem-details-on-4xx |
 | core#pagination | Pagination link discipline (first/next/last, opaque page URIs, 200) | deployment-policy — pagination fires above a *server-determined threshold* the harness cannot force portably. **vectorable, deferred** for implementations exposing a threshold knob: a natural follow-up tranche |
@@ -80,7 +86,7 @@ The `dpop-sk` suite pins the deterministic surface (cb=none). Not vectorable:
 | Clause | Requirement | Why no vector |
 |---|---|---|
 | core#grant-endpoints | Request/grant containers behave as ordinary JLWS containers; POST files a request; DELETE revokes | covered-elsewhere — the container mechanics are the containers/resources suites; the *service wiring* (description advertises the endpoints) is pinned by discovery/storage-description-valid |
-| core#grants-are-records | Grant creation/revocation reflected in enforcement within a bounded, documented interval (SHOULD be immediate); derived views reflect revocation immediately | stateful/temporal — the live-revocation propagation is a timing property; listing-excludes-inaccessible-members pins the steady-state consequence |
+| core#grants-are-records | Grant creation/revocation reflected in the single decision state within a bounded, documented interval, before the operation is acknowledged; all surfaces answer from that one state | stateful/temporal — the propagation is a timing property; listing-excludes-inaccessible-members pins the steady-state consequence; design-level model-checked by `formal/tla/JlwsRevocation.tla` (the predecessor two-clocks text was TLC-refuted — D22 — and the single-clock replacement checks clean) |
 | core#consent-receipts | Grants additionally issued as W3C VCs with revocation-coupled status | covered-elsewhere — VC issuance/verification vectors live in `agentic-solid-conformance` (agent-authz-credential suite) and `@jeswr/solid-vc`'s surface; the coupling to grant revocation is stateful |
 | core#delegation | Delegated-grant chains: monotonic narrowing, expiry/revocation propagation, cycle rejection | covered-elsewhere — the delegation-chain semantics this section adopts are exactly the 13-case `odrl-delegation` suite of `agentic-solid-conformance` |
 | core#groups | Group resolution at enforcement time; hierarchy; cycle rejection | vectorable, deferred — an `evaluate-access` extension carrying group membership documents is a natural next tranche |
@@ -100,7 +106,7 @@ The `dpop-sk` suite pins the deterministic surface (cb=none). Not vectorable:
 
 | Clause | Requirement | Why no vector |
 |---|---|---|
-| core#subscription-api | Deliveries MUST cease immediately when a topic's read access is revoked | stateful/temporal + behavioural emission |
+| core#subscription-api | Deliveries MUST cease from the same decision state as request enforcement when a topic's read access is revoked | stateful/temporal + behavioural emission; delivery filtering is one of the derived surfaces in the `formal/tla/JlwsRevocation.tla` single-clock model |
 | core#subscription-api | Container subscriptions are recursive (events for descendants) | behavioural emission — requires observing a delivery stream; **vectorable, deferred** as a harness-level integration test |
 | core#notification-envelope | Exact envelope wire vocabulary | envelope/under-specified — the upstream notifications Editor's Draft is unpublished; the vectors pin the spec's invariants (content-free, `published`, `actor` default-omitted) against a representative shape |
 | core#webhook-binding | Delivery-side SSRF discipline on outbound POSTs | network/trust (see Security below) |
@@ -157,4 +163,6 @@ The `dpop-sk` suite pins the deterministic surface (cb=none). Not vectorable:
 - **The `access` state map is an abstraction.** http-exchange cases declare effective
   access; the grant→enforcement wiring (core#grants-are-records) is pinned only at the
   decision level (`evaluate-access`) plus the steady-state oracle cases. The bounded
-  reflection interval is stateful and unpinned.
+  reflection interval is stateful and stays unpinned by vectors; its design-level
+  consistency (the single-clock discipline, D22) is model-checked by
+  `formal/tla/JlwsRevocation.tla` instead.

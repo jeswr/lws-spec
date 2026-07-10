@@ -357,7 +357,9 @@
     ([[JLWS-CORE]] <em>Query services</em>) MUST only be advertised when this profile is on, and
     its access-control semantics (per-solution authorization filtering) follow [[AC-SPARQL]].
     All such derived views remain bound by the core's oracle-freedom invariants: live
-    authorization filtering, caller-visible counts, immediate revocation effect.
+    authorization filtering, caller-visible counts, and revocation effect from the same
+    decision state as request enforcement ([[JLWS-CORE]] <em>Grants are records, not
+    tokens</em> — the single-clock rule).
   </p>
 </section>
 
