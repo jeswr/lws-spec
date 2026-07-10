@@ -66,7 +66,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#metadata (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#metadata (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "the linkset is discoverable via Link rel=\"linkset\" and served as application/linkset+json with an ETag"
 }

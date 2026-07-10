@@ -38,7 +38,7 @@
   },
   "level": "MUST",
   "operation": "evaluate-pop-session-offer",
-  "source": "lws-spec@f2e081d core#presentation-pop + dpop-sk-spec@f485855 #discovery, #downgrade (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#presentation-pop + dpop-sk-spec@f485855 #discovery, #downgrade (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a client MUST NOT attempt establishment unless the metadata offers an algorithm AND a channel-binding flavour it supports (exact-match, fail-closed)"
 }

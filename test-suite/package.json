@@ -13,6 +13,7 @@
     "conformance": "node bin/run.mjs"
   },
   "dependencies": {
+    "eyereasoner": "21.1.13",
     "n3": "^1.26.0"
   }
 }

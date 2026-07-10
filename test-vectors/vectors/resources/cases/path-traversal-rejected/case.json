@@ -31,7 +31,7 @@
   "level": "MUST",
   "notes": "The spec additionally requires the rejection to happen BEFORE any authorization matching; that ordering is not black-box observable and is recorded in GAPS.md. The vector pins the observable half: the request never succeeds.",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#http-general (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#http-general (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "request targets containing encoded path-traversal sequences are rejected"
 }

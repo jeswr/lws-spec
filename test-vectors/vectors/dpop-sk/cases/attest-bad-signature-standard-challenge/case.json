@@ -78,7 +78,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@f2e081d core#presentation-pop + dpop-sk-spec@f485855 #attestation-verification (step 6, failure signalling E) (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#presentation-pop + dpop-sk-spec@f485855 #attestation-verification (step 6, failure signalling E) (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a tampered attestation draws 401 with the STANDARD DPoP challenge — no DPoP-SK-specific error code, and never bearer processing"
 }

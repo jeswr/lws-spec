@@ -71,7 +71,7 @@
   "level": "MUST",
   "notes": "The advertisement contract on the wire: \"servers MUST NOT advertise pairs they do not implement\" (rdf#capability, the core conformance rule). The representation-stability half — the derived body encoding a graph isomorphic to the stored one — is pinned by the transform-representation cases (turtle-to-jsonld-isomorphic and siblings); this case pins that the advertised pair is actually negotiable and varies by Accept. The body check is jsonParses (not jsonIsObject): rdf-1 constrains the encoded GRAPH, never the JSON document shape — a JSON-LD serializer may legitimately emit a top-level node-object array (JSON-LD 1.1 §9), and demanding an object here would reject conformant servers.",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d rdf#capability (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f rdf#capability (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "a server advertising the rdf-1 pair actually serves the derived representation: Accept application/ld+json on stored Turtle yields JSON-LD with Vary: Accept"
 }

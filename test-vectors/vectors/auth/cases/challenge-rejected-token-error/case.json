@@ -53,7 +53,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#authz-discovery (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#authz-discovery (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a request presenting a rejected access token draws 401 with error=\"invalid_token\""
 }

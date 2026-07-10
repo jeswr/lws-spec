@@ -55,7 +55,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#metadata-updates (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#metadata-updates (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "PATCH on a linkset with a stale If-Match is rejected 412 Precondition Failed"
 }

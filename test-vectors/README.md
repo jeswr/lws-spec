@@ -29,14 +29,19 @@ anyone.
 ## Provenance of verdicts — spec-derived, not implementation-extracted
 
 `agentic-solid-conformance` *extracted* its verdicts by executing pinned reference
-implementations. **No reference implementation of JLWS exists yet**, so the expected
+implementations. **No reference server implementation of JLWS exists yet**, so the expected
 outcomes here are **derived directly from the normative text** of the two specs at commit
-`f2e081d` — the commit the suite was last **reconciled** against; whenever the spec's
+`895391f` — the commit the suite was last **reconciled** against; whenever the spec's
 normative text changes, the pin is bumped and every affected vector re-derived in the same
 change (each case's `source` field records the clause it was derived from; `notes`
 records any interpretation applied where the spec leaves a code point open, e.g. the
 RFC 8693 §2.2.2 `invalid_target` choice — the path-segment reading of "logically contains"
-began as such a note and is now the spec's own normative rule). Cases pinning a
+began as such a note and is now the spec's own normative rule). **One operation is the
+exception**: every `evaluate-access` decision is REPRODUCED by executing the profile's
+normative rule set [`semantics/access-decision.n3`](../semantics/access-decision.n3) under
+EYE (`node test-suite/tools/oracle-access.mjs` — the definitional-implementation pattern);
+those cases say so in `source`, and the oracle run is part of the repo gate, so the vectors
+and the decision semantics cannot silently disagree. Cases pinning a
 **composition surface** (the DPoP-SK profile, the WebAuthn suite's wire contract, the
 a2a-rdf extension service) additionally cite the companion document + anchor in `source`
 at a pinned commit — `clauses` itself only ever names `core#`/`rdf#` section ids.
@@ -51,7 +56,7 @@ manifests ↔ cases ↔ clause ids ↔ fixtures ↔ signatures).
 
 ## Suites
 
-150 cases across 10 suites (see [`manifest.json`](./manifest.json) for the machine-readable
+154 cases across 10 suites (see [`manifest.json`](./manifest.json) for the machine-readable
 index):
 
 | Suite | Cases | Spec | Surface |
@@ -62,7 +67,7 @@ index):
 | [`vectors/discovery/`](./vectors/discovery/) | 8 | core | storage-description validation (CID shape, `conformsTo`, self-service entry, unknown-capability tolerance), description link, RFC 9728 metadata document, extension-service consumption (a2a-rdf `AgentInteractionService`, fail-closed non-https endpoint) |
 | [`vectors/auth/`](./vectors/auth/) | 36 | core | 401 challenge shape, realm containment, RFC 8693 exchange, RFC 9068 single-audience at+jwt validation (14 signed fixtures), Bearer baseline / PoP opt-in, RFC 9396 narrowing, the WebAuthn suite's composition surface (fail-closed bundle decode, RFC 8414 advertisement, DPoP-bound-only issuance) |
 | [`vectors/dpop-sk/`](./vectors/dpop-sk/) | 14 | core | the DPoP-SK PoP presentation profile over JLWS (cb=none flavour): `pop_session` PRM advertisement, the single `dpop_bound_access_tokens_required` member covering both PoP profiles, fail-closed client negotiation, establishment from a DPoP-bound token, RFC 9421 hmac-sha256 attestation accept/tamper/cross-target/token-substitution/replay/verify-then-mark/expiry/no-bearer-fallback |
-| [`vectors/access-grants/`](./vectors/access-grants/) | 17 | core | strict-ODRL document validation, default-deny grant evaluation, action inclusion, typed targets, constraints, public assignee |
+| [`vectors/access-grants/`](./vectors/access-grants/) | 21 | core | strict-ODRL document validation, default-deny grant evaluation, action inclusion, typed targets, conjunctive + fail-closed constraints, public assignee, structural revocation composition — every `evaluate-access` decision reproduced by `semantics/access-decision.n3` |
 | [`vectors/notifications/`](./vectors/notifications/) | 12 | core | subscription authorization, SSE/WebSocket binding shapes, content-free envelope, RFC 9421 webhook signature verification (5 signed fixtures) |
 | [`vectors/rdf-transform/`](./vectors/rdf-transform/) | 21 | rdf-1 | capability consistency, advertised-pair conneg honoured, client fail-closed feature detection, `SparqlQueryService` gating, graph-isomorphic round-trips, no-inference, base resolution, remote-context decline (no fetch), authoritative bytes + per-representation ETags, `normalizes`, unparseable-source degradation, opt-in-OFF behaviour |
 | [`vectors/errors/`](./vectors/errors/) | 4 | core | RFC 9457 problem details everywhere, 404-for-hidden, hidden ≡ missing, 403-for-partial-access |
@@ -88,7 +93,7 @@ case, and — where the suite ships shared fixtures — a `keyring/` directory.
   "expected": { … },                            // operation-specific
   "exchanges": [ … ],                           // http-exchange multi-request form
   "notes": "…",                                 // any interpretation applied
-  "source": "lws-spec@f2e081d core#rs-validation (spec-derived; …)"
+  "source": "lws-spec@895391f core#rs-validation (spec-derived; …)"
 }
 ```
 
@@ -281,7 +286,12 @@ whose action includes the requested action (`odrl:modify` includes `jlws:create`
 `jlws:append`, never the reverse; an ununderstood action grants nothing), whose typed
 target covers the request target (`DataResource` exactly; `Container` the container itself
 and, only when `recursive`, descendants; `StorageResource` the storage), and whose
-constraints are all satisfied.
+constraints are all satisfied (a constraint the layer cannot evaluate is unsatisfied).
+This operation's DEFINITION is the executable rule set
+[`semantics/access-decision.n3`](../semantics/access-decision.n3): permit ⟺ the rule set
+derives at least one `ax:permittedBy` justification; the oracle
+(`node test-suite/tools/oracle-access.mjs`, part of the repo gate) re-derives every one of
+these vectors from it.
 
 ### 8. `validate-storage-description` — discovery documents (core#discovery-model, rdf#capability)
 

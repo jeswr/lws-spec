@@ -38,7 +38,7 @@
 <> a sc:CompanionDocument ;
     dcterms:title "JLWS Core Protocol normative-statement companion"@en ;
     sc:companionOf <https://jeswr.github.io/lws-spec/> ;
-    sc:specVersion "c933aee98f95025ee38781a399f17a0347c5633d" ;
+    sc:specVersion "895391f74b0632c7906b7265ee4abcb573df9c8a" ;
     dcterms:created "2026-07-06"^^xsd:date ;
     prov:wasAttributedTo <https://jeswr.org/#me> ;
     dcterms:description "Extracted with AI assistance (Claude Fable 5, Anthropic) from the pinned spec source; awaiting review by the human editor, like the spec itself."@en ;
@@ -49,7 +49,6 @@
     sc:extractionNote "The validation-failure error shapes (#rs-validation: 'On validation failure the server responds 401 with an appropriate error parameter. If the token is valid but the operation is not allowed: 403 … otherwise 404') are indicative; the 404/403 oracle rule is normative in #oracle-freedom (JLWSC-OF-1), and the 401 error-parameter half is vectored (auth/challenge-rejected-token-error) via the keywordless RFC 6750 incorporation in #authz-discovery. Errata candidate: give both a keyword; the MUST NOT half is JLWSC-AD-3." ;
     sc:extractionNote "The #identity-documents SSRF incorporation ('All server-side dereferencing performed during validation is subject to the SSRF requirements of #ssrf') is keywordless; the operative MUSTs are JLWSC-SSRF-1..3. Errata candidate." ;
     sc:extractionNote "'issuers SHOULD serve CIDs with caching headers that make such caching effective' (#identity-documents) and 'Issuers of authentication credentials are responsible for validating client identifiers and MAY use this mechanism …' (#client-identity) bind identity-document publishers and credential issuers — parties outside the declared conformance classes; not modelled. Errata candidate: declare the class or mark informative." ;
-    sc:extractionNote "The ODRL target-matcher semantics (#odrl-profile 'Targets:' bullet — DataResource / Container + jlws:recursive / StorageResource) and the public-assignee rule ('public access is expressed with http://xmlns.com/foaf/0.1/Agent') are keywordless definitional prose, yet vectored (access-grants/container-recursive-covers-descendant, container-nonrecursive-excludes-descendant, storage-resource-target-covers-storage, public-assignee-foaf-agent). Errata candidate: give the matcher semantics BCP 14 force." ;
     sc:extractionNote "The WebAuthn wire-contract packaging (#suite-webauthn, 'packaged for presentation as an RFC 8693 subject_token exactly as specified by the wire contract of WEBAUTHN-REAUTH') is keywordless, yet its fail-closed decode is vectored (auth/webauthn-bundle-decode-ok, auth/webauthn-bundle-noncanonical-b64url-rejected). Errata candidate: 'packaged' -> a MUST." ;
     sc:extractionNote "The SSE 'source' member ('The subscription response includes source: the event-stream URL') and the WebSocket 'receiveFrom' member ('The subscription response includes receiveFrom: a wss: URL — a capability URL with the same binding, entropy, expiry, and revocation requirements as SSE capability-URL mode') are keywordless, yet vectored (notifications/sse-subscription-returns-source, notifications/websocket-subscription-returns-receivefrom; wired here to JLWSC-SUB-3). Errata candidate: 'includes' -> 'MUST include'; the WebSocket capability-URL requirements inherit JLWSC-SSE-2 only by simile." ;
     sc:extractionNote "'A subscription to a container is recursive: events for the container and all descendants.' and 'Paginated responses use status 200.' and 'When paginated, items contains the current page while id, type, and totalItems reflect the whole (visible) membership.' are keywordless definitional prose; not modelled." ;
@@ -1438,6 +1437,7 @@
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
     spec:testCase <test-vectors/vectors/access-grants/cases/create-only-not-widened-to-modify/case.json> ,
                   <test-vectors/vectors/access-grants/cases/modify-includes-create/case.json> .
 
@@ -1448,6 +1448,7 @@
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
     spec:testCase <test-vectors/vectors/access-grants/cases/unknown-action-fail-closed/case.json> .
 
 <#JLWSC-ODRL-5> a spec:Requirement ;
@@ -1457,9 +1458,46 @@
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
     spec:testCase <test-vectors/vectors/access-grants/cases/constraints-conjunctive-satisfied/case.json> ,
                   <test-vectors/vectors/access-grants/cases/constraint-datetime-expired-denied/case.json> ,
                   <test-vectors/vectors/access-grants/cases/constraint-purpose-mismatch-denied/case.json> .
+
+<#JLWSC-ODRL-6> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-6" ;
+    spec:statement "An enforcement layer that cannot evaluate a constraint MUST treat it as unsatisfied (fail closed)." ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/unsupported-constraint-fail-closed/case.json> .
+
+<#JLWSC-ODRL-7> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-7" ;
+    spec:statement "A server's enforcement MUST compute access decisions equivalent to the rule set: a request is permitted exactly when at least one recorded grant derives a permit justification for it, and denied otherwise — deny is the closed-world absence of any permit derivation at decision time (default deny)." ;
+    rdfs:comment "The rule set semantics/access-decision.n3 is the profile's normative, executable decision function (Notation3, run under EYE); test-suite/tools/oracle-access.mjs executes it over every evaluate-access vector and the two must never disagree. This gives the target-matcher and public-assignee semantics (formerly a keywordless-definitional-prose extraction note) normative force through the rule set."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/grant-permits-read/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/request-denied-without-grant/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/modify-includes-create/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/create-only-not-widened-to-modify/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/unknown-action-fail-closed/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/container-recursive-covers-descendant/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/container-nonrecursive-excludes-descendant/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/constraints-conjunctive-satisfied/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/constraint-purpose-mismatch-denied/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/constraint-datetime-expired-denied/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/unsupported-constraint-fail-closed/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/public-assignee-foaf-agent/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/storage-resource-target-covers-storage/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/two-covering-grants-permit/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/revoke-one-covering-grant-still-permitted/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/revoke-all-covering-grants-denied/case.json> .
 
 ### Grant endpoints and records (#grant-endpoints, #grants-are-records)
 
@@ -1480,6 +1518,7 @@
     spec:requirementSubject <#Server> ;
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <semantics/access-decision.n3> ;
     spec:testCase <test-vectors/vectors/access-grants/cases/grant-permits-read/case.json> ,
                   <test-vectors/vectors/access-grants/cases/request-denied-without-grant/case.json> .
 
@@ -1510,6 +1549,19 @@
     sc:testability sc:Enforceable ;
     sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
     sc:testGap <#gap-stateful-temporal> .
+
+<#JLWSC-GR-5> a spec:Requirement ;
+    dcterms:identifier "JLWSC-GR-5" ;
+    spec:statement "Enforcement composes over the whole record: revoking one grant MUST NOT deny a request that another recorded grant still permits — deny is the closed-world absence, at decision time, of every covering grant" ;
+    rdfs:comment "Structural revocation composition: under the decision function (JLWSC-ODRL-7 / semantics/access-decision.n3) a permit is derivable from ANY recorded grant, so revocation removes one justification, never the composition. The naive reading 'revocation implies denial' is not expressible in the rule set."@en ;
+    spec:requirementLevel spec:MUSTNOT ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#grants-are-records> ;
+    sc:formalModel <semantics/access-decision.n3> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/two-covering-grants-permit/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/revoke-one-covering-grant-still-permitted/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/revoke-all-covering-grants-denied/case.json> .
 
 ### Consent receipts, delegation, groups (#consent-receipts, #delegation, #groups)
 
@@ -2290,11 +2342,14 @@
         <#JLWSC-ODRL-3> ,
         <#JLWSC-ODRL-4> ,
         <#JLWSC-ODRL-5> ,
+        <#JLWSC-ODRL-6> ,
+        <#JLWSC-ODRL-7> ,
         <#JLWSC-GE-1> ,
         <#JLWSC-GR-1> ,
         <#JLWSC-GR-2> ,
         <#JLWSC-GR-3> ,
         <#JLWSC-GR-4> ,
+        <#JLWSC-GR-5> ,
         <#JLWSC-VC-1> ,
         <#JLWSC-VC-2> ,
         <#JLWSC-DLG-1> ,

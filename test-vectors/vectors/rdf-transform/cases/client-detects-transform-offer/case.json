@@ -42,7 +42,7 @@
   },
   "level": "MUST",
   "operation": "evaluate-transform-offer",
-  "source": "lws-spec@f2e081d rdf#capability (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f rdf#capability (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "an RDF-aware client feature-detects the rdf-1 profile from the storage description: an advertised source→target pair with the profile URI and conformsTo entry is available"
 }

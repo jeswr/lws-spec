@@ -41,7 +41,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#http-read (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#http-read (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "Range: bytes=0-4 yields 206 with exactly the requested slice and Content-Range"
 }

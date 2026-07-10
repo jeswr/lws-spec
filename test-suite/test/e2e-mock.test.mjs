@@ -223,7 +223,7 @@ test('report: skip taxonomy is honest and the scoreboard renders', async () => {
     // audit-class/P statement lands in its class; non-server subjects go to
     // not-applicable first (a server harness cannot hold a client to account).
     const byCat = report.summary.statements.byCategory;
-    assert.equal(report.summary.statements.total, 242);
+    assert.equal(report.summary.statements.total, 245);
     const serverSide = (t) =>
       report.statements.filter((s) => s.testability === t && s.category !== 'not-applicable').length;
     assert.equal(byCat['audit-evidence'], serverSide('A-exist') + serverSide('A-int'));

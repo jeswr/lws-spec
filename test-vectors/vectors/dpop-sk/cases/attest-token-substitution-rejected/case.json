@@ -78,7 +78,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@f2e081d core#presentation-pop + dpop-sk-spec@f485855 #attestation-verification (step 4; adversarial review A9) (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#presentation-pop + dpop-sk-spec@f485855 #attestation-verification (step 4; adversarial review A9) (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a session cannot be ridden with a different token: a valid attestation presenting another (equally valid, cnf-bound) token fails the token-binding check"
 }

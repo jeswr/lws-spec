@@ -73,7 +73,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@f2e081d core#rs-validation + dpop-sk-spec@f485855 #downgrade (rule 1) (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#rs-validation + dpop-sk-spec@f485855 #downgrade (rule 1) (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "the Bearer baseline is not weakened: stripping the attestation leaves a cnf-bound token with no proof of possession at all, which is refused"
 }
