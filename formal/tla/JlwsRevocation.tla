@@ -105,15 +105,17 @@ CreateImmediateAck(g) ==  \* record the grant; respond 2xx at once
   /\ g \in Grants \ (recorded \cup revokedEver)
   /\ recorded'    = recorded \cup {g}
   /\ ackedCreate' = ackedCreate \cup {g}
+  /\ lag'         = IF decision = recorded \cup {g} THEN 0 ELSE lag
   /\ UNCHANGED <<decision, pendingCreate, pendingRevoke, ackedRevoke,
-                 revokedEver, lag>>
+                 revokedEver>>
 
 RevokeImmediateAck(g) ==  \* DELETE the record; respond 2xx at once
   /\ g \in recorded
   /\ recorded'    = recorded \ {g}
   /\ ackedRevoke' = ackedRevoke \cup {g}
   /\ revokedEver' = revokedEver \cup {g}
-  /\ UNCHANGED <<decision, pendingCreate, ackedCreate, pendingRevoke, lag>>
+  /\ lag'         = IF decision = recorded \ {g} THEN 0 ELSE lag
+  /\ UNCHANGED <<decision, pendingCreate, ackedCreate, pendingRevoke>>
 
 SplitNext ==
   \/ Propagate
@@ -129,8 +131,9 @@ CreateStart(g) ==  \* record the grant; the response is withheld
   /\ g \in Grants \ (recorded \cup revokedEver)
   /\ recorded'      = recorded \cup {g}
   /\ pendingCreate' = pendingCreate \cup {g}
+  /\ lag'           = IF decision = recorded \cup {g} THEN 0 ELSE lag
   /\ UNCHANGED <<decision, ackedCreate, pendingRevoke, ackedRevoke,
-                 revokedEver, lag>>
+                 revokedEver>>
 
 AckCreate(g) ==    \* acknowledge only once the decision state reflects it
   /\ g \in pendingCreate
@@ -149,7 +152,8 @@ RevokeStart(g) ==  \* DELETE the record; the response is withheld.  A revoke
   /\ pendingCreate' = pendingCreate \ {g}
   /\ pendingRevoke' = pendingRevoke \cup {g}
   /\ revokedEver'   = revokedEver \cup {g}
-  /\ UNCHANGED <<decision, ackedCreate, ackedRevoke, lag>>
+  /\ lag'           = IF decision = recorded \ {g} THEN 0 ELSE lag
+  /\ UNCHANGED <<decision, ackedCreate, ackedRevoke>>
 
 AckRevoke(g) ==    \* acknowledge only once the decision state reflects it
   /\ g \in pendingRevoke
@@ -216,6 +220,14 @@ NoResurrection == recorded \cap revokedEver = {}
 (* Enforced by the Tick deadline idiom above; checked explicitly so the    *)
 (* bound is a verified property of the model, not a comment.               *)
 BoundedStaleness == lag \in 0..Bound
+
+(* Per-interval accounting: `lag` counts ticks of the CURRENT stale        *)
+(* interval only.  A record mutation can itself restore                    *)
+(* recorded = decision (a revoke of a not-yet-propagated create), which    *)
+(* ends the stale interval just as Propagate does — so every mutating      *)
+(* action resets lag on restored equality, and each new divergence         *)
+(* starts its own interval at zero rather than inheriting stale ticks.    *)
+LagZeroWhenSynced == (recorded = decision) => (lag = 0)
 
 (* Monotonic revocation (action property): the revoked set only grows.     *)
 MonotonicRevocation == [][revokedEver \subseteq revokedEver']_vars

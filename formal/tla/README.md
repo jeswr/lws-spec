@@ -74,7 +74,9 @@ lagging decision state still refuses the agent the grant it was just confirmed).
 `JlwsRevocation.cfg` checks the fixed discipline: `TypeOK`, `SurfacesAgree`,
 `NoUseAfterAckedRevocation`, `AckedCreateReflected`, `AckedNeverEnforced`, `NoResurrection`
 (a revoked grant record never reappears — record URIs are not reused; re-granting mints a
-new record), `BoundedStaleness`, plus the temporal properties `MonotonicRevocation`,
+new record), `BoundedStaleness` with `LagZeroWhenSynced` (per-interval accounting: a record
+mutation that itself restores `recorded = decision` ends the stale interval, so each new
+divergence gets its own `Bound` of ticks), plus the temporal properties `MonotonicRevocation`,
 `StalenessConverges`, `EveryCreationSettled` (every pending create is answered —
 acknowledged, or settled by a superseding revoke), `EveryRevocationAcked` (liveness: every
 revocation is eventually acknowledged) and `FullRevocationConverges` (once every covering
