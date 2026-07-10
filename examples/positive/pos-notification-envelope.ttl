@@ -1,0 +1,14 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming notification envelope (index.html #notification-envelope;
+# JLWSC-ENV-1/2) — dual-typed Notification + Update, REQUIRED published, and a
+# content-free object carrying id and type only. Mirrors
+# test-vectors/vectors/notifications/cases/envelope-valid.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix as:   <https://www.w3.org/ns/activitystreams#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:uuid:5e6d1f2a-1111-4e4e-9d9d-000000000001> a jlws:Notification , as:Update ;
+    as:published "2026-07-01T12:00:00Z"^^xsd:dateTime ;
+    as:object <https://storage.example/alice/notes/a.txt> .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource .

@@ -1,0 +1,30 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming access grant (index.html #odrl-profile; JLWSC-ODRL-1/2) —
+# the graph form of the spec's own example: an odrl:Offer with uid, the REQUIRED
+# profile, policy-level assigner, and one permission rule with exactly one action,
+# exactly one recursive Container target matcher, and two conjunctive constraints.
+# Mirrors test-vectors/vectors/access-grants/cases/grant-document-valid.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://storage.example/alice/.grants/2f6c> a odrl:Offer ;
+    odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+    odrl:assigner <https://id.example/alice> ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/> ;
+        odrl:constraint [
+            odrl:leftOperand odrl:purpose ;
+            odrl:operator odrl:eq ;
+            odrl:rightOperand <https://purpose.example/collaboration>
+        ] , [
+            odrl:leftOperand odrl:dateTime ;
+            odrl:operator odrl:lt ;
+            odrl:rightOperand "2026-12-31T00:00:00Z"^^xsd:dateTime
+        ]
+    ] .
+
+<https://storage.example/alice/notes/> a jlws:Container ;
+    jlws:recursive true .

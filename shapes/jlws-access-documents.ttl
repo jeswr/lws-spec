@@ -1,0 +1,189 @@
+# AUTHORED-BY Claude Fable 5
+#
+# Normative SHACL shapes for the two JLWS **access document** conformance classes —
+# the access REQUEST (odrl:Request) and the access GRANT (odrl:Offer) of the strict
+# ODRL profile (index.html #odrl-profile; statements JLWSC-ODRL-1..2 in
+# index.statements.ttl). Validates the RDF graph a conforming JSON-LD access document
+# means under the ODRL context plus the JLWS context (uid -> @id; profile ->
+# odrl:profile; recursive -> jlws:recursive).
+#
+# TARGETING: the shared jlwssh:AccessDocumentShape targets both classes AND
+# sh:targetSubjectsOf odrl:profile, so a profiled document that omits its @type is
+# still selected and rejected (exactly one of odrl:Request / odrl:Offer — the
+# request/grant mapping bullet of #odrl-profile). The per-class shapes add the
+# class-specific constraints.
+#
+# DELIBERATELY OPEN (enforcement-level, NOT document-validity — do not tighten):
+#   - The ACTION SET is not closed. JLWSC-ODRL-4: "An enforcement layer that does not
+#     understand a profile-defined action MUST NOT honour a rule granting it (fail
+#     closed — an unknown action grants nothing)" — an unknown action is a document
+#     that GRANTS NOTHING, not an invalid document (vector
+#     access-grants/unknown-action-fail-closed is an evaluate-access case, not a
+#     validate-access-document rejection).
+#   - The constraint LEFT-OPERAND set is not closed, for the same fail-closed reason
+#     (the profile defines odrl:purpose, jlws:client, jlws:mediaType,
+#     jlws:resourceType, odrl:dateTime; evaluation of anything else is unsatisfiable,
+#     not ill-formed).
+#   - JLWSC-ODRL-3 (create/append not widened to modify) and JLWSC-ODRL-5
+#     (constraints conjunctive) are evaluation semantics — the executable rule set
+#     (P1, semantics/access-decision.n3 on feat/access-decision-n3) and the
+#     access-grants vectors carry them.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix jlwssh:  <https://jeswr.org/ns/jlws/shapes#> .
+@prefix odrl:    <http://www.w3.org/ns/odrl/2/> .
+
+jlwssh:AccessDocumentShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS access document (shared strict-ODRL profile constraints)"@en ;
+    rdfs:comment "Shared constraints of both access-document conformance classes (index.html #odrl-profile)."@en ;
+    rdfs:seeAlso <https://jeswr.github.io/lws-spec/index.statements.ttl#JLWSC-ODRL-1> ;
+    sh:targetClass odrl:Request, odrl:Offer ;
+    sh:targetSubjectsOf odrl:profile ;
+
+    # ODRL-MODEL §2.1 (normative reference of #odrl-profile): a Policy MUST have one
+    # uid — under the ODRL context uid is @id, so the policy node is an IRI.
+    sh:nodeKind sh:IRI ;
+    sh:message "An access document must carry uid — its URI (ODRL-MODEL Policy uid; grants are IRI-identified records, #grant-endpoints)." ;
+
+    # #odrl-profile: "An access request is an odrl:Request; an access grant is an
+    # odrl:Offer" — exactly one of the two (a document cannot be both classes).
+    sh:property [
+        sh:path rdf:type ;
+        sh:qualifiedValueShape [ sh:in ( odrl:Request odrl:Offer ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "An access document is exactly one of odrl:Request (access request) / odrl:Offer (access grant) — #odrl-profile." ;
+    ] ;
+
+    # JLWSC-ODRL-1: "Documents are JSON-LD using the ODRL context plus the JLWS
+    # context, and MUST declare profile equal to
+    # https://w3id.org/jeswr/lws/access-profile/odrl-1".
+    sh:property [
+        sh:path odrl:profile ;
+        sh:minCount 1 ;
+        sh:hasValue <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+        sh:message "An access document MUST declare profile equal to https://w3id.org/jeswr/lws/access-profile/odrl-1 — JLWSC-ODRL-1 (#odrl-profile); an unprofiled ODRL document is not a conforming access document." ;
+    ] ;
+
+    # #odrl-profile: "A document carries ODRL rules: permission, prohibition, and
+    # obligation" + ODRL-MODEL §2.1 (a Policy MUST have at least one rule). Every rule
+    # must satisfy the strict-profile rule shape.
+    sh:property [
+        sh:path [ sh:alternativePath ( odrl:permission odrl:prohibition odrl:obligation ) ] ;
+        sh:minCount 1 ;
+        sh:node jlwssh:AccessRuleShape ;
+        sh:message "An access document carries at least one ODRL rule (permission / prohibition / obligation), each with exactly one action and exactly one target — #odrl-profile + JLWSC-ODRL-2." ;
+    ] .
+
+jlwssh:AccessRequestShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS access request"@en ;
+    rdfs:comment "Document conformance class: 'An access request is an odrl:Request' (#odrl-profile) — 'An ODRL document by which an agent asks a storage controller for access' (#terminology). All structural constraints are the shared AccessDocumentShape's; no request-specific MUSTs exist in the spec text."@en ;
+    sh:targetClass odrl:Request .
+
+jlwssh:AccessGrantShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS access grant"@en ;
+    rdfs:comment "Document conformance class: 'an access grant is an odrl:Offer issued by the storage controller' (#odrl-profile) — the issuing controller is recorded as the ODRL assigner (ODRL-MODEL: an Offer's rules require an assigner; the spec's #odrl-profile example carries policy-level assigner). Satisfiable at policy level (inherited by every rule) or on every rule."@en ;
+    sh:targetClass odrl:Offer ;
+    sh:or (
+        [ sh:property [ sh:path odrl:assigner ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ]
+        [ sh:property [
+            sh:path [ sh:alternativePath ( odrl:permission odrl:prohibition odrl:obligation ) ] ;
+            sh:node [ a sh:NodeShape ; sh:property [ sh:path odrl:assigner ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ] ;
+        ] ]
+    ) ;
+    sh:message "An access grant is an odrl:Offer issued by the storage controller — it must identify its assigner (policy-level, or on every rule) — #odrl-profile + ODRL-MODEL Offer." .
+
+jlwssh:AccessRuleShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS strict-ODRL rule"@en ;
+    rdfs:comment "Not independently targeted: applied to permission/prohibition/obligation values by AccessDocumentShape."@en ;
+
+    # JLWSC-ODRL-2: "Each rule MUST have exactly one action and exactly one target
+    # (singular per rule — PR #109; compose multiple rules for multiple
+    # actions/targets)." Vectored: access-grants/document-multi-action-rule-rejected
+    # (ACTION_NOT_SINGULAR), document-multi-target-rule-rejected.
+    sh:property [
+        sh:path odrl:action ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "Each rule MUST have exactly one action — JLWSC-ODRL-2 (#odrl-profile). The action VALUE set stays open: an unknown action grants nothing at enforcement (JLWSC-ODRL-4) but does not invalidate the document." ;
+    ] ;
+    sh:property [
+        sh:path odrl:target ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:node jlwssh:TargetMatcherShape ;
+        sh:message "Each rule MUST have exactly one target, a typed matcher — JLWSC-ODRL-2 + the Targets bullet (#odrl-profile)." ;
+    ] ;
+
+    # #odrl-profile "Assignee: a URI identifying the agent (or group, #groups); public
+    # access is expressed with http://xmlns.com/foaf/0.1/Agent" — definitional prose
+    # (companion extraction note; vectored access-grants/public-assignee-foaf-agent):
+    # when supplied, an assignee is a URI. Requests need no assignee on every rule
+    # (the requesting agent is the implied beneficiary), so no minCount here.
+    sh:property [
+        sh:path odrl:assignee ;
+        sh:nodeKind sh:IRI ;
+        sh:message "An assignee is a URI identifying the agent or group (public access = foaf:Agent) — #odrl-profile Assignee bullet." ;
+    ] ;
+
+    # #odrl-profile "Constraints: ODRL constraints" + ODRL-MODEL §2.5: a Constraint has
+    # exactly one leftOperand, one operator, one rightOperand.
+    sh:property [
+        sh:path odrl:constraint ;
+        sh:node jlwssh:OdrlConstraintShape ;
+        sh:message "Each constraint is an ODRL constraint: exactly one leftOperand, operator, and rightOperand — #odrl-profile Constraints bullet + ODRL-MODEL." ;
+    ] .
+
+jlwssh:TargetMatcherShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS typed target matcher"@en ;
+    rdfs:comment "Not independently targeted: applied to odrl:target values by AccessRuleShape. #odrl-profile Targets bullet (definitional prose, vectored — access-grants/container-recursive-covers-descendant, storage-resource-target-covers-storage): 'typed matchers — a DataResource (one resource), a Container (the container and, when jlws:recursive is true, its descendants), or a StorageResource (the whole storage), identified by URI'. jlws:recursive is only meaningful on a Container matcher; the spec does not forbid it elsewhere, so the shape does not either."@en ;
+    sh:nodeKind sh:IRI ;
+    sh:message "A target matcher is identified by URI (uid) — #odrl-profile Targets bullet." ;
+    sh:property [
+        sh:path rdf:type ;
+        sh:qualifiedValueShape [ sh:in ( jlws:DataResource jlws:Container jlws:StorageResource ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "A target matcher is typed exactly one of DataResource / Container / StorageResource — #odrl-profile Targets bullet." ;
+    ] ;
+    sh:property [
+        sh:path jlws:recursive ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:message "recursive, when present, is a single boolean — #odrl-profile Targets bullet." ;
+    ] .
+
+jlwssh:OdrlConstraintShape
+    a sh:NodeShape ;
+    rdfs:label "ODRL constraint (arity)"@en ;
+    rdfs:comment "Not independently targeted: applied to odrl:constraint values by AccessRuleShape. The left-operand set stays open (see file header)."@en ;
+    sh:property [
+        sh:path odrl:leftOperand ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "A constraint has exactly one leftOperand (an IRI) — ODRL-MODEL via #odrl-profile." ;
+    ] ;
+    sh:property [
+        sh:path odrl:operator ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:message "A constraint has exactly one operator — ODRL-MODEL via #odrl-profile." ;
+    ] ;
+    sh:property [
+        sh:path odrl:rightOperand ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:message "A constraint has exactly one rightOperand — ODRL-MODEL via #odrl-profile." ;
+    ] .

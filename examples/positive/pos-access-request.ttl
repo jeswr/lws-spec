@@ -1,0 +1,17 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming access request (index.html #odrl-profile; JLWSC-ODRL-1/2) —
+# an odrl:Request with uid, the REQUIRED profile, and one permission rule with
+# exactly one action and one DataResource target matcher. Mirrors
+# test-vectors/vectors/access-grants/cases/request-document-valid.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<https://storage.example/alice/.access/requests/9a1b> a odrl:Request ;
+    odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/shoppinglist.txt>
+    ] .
+
+<https://storage.example/alice/notes/shoppinglist.txt> a jlws:DataResource .

@@ -1,0 +1,121 @@
+# AUTHORED-BY Claude Fable 5
+#
+# Normative SHACL shape for the JLWS **container representation** document conformance
+# class (index.html #container-properties; statements JLWSC-CP-1..4 in
+# index.statements.ttl). Validates the RDF graph a conforming JSON-LD container listing
+# means under the normative context (#jsonld-context: totalItems/items/mediaType ->
+# Activity Streams; size -> schema:size; modified -> dcterms:modified).
+#
+# TARGETING (deliberate): the shape targets the DOCUMENT ROOT — the node carrying the
+# server-managed listing properties (as:totalItems / as:items) — and NOT
+# sh:targetClass jlws:Container. Member descriptions of sub-containers
+# (#container-properties) and grant target matchers (#odrl-profile) are also typed
+# jlws:Container and MUST NOT be validated as listing documents; they never carry
+# totalItems/items, so subjects-of targeting selects exactly the listing roots
+# (including a root whose `type` is missing — which the shape then rejects, JLWSC-CP-1).
+#
+# NOT graph-checkable (checked by the test-vector suite instead, containers/*):
+#   - "items — … (empty array when empty)" (JLWSC-CP-1): an empty JSON-LD array
+#     produces no triples, so graph-side absence of as:items is indistinguishable
+#     from omission. The JSON-level presence rule is a wire-format check.
+#   - totalItems exact-vs-approximate + the oracle-freedom rule (JLWSC-CP-5/6):
+#     behavioural, depends on the caller-visible view.
+#   - pagination Link-header discipline (#pagination): HTTP-level.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix jlwssh:  <https://jeswr.org/ns/jlws/shapes#> .
+@prefix as:      <https://www.w3.org/ns/activitystreams#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <http://schema.org/> .
+
+jlwssh:ContainerRepresentationShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS container representation"@en ;
+    rdfs:comment "Document conformance class: the server-managed container listing (index.html #container-properties). One shape per normative MUST; each constraint names its statement id."@en ;
+    rdfs:seeAlso <https://jeswr.github.io/lws-spec/index.statements.ttl#JLWSC-CP-1> ;
+    sh:targetSubjectsOf as:totalItems, as:items ;
+
+    # JLWSC-CP-1 (#container-properties): "A container representation MUST include:
+    # id — the container's URI". The root node itself is the id; it must be an IRI.
+    sh:nodeKind sh:IRI ;
+    sh:message "A container representation must be identified by the container's URI (id), not a blank node — JLWSC-CP-1." ;
+
+    # JLWSC-CP-1: "type — the value \"Container\"".
+    sh:property [
+        sh:path rdf:type ;
+        sh:hasValue jlws:Container ;
+        sh:message "A container representation MUST include type = \"Container\" (jlws:Container) — JLWSC-CP-1 (#container-properties)." ;
+    ] ;
+
+    # JLWSC-CP-1: "totalItems — an integer count of members disclosable to the
+    # requesting agent". Exactly one; xsd:nonNegativeInteger per the Activity Streams
+    # coercion the normative context adopts (#jsonld-context; a count cannot be negative).
+    sh:property [
+        sh:path as:totalItems ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:message "A container representation MUST include exactly one totalItems, an integer count (xsd:nonNegativeInteger) — JLWSC-CP-1 (#container-properties)." ;
+    ] ;
+
+    # JLWSC-CP-2/3 (#container-properties): every member description supplied under
+    # items must be well-formed (id + type; mediaType for data resources).
+    sh:property [
+        sh:path as:items ;
+        sh:node jlwssh:MemberDescriptionShape ;
+        sh:message "Every member description under items must include id and type (\"DataResource\" or \"Container\", or an array containing at least one of the two) and mediaType for data resources — JLWSC-CP-2/JLWSC-CP-3 (#container-properties)." ;
+    ] ;
+
+    # JLWSC-CP-3/4 (SHOULD — advisory, sh:Warning; non-blocking under --allow-warnings):
+    # "It SHOULD include size (bytes) and modified (ISO 8601)".
+    sh:property [
+        sh:path as:items ;
+        sh:severity sh:Warning ;
+        sh:node jlwssh:MemberDescriptionAdvisoryShape ;
+        sh:message "Member descriptions SHOULD include modified (ISO 8601), and data-resource members SHOULD include size (bytes) — JLWSC-CP-3/JLWSC-CP-4 (#container-properties)." ;
+    ] .
+
+jlwssh:MemberDescriptionShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS member description (MUST-level)"@en ;
+    rdfs:comment "Not independently targeted: applied to as:items values by ContainerRepresentationShape."@en ;
+
+    # JLWSC-CP-2: "Each member description MUST include id and type". The member node
+    # itself is the id.
+    sh:nodeKind sh:IRI ;
+    sh:message "Each member description MUST include id (the member's URI) — JLWSC-CP-2 (#container-properties)." ;
+
+    # JLWSC-CP-2: type is "DataResource" or "Container", "or an array containing at
+    # least one of the two; additional user-defined types as URIs MAY be included" —
+    # hence qualified (at least one of the two among the types), not closed.
+    sh:property [
+        sh:path rdf:type ;
+        sh:qualifiedValueShape [ sh:in ( jlws:DataResource jlws:Container ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "Each member description MUST include type, with at least one of \"DataResource\" / \"Container\" among its values — JLWSC-CP-2 (#container-properties)." ;
+    ] ;
+
+    # JLWSC-CP-3: "MUST include mediaType for data resources" — conditional: either the
+    # member is not a data resource, or it carries a mediaType.
+    sh:or (
+        [ sh:not [ sh:class jlws:DataResource ] ]
+        [ sh:property [ sh:path as:mediaType ; sh:minCount 1 ; sh:datatype xsd:string ] ]
+    ) ;
+    sh:message "A data-resource member description MUST include mediaType — JLWSC-CP-3 (#container-properties)." .
+
+jlwssh:MemberDescriptionAdvisoryShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS member description (SHOULD-level, advisory)"@en ;
+    rdfs:comment "JLWSC-CP-3/4: 'It SHOULD include size (bytes) and modified (ISO 8601)'. modified applies to every member description; size is only meaningful for byte-bearing members, so the size advisory is scoped to jlws:DataResource members (the spec's own example omits size on a sub-container member). Surfaced at sh:Warning severity by the referring property shape."@en ;
+    sh:property [
+        sh:path dcterms:modified ;
+        sh:minCount 1 ;
+    ] ;
+    sh:or (
+        [ sh:not [ sh:class jlws:DataResource ] ]
+        [ sh:property [ sh:path schema:size ; sh:minCount 1 ] ]
+    ) .

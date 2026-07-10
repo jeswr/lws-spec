@@ -1,0 +1,16 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-CP-3 (#container-properties) — a data-resource member
+# description missing the REQUIRED mediaType.
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix as:      <https://www.w3.org/ns/activitystreams#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <http://schema.org/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://storage.example/alice/notes/> a jlws:Container ;
+    as:totalItems "1"^^xsd:nonNegativeInteger ;
+    as:items <https://storage.example/alice/notes/a.txt> .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource ;
+    schema:size 47 ;
+    dcterms:modified "2026-06-24T12:00:00Z"^^xsd:dateTime .

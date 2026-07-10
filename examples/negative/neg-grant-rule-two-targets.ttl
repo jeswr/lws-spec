@@ -1,0 +1,19 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-ODRL-2 (#odrl-profile) — a rule with two targets
+# (TARGET_NOT_SINGULAR). Mirrors
+# test-vectors/vectors/access-grants/cases/document-multi-target-rule-rejected.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<https://storage.example/alice/.grants/2f6c> a odrl:Offer ;
+    odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+    odrl:assigner <https://id.example/alice> ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/a.txt> ,
+                    <https://storage.example/alice/notes/b.txt>
+    ] .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource .
+<https://storage.example/alice/notes/b.txt> a jlws:DataResource .

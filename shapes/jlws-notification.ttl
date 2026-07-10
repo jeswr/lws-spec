@@ -1,0 +1,89 @@
+# AUTHORED-BY Claude Fable 5
+#
+# Normative SHACL shape for the JLWS **notification envelope** document conformance
+# class (index.html #notification-envelope; statements JLWSC-ENV-1..4 in
+# index.statements.ttl). Validates the RDF graph a conforming JSON-LD envelope means
+# under the AS2 + JLWS contexts: the envelope node is dual-typed jlws:Notification +
+# the wrapped Activity Streams activity type, exactly as the vector fixture
+# (test-vectors/vectors/notifications/cases/envelope-valid) encodes it.
+#
+# TARGETING: sh:targetClass jlws:Notification PLUS sh:targetSubjectsOf as:published,
+# so an envelope that omits its Notification type is still selected (published is
+# REQUIRED on every envelope, JLWSC-ENV-2) and rejected.
+#
+# NOT graph-checkable (checked by the test-vector suite, notifications/*):
+#   - JLWSC-ENV-3's condition: "actor MUST be omitted unless the subscriber is
+#     authorised to learn it" — whether THIS subscriber may learn the actor is
+#     delivery-context, not document content (vector envelope-actor-omitted-by-default
+#     carries the subscriberMayLearnActor input). The shape leaves as:actor open;
+#     the content-free rule below still forbids actor data ON THE OBJECT.
+#   - JLWSC-ENV-4 (servers MAY batch multiple activities per delivery): batching is a
+#     delivery-level permission — each envelope node still wraps one activity.
+#   - The webhook signature discipline (#webhook-binding): HTTP-level.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix jlwssh:  <https://jeswr.org/ns/jlws/shapes#> .
+@prefix as:      <https://www.w3.org/ns/activitystreams#> .
+
+jlwssh:NotificationEnvelopeShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS notification envelope"@en ;
+    rdfs:comment "Document conformance class: the notification envelope (index.html #notification-envelope). Each constraint names its statement id."@en ;
+    rdfs:seeAlso <https://jeswr.github.io/lws-spec/index.statements.ttl#JLWSC-ENV-1> ;
+    sh:targetClass jlws:Notification ;
+    sh:targetSubjectsOf as:published ;
+
+    # #notification-envelope: "A notification is a JSON-LD document of type
+    # Notification …" (definitional).
+    sh:property [
+        sh:path rdf:type ;
+        sh:hasValue jlws:Notification ;
+        sh:message "A notification is a JSON-LD document of type Notification — #notification-envelope." ;
+    ] ;
+
+    # #notification-envelope: "… wrapping an Activity Streams 2.0 activity — Create,
+    # Update, or Delete" (definitional; exactly one wrapped activity per envelope).
+    sh:property [
+        sh:path rdf:type ;
+        sh:qualifiedValueShape [ sh:in ( as:Create as:Update as:Delete ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:qualifiedMaxCount 1 ;
+        sh:message "The envelope wraps an Activity Streams 2.0 activity — exactly one of Create / Update / Delete — #notification-envelope." ;
+    ] ;
+
+    # JLWSC-ENV-2: "published is REQUIRED".
+    sh:property [
+        sh:path as:published ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:dateTime ;
+        sh:message "published is REQUIRED (one xsd:dateTime) — JLWSC-ENV-2 (#notification-envelope)." ;
+    ] ;
+
+    # #notification-envelope: "whose object carries the affected resource's id and
+    # type only" + JLWSC-ENV-1 ("Notifications MUST NOT include resource content"):
+    # the object node is CLOSED to id + type.
+    sh:property [
+        sh:path as:object ;
+        sh:minCount 1 ;
+        sh:node jlwssh:NotificationObjectShape ;
+        sh:message "The activity's object carries the affected resource's id and type ONLY — no resource content — JLWSC-ENV-1 (#notification-envelope). Vectored: notifications/envelope-must-not-carry-content." ;
+    ] .
+
+jlwssh:NotificationObjectShape
+    a sh:NodeShape ;
+    rdfs:label "JLWS notification object (id + type only)"@en ;
+    rdfs:comment "Not independently targeted: applied to as:object values by NotificationEnvelopeShape. sh:closed is the machine encoding of JLWSC-ENV-1's content prohibition — any property beyond the type is resource content."@en ;
+    sh:nodeKind sh:IRI ;
+    sh:message "The object carries the affected resource's id (an IRI) — #notification-envelope." ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [
+        sh:path rdf:type ;
+        sh:minCount 1 ;
+        sh:message "The object carries the affected resource's type — #notification-envelope." ;
+    ] .

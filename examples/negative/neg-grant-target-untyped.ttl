@@ -1,0 +1,13 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the Targets bullet of #odrl-profile — a target that is not a
+# TYPED matcher (none of DataResource / Container / StorageResource).
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<https://storage.example/alice/.grants/2f6c> a odrl:Offer ;
+    odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+    odrl:assigner <https://id.example/alice> ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/>
+    ] .

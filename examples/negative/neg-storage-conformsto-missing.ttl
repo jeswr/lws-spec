@@ -1,0 +1,11 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-DM-3 (#discovery-model) — the storage description omits
+# the REQUIRED conformsTo protocol-version URIs.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix did:  <https://www.w3.org/ns/did#> .
+
+<https://storage.example/alice/> a jlws:Storage ;
+    did:service [
+        a jlws:StorageDescription ;
+        did:serviceEndpoint <https://storage.example/alice/description>
+    ] .

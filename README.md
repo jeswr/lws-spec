@@ -81,6 +81,29 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   candidates rather than dressed up as statements. The full-text specs stay the normative
   documents; the companions are derived sidecars, re-extracted in the same commit as any
   normative-text change.
+- **`shapes/`** — **normative SHACL shapes, one per document conformance class** the core spec
+  defines: the container representation (`#container-properties`), the storage description
+  (`#discovery-model`), the two strict-ODRL access documents — request and grant
+  (`#odrl-profile`), the notification envelope (`#notification-envelope`), and the subscription
+  document with its three binding subtypes (`#subscription-api`). Each constraint carries the
+  companion statement id (`JLWSC-…`) or defining clause it encodes — the machine-checkable
+  chain spec requirement → SHACL shape — and each file's header names what is deliberately NOT
+  graph-checkable (behavioural/HTTP-level rules the test-vectors carry, e.g. the fail-closed
+  OPEN action set of `#odrl-profile`: an unknown action grants nothing at enforcement but does
+  not invalidate the document). Fixtures live in `examples/positive/` (must conform) and
+  `examples/negative/` (each violates one distinct constraint; they double as canaries against
+  vacuous targeting); `scripts/validate-conformance.sh` runs pySHACL over both and fails on any
+  positive non-conformance or negative conformance. The shapes validate the RDF graph a
+  conforming JSON-LD document means under the normative context sketch (`#jsonld-context`);
+  once the full context document ships in this repository, JSON-LD-native fixture validation
+  and a reconciliation of the `jlws:`-defaulted term IRIs (`topic`, `inbox`, `source`,
+  `receiveFrom`, `expires`, `capability`, `subscriptionType`) against it are the tracked
+  follow-up, as is delegating full CID-1.0 document validation (JLWSC-DM-7) to a CID validator
+  (the shapes encode the machine-checkable CID core). The RFC 9264 linkset resource
+  (`#metadata`) and RFC 9457 problem-details documents are JSON, not JSON-LD — they have no
+  graph form to shape and stay with the test-vector suite; group membership documents
+  (`#groups`, OPTIONAL) are not yet specified tightly enough to shape without inventing
+  requirements.
 
 Companion specs planned (slots reserved in the core): query services (TypeIndex/TypeSearch +
 access-controlled SPARQL), versioning (RFC 5829 + Memento), and the full Solid-on-JLWS
@@ -100,6 +123,8 @@ node test-vectors/tools/generate.mjs   # regenerate; git diff must stay clean
 # statement companions (validator + shapes live in jeswr/spec-companion):
 node <spec-companion>/tools/validate.mjs index.statements.ttl --spec-html index.html
 node <spec-companion>/tools/validate.mjs rdf-transform.statements.ttl --spec-html rdf-transform.html
+# document-conformance-class SHACL shapes vs their fixtures (needs pyshacl):
+sh scripts/validate-conformance.sh
 # executable conformance suite self-tests (needs `npm install` in test-suite/ once):
 cd test-suite && npm test
 ```

@@ -1,0 +1,8 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the #websocket-binding receiveFrom rule — receiveFrom is "a
+# wss: URL"; a plain https:// URL is rejected.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+
+<https://storage.example/alice/notifications/subs/9f30> a jlws:WebSocketSubscription ;
+    jlws:topic <https://storage.example/alice/notes/> ;
+    jlws:receiveFrom <https://storage.example/alice/notifications/ws/9f30> .

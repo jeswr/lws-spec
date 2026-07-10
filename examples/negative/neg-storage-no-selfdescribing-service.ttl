@@ -1,0 +1,13 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-DM-4 (#discovery-model) — the service set lacks the
+# REQUIRED entry of type StorageDescription (the document's own URL).
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix did:     <https://www.w3.org/ns/did#> .
+
+<https://storage.example/alice/> a jlws:Storage ;
+    dcterms:conformsTo <https://w3id.org/jeswr/lws/protocol/core/1.0> ;
+    did:service [
+        a jlws:NotificationService ;
+        did:serviceEndpoint <https://storage.example/alice/notifications>
+    ] .

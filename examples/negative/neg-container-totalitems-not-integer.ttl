@@ -1,0 +1,8 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-CP-1 (#container-properties) — totalItems must be "an
+# integer count" (xsd:nonNegativeInteger under the AS2 coercion), not a string.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix as:   <https://www.w3.org/ns/activitystreams#> .
+
+<https://storage.example/alice/notes/> a jlws:Container ;
+    as:totalItems "two" .

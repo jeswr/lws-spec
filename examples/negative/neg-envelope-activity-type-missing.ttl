@@ -1,0 +1,13 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the envelope definition of #notification-envelope — typed
+# Notification but wrapping no Activity Streams activity (none of Create / Update /
+# Delete).
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix as:   <https://www.w3.org/ns/activitystreams#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:uuid:5e6d1f2a-1111-4e4e-9d9d-000000000004> a jlws:Notification ;
+    as:published "2026-07-01T12:00:00Z"^^xsd:dateTime ;
+    as:object <https://storage.example/alice/notes/a.txt> .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource .

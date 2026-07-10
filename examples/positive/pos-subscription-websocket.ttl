@@ -1,0 +1,9 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming WebSocket subscription resource (index.html
+# #subscription-api + #websocket-binding; JLWSC-SUB-3) — the server-returned form
+# carrying receiveFrom, a wss: capability URL (mirrors WEBSOCKETCHANNEL2023).
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+
+<https://storage.example/alice/notifications/subs/9f30> a jlws:WebSocketSubscription ;
+    jlws:topic <https://storage.example/alice/notes/> ;
+    jlws:receiveFrom <wss://storage.example/alice/notifications/ws/9f30> .

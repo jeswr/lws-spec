@@ -1,0 +1,15 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-ODRL-1 (#odrl-profile) — an unprofiled ODRL document is
+# not a conforming access document. Mirrors
+# test-vectors/vectors/access-grants/cases/document-missing-profile-rejected.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<https://storage.example/alice/.access/requests/9a1b> a odrl:Request ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/shoppinglist.txt>
+    ] .
+
+<https://storage.example/alice/notes/shoppinglist.txt> a jlws:DataResource .

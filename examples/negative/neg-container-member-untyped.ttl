@@ -1,0 +1,15 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-CP-2 (#container-properties) — a member description
+# missing type ("DataResource" or "Container", or an array containing at least one
+# of the two).
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix as:      <https://www.w3.org/ns/activitystreams#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://storage.example/alice/notes/> a jlws:Container ;
+    as:totalItems "1"^^xsd:nonNegativeInteger ;
+    as:items <https://storage.example/alice/notes/a.txt> .
+
+<https://storage.example/alice/notes/a.txt>
+    dcterms:modified "2026-06-24T12:00:00Z"^^xsd:dateTime .

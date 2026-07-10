@@ -1,0 +1,35 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming storage description (index.html #discovery-model;
+# JLWSC-DM-1..7) — the graph form of the spec's own example: id + type Storage +
+# conformsTo version URIs + a CID verification method + capabilities + the service
+# set including the mandatory StorageDescription self-entry and the access-document
+# services carrying the profile URI (#grant-endpoints).
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix did:     <https://www.w3.org/ns/did#> .
+@prefix sec:     <https://w3id.org/security#> .
+
+<https://storage.example/alice/> a jlws:Storage ;
+    dcterms:conformsTo <https://w3id.org/jeswr/lws/protocol/core/1.0> ,
+                       <https://w3id.org/jeswr/lws/transform/rdf-1> ;
+    sec:verificationMethod <https://storage.example/alice/description#key-1> ;
+    jlws:capability [ a jlws:PatchSupport ] , [ a jlws:RecursiveDelete ] ;
+    did:service [
+        a jlws:StorageDescription ;
+        did:serviceEndpoint <https://storage.example/alice/description>
+    ] , [
+        a jlws:NotificationService ;
+        did:serviceEndpoint <https://storage.example/alice/notifications> ;
+        jlws:subscriptionType jlws:WebhookSubscription , jlws:SseSubscription , jlws:WebSocketSubscription
+    ] , [
+        a jlws:AccessRequestService ;
+        did:serviceEndpoint <https://storage.example/alice/.access/requests/> ;
+        dcterms:conformsTo <https://w3id.org/jeswr/lws/access-profile/odrl-1>
+    ] , [
+        a jlws:AccessGrantService ;
+        did:serviceEndpoint <https://storage.example/alice/.access/grants/> ;
+        dcterms:conformsTo <https://w3id.org/jeswr/lws/access-profile/odrl-1>
+    ] .
+
+<https://storage.example/alice/description#key-1> a sec:JsonWebKey ;
+    sec:controller <https://storage.example/alice/description> .

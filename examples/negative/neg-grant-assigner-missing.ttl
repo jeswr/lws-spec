@@ -1,0 +1,17 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the access-grant class shape (#odrl-profile + ODRL-MODEL Offer)
+# — a grant (odrl:Offer) that identifies no assigner at policy level nor on any rule
+# does not record who issued it ("an access grant is an odrl:Offer issued by the
+# storage controller").
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<https://storage.example/alice/.grants/2f6c> a odrl:Offer ;
+    odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/a.txt>
+    ] .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource .

@@ -1,0 +1,16 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the #grant-endpoints advertisement shape — an
+# AccessGrantService entry not carrying conformsTo with the access-profile URI.
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix did:     <https://www.w3.org/ns/did#> .
+
+<https://storage.example/alice/> a jlws:Storage ;
+    dcterms:conformsTo <https://w3id.org/jeswr/lws/protocol/core/1.0> ;
+    did:service [
+        a jlws:StorageDescription ;
+        did:serviceEndpoint <https://storage.example/alice/description>
+    ] , [
+        a jlws:AccessGrantService ;
+        did:serviceEndpoint <https://storage.example/alice/.access/grants/>
+    ] .

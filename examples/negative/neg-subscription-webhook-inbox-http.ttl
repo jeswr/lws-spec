@@ -1,0 +1,8 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the #webhook-binding inbox rule — inbox must be "the HTTPS
+# endpoint to deliver to"; a plaintext http:// inbox is rejected.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+
+<https://storage.example/alice/notifications/subs/7c1d> a jlws:WebhookSubscription ;
+    jlws:topic <https://storage.example/alice/notes/> ;
+    jlws:inbox <http://consumer.example/inbox> .

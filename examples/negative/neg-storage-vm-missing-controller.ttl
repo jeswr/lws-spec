@@ -1,0 +1,18 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-DM-7 (#discovery-model, via CID 1.0 §2.2) — a
+# verificationMethod entry without a controller is not a valid controlled-identifier
+# verification method.
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix did:     <https://www.w3.org/ns/did#> .
+@prefix sec:     <https://w3id.org/security#> .
+
+<https://storage.example/alice/> a jlws:Storage ;
+    dcterms:conformsTo <https://w3id.org/jeswr/lws/protocol/core/1.0> ;
+    sec:verificationMethod <https://storage.example/alice/description#key-1> ;
+    did:service [
+        a jlws:StorageDescription ;
+        did:serviceEndpoint <https://storage.example/alice/description>
+    ] .
+
+<https://storage.example/alice/description#key-1> a sec:JsonWebKey .

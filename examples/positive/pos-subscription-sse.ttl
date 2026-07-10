@@ -1,0 +1,9 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming SSE subscription resource (index.html #subscription-api +
+# #sse-binding; JLWSC-SUB-3) — the server-returned form carrying source, the
+# event-stream URL.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+
+<https://storage.example/alice/notifications/subs/8e2f> a jlws:SseSubscription ;
+    jlws:topic <https://storage.example/alice/notes/> ;
+    jlws:source <https://storage.example/alice/notifications/streams/8e2f> .

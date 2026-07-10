@@ -1,0 +1,14 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-CP-1 (#container-properties) — the listing omits the
+# REQUIRED totalItems count.
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix as:      <https://www.w3.org/ns/activitystreams#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://storage.example/alice/notes/> a jlws:Container ;
+    as:items <https://storage.example/alice/notes/a.txt> .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource ;
+    as:mediaType "text/plain" ;
+    dcterms:modified "2026-06-24T12:00:00Z"^^xsd:dateTime .

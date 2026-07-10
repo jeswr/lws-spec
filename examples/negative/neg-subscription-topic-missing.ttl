@@ -1,0 +1,7 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-SUB-3 (#subscription-api) — topic is a REQUIRED array of
+# resource URIs.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+
+<https://storage.example/alice/notifications/subs/7c1d> a jlws:WebhookSubscription ;
+    jlws:inbox <https://consumer.example/inbox> .

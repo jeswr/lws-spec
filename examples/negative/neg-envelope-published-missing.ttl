@@ -1,0 +1,10 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates JLWSC-ENV-2 (#notification-envelope) — published is REQUIRED.
+# Mirrors test-vectors/vectors/notifications/cases/envelope-published-required.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix as:   <https://www.w3.org/ns/activitystreams#> .
+
+<urn:uuid:5e6d1f2a-1111-4e4e-9d9d-000000000002> a jlws:Notification , as:Update ;
+    as:object <https://storage.example/alice/notes/a.txt> .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource .

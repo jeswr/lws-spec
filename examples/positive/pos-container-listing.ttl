@@ -1,0 +1,23 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming container representation (index.html #container-properties;
+# JLWSC-CP-1..4) — the graph form of the spec's own example: id + type Container +
+# totalItems + two member descriptions (a data resource with mediaType/size/modified,
+# a sub-container with modified; size is not expected on a container member).
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix as:      <https://www.w3.org/ns/activitystreams#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix schema:  <http://schema.org/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://storage.example/alice/notes/> a jlws:Container ;
+    as:totalItems "2"^^xsd:nonNegativeInteger ;
+    as:items <https://storage.example/alice/notes/shoppinglist.txt> ,
+             <https://storage.example/alice/notes/archive/> .
+
+<https://storage.example/alice/notes/shoppinglist.txt> a jlws:DataResource ;
+    as:mediaType "text/plain" ;
+    schema:size 47 ;
+    dcterms:modified "2026-06-24T12:00:00Z"^^xsd:dateTime .
+
+<https://storage.example/alice/notes/archive/> a jlws:Container ;
+    dcterms:modified "2026-06-20T09:00:00Z"^^xsd:dateTime .

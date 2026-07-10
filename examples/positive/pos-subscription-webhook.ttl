@@ -1,0 +1,12 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE: a conforming webhook subscription (index.html #subscription-api +
+# #webhook-binding; JLWSC-SUB-3) — typed, REQUIRED topic array, OPTIONAL expires,
+# and the HTTPS inbox the webhook binding carries.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<https://storage.example/alice/notifications/subs/7c1d> a jlws:WebhookSubscription ;
+    jlws:topic <https://storage.example/alice/notes/> ,
+               <https://storage.example/alice/photos/summer.jpg> ;
+    jlws:expires "2026-08-01T00:00:00Z"^^xsd:dateTime ;
+    jlws:inbox <https://consumer.example/inbox> .
