@@ -260,6 +260,42 @@ test('encoder rejects a calendar-invalid dateTime bound (month 13)', async () =>
   );
 });
 
+test('encoder rejects nonexistent calendar instants Date.parse would normalize', async () => {
+  // Date.parse silently maps 2027-02-30 -> Mar 2, 04-31 -> May 1, and
+  // T24:00 -> next-day midnight; each must be an encode error, not a
+  // comparable (widened) bound.
+  for (const v of [
+    '2027-02-30T00:00:00Z', // February 30th
+    '2027-02-29T00:00:00Z', // Feb 29 in a non-leap year
+    '1900-02-29T00:00:00Z', // Feb 29 in a non-leap century year
+    '2027-04-31T00:00:00Z', // 31st of a 30-day month
+    '2027-01-01T24:00:00Z', // hour 24
+    '2027-01-01T12:60:00Z', // minute 60
+    '2027-00-10T00:00:00Z', // month 00
+    '2026-99-99T99:99:99Z', // digit garbage in every field
+  ]) {
+    await assert.rejects(
+      decide({ grants: [dtGrant({ '@value': v, '@type': 'xsd:dateTime' })], request: request('read', `${NOTES}a.txt`) }),
+      EncodeError,
+      v,
+    );
+  }
+});
+
+test('encoder accepts real leap days (2028-02-29, 2000-02-29) as bounds', async () => {
+  for (const v of ['2028-02-29T00:00:00Z', '2000-02-29T00:00:00Z']) {
+    // 2000-02-29 is in the past relative to the request instant, so the
+    // lt-constraint is unsatisfied -> deny; 2028 bound -> permit. Both must
+    // ENCODE (no EncodeError): validity of the instant, not of the outcome.
+    const expected = v.startsWith('2028') ? 'permit' : 'deny';
+    assert.equal(
+      await decide({ grants: [dtGrant({ '@value': v, '@type': 'xsd:dateTime' })], request: request('read', `${NOTES}a.txt`) }),
+      expected,
+      v,
+    );
+  }
+});
+
 test('encoder rejects a malformed request-context dateTime', async () => {
   const g = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
   await assert.rejects(
@@ -294,8 +330,19 @@ _:req a ax:Request ;
   assert.equal(await decideRaw(raw('"2026-12-31T02:00:00+02:00"', '"2026-07-01T12:00:00Z"')), 'deny');
   // malformed request instant — must DENY
   assert.equal(await decideRaw(raw('"2026-12-31T00:00:00Z"', '"zzzz"')), 'deny');
-  // control: the same shape with canonical forms PERMITS
+  // NONEXISTENT calendar instants (digit-shaped, sort after real instants,
+  // Date.parse would normalize several of them) — must DENY in the rule set
+  for (const bad of [
+    '2027-02-30T00:00:00Z', '2027-02-29T00:00:00Z', '1900-02-29T00:00:00Z',
+    '2027-04-31T00:00:00Z', '2027-01-01T24:00:00Z', '2027-01-01T12:60:00Z',
+    '2026-99-99T99:99:99Z',
+  ]) {
+    assert.equal(await decideRaw(raw(`"${bad}"`, '"2026-07-01T12:00:00Z"')), 'deny', bad);
+  }
+  // control: the same shape with canonical forms PERMITS, including a real
+  // leap-day bound (rule-layer calendar check accepts existing instants)
   assert.equal(await decideRaw(raw('"2026-12-31T00:00:00Z"', '"2026-07-01T12:00:00Z"')), 'permit');
+  assert.equal(await decideRaw(raw('"2028-02-29T00:00:00Z"', '"2026-07-01T12:00:00Z"')), 'permit');
 });
 
 // --- grant document-type strictness ----------------------------------------------

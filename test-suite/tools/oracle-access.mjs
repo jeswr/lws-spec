@@ -101,12 +101,24 @@ const mapRightOperand = (v) => {
 // invalid date) is an encode error: a malformed bound MUST NOT be allowed to
 // masquerade as a comparable instant (it would sort arbitrarily — e.g.
 // "zzzz" after every real instant, i.e. "never expires").
-const CANONICAL_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+//
+// Every component is range-checked EXPLICITLY — never via Date.parse, which
+// silently NORMALIZES nonexistent instants (2027-02-30 -> Mar 2, 04-31 ->
+// May 1, T24:00 -> next-day midnight) and would let them through as
+// comparable bounds. Month-specific day counts and Gregorian leap years
+// included; hour 24 and leap-second 60 excluded (the canonical form).
+const CANONICAL_INSTANT = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})Z$/;
+const isLeapYear = (y) => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+const DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const daysInMonth = (y, mo) => (mo === 2 && isLeapYear(y) ? 29 : DAYS[mo - 1]);
 const instant = (v) => {
-  if (typeof v !== 'string' || !CANONICAL_INSTANT.test(v) || Number.isNaN(Date.parse(v))) {
-    throw new EncodeError(`not a canonical RFC 3339 UTC instant: ${JSON.stringify(v)}`);
+  const m = typeof v === 'string' ? CANONICAL_INSTANT.exec(v) : null;
+  if (m) {
+    const [y, mo, d, h, mi, s] = m.slice(1).map(Number);
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= daysInMonth(y, mo)
+      && h <= 23 && mi <= 59 && s <= 59) return lit(v);
   }
-  return lit(v);
+  throw new EncodeError(`not a canonical RFC 3339 UTC instant: ${JSON.stringify(v)}`);
 };
 
 // A dateTime constraint bound must be xsd:dateTime-typed (or a bare string)
