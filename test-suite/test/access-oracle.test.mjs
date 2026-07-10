@@ -10,7 +10,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { decide, EncodeError } from '../tools/oracle-access.mjs';
+import { decide, decideRaw, EncodeError } from '../tools/oracle-access.mjs';
 
 const PROFILE = 'https://w3id.org/jeswr/lws/access-profile/odrl-1';
 const BOB = 'https://id.example/bob';
@@ -207,6 +207,122 @@ test('one unsatisfied constraint among satisfied ones denies (conjunction, not m
       grants: [g],
       request: request('read', `${NOTES}a.txt`, { dateTime: '2026-07-01T12:00:00Z', purpose: 'https://purpose.example/collaboration' }),
     }),
+    'deny',
+  );
+});
+
+// --- dateTime canonical-form fail-closure ----------------------------------------
+// A malformed bound must never masquerade as a comparable instant: "zzzz"
+// sorts after every real timestamp, so without validation an lt-constraint
+// with a garbage bound would behave as "never expires" (fail OPEN). Both
+// layers close it: the encoder rejects, and the rule set independently
+// derives unsatisfiedFor on any non-canonical lexical form.
+
+const dtGrant = (rightOperand) => grant([{
+  assignee: BOB,
+  action: 'read',
+  target: { '@type': 'DataResource', uid: `${NOTES}a.txt` },
+  constraint: [{ leftOperand: 'dateTime', operator: 'lt', rightOperand }],
+}]);
+
+test('encoder rejects a lexically malformed dateTime bound', async () => {
+  await assert.rejects(
+    decide({ grants: [dtGrant({ '@value': 'zzzz', '@type': 'xsd:dateTime' })], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('encoder rejects a dateTime bound carrying a foreign datatype', async () => {
+  await assert.rejects(
+    decide({ grants: [dtGrant({ '@value': '2026-12-31T00:00:00Z', '@type': 'xsd:string' })], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('encoder rejects a non-UTC (offset) dateTime bound — only the canonical Z form is comparable', async () => {
+  await assert.rejects(
+    decide({ grants: [dtGrant({ '@value': '2026-12-31T02:00:00+02:00', '@type': 'xsd:dateTime' })], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('encoder rejects a fractional-seconds dateTime bound (breaks fixed-width lexicographic order)', async () => {
+  await assert.rejects(
+    decide({ grants: [dtGrant({ '@value': '2026-12-31T00:00:00.500Z', '@type': 'xsd:dateTime' })], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('encoder rejects a calendar-invalid dateTime bound (month 13)', async () => {
+  await assert.rejects(
+    decide({ grants: [dtGrant({ '@value': '2026-13-01T00:00:00Z', '@type': 'xsd:dateTime' })], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('encoder rejects a malformed request-context dateTime', async () => {
+  const g = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
+  await assert.rejects(
+    decide({ grants: [g], request: request('read', `${NOTES}a.txt`, { dateTime: 'not-a-time' }) }),
+    EncodeError,
+  );
+});
+
+test('the RULE SET itself fails closed on a malformed dateTime bound (unvalidated embedder input)', async () => {
+  const raw = (bound, now) => `
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix ax:   <https://w3id.org/jeswr/lws/authz#> .
+<https://storage.example/alice/.grants/raw-1> a odrl:Offer ;
+  odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
+  ax:recordedIn ax:GrantStore ;
+  odrl:permission [
+    odrl:assignee <https://id.example/bob> ;
+    odrl:action odrl:read ;
+    odrl:target [ a jlws:DataResource ; odrl:uid <https://storage.example/alice/notes/a.txt> ] ;
+    odrl:constraint [ odrl:leftOperand odrl:dateTime ; odrl:operator odrl:lt ; odrl:rightOperand ${bound} ]
+  ] .
+_:req a ax:Request ;
+  ax:agent <https://id.example/bob> ;
+  ax:action odrl:read ;
+  ax:target <https://storage.example/alice/notes/a.txt> ;
+  ax:context [ odrl:dateTime ${now} ] .
+`;
+  // garbage bound sorts after every instant — must still DENY
+  assert.equal(await decideRaw(raw('"zzzz"', '"2026-07-01T12:00:00Z"')), 'deny');
+  // non-canonical offset form — must DENY (not comparable lexicographically)
+  assert.equal(await decideRaw(raw('"2026-12-31T02:00:00+02:00"', '"2026-07-01T12:00:00Z"')), 'deny');
+  // malformed request instant — must DENY
+  assert.equal(await decideRaw(raw('"2026-12-31T00:00:00Z"', '"zzzz"')), 'deny');
+  // control: the same shape with canonical forms PERMITS
+  assert.equal(await decideRaw(raw('"2026-12-31T00:00:00Z"', '"2026-07-01T12:00:00Z"')), 'permit');
+});
+
+// --- grant document-type strictness ----------------------------------------------
+
+test('a grant record with a missing @type is an encode error, never fabricated into an Offer', async () => {
+  const g = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
+  delete g['@type'];
+  await assert.rejects(
+    decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('a grant record with an unknown @type is an encode error', async () => {
+  const g = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
+  g['@type'] = 'Agreement';
+  await assert.rejects(
+    decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    EncodeError,
+  );
+});
+
+test('an odrl:Request document among the records derives nothing (only Offers permit)', async () => {
+  const g = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
+  g['@type'] = 'Request';
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
     'deny',
   );
 });

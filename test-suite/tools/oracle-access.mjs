@@ -95,16 +95,47 @@ const mapRightOperand = (v) => {
   return lit(v);
 };
 
+// Canonical RFC 3339 UTC instant — fixed width, "Z", no fractional seconds —
+// the only form under which lexicographic order is chronological. Anything
+// else (including a real-but-non-canonical offset form, or a lexically
+// invalid date) is an encode error: a malformed bound MUST NOT be allowed to
+// masquerade as a comparable instant (it would sort arbitrarily — e.g.
+// "zzzz" after every real instant, i.e. "never expires").
+const CANONICAL_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+const instant = (v) => {
+  if (typeof v !== 'string' || !CANONICAL_INSTANT.test(v) || Number.isNaN(Date.parse(v))) {
+    throw new EncodeError(`not a canonical RFC 3339 UTC instant: ${JSON.stringify(v)}`);
+  }
+  return lit(v);
+};
+
+// A dateTime constraint bound must be xsd:dateTime-typed (or a bare string)
+// AND canonical; a foreign datatype on an instant is an encode error, never
+// silently lowered into a comparable string.
+const XSD_DATETIME = new Set(['xsd:dateTime', 'http://www.w3.org/2001/XMLSchema#dateTime']);
+const mapDateTimeOperand = (v) => {
+  if (v && typeof v === 'object' && '@value' in v) {
+    if (!XSD_DATETIME.has(v['@type'])) {
+      throw new EncodeError(`dateTime bound carries a non-xsd:dateTime datatype: ${JSON.stringify(v['@type'])}`);
+    }
+    return instant(v['@value']);
+  }
+  return instant(v);
+};
+
 // Request context: the profile left-operand IRIs ARE the context keys.
 const CONTEXT_KEYS = new Map([
-  ['dateTime', { pred: `<${ODRL}dateTime>`, kind: 'literal' }],
+  ['dateTime', { pred: `<${ODRL}dateTime>`, kind: 'instant' }],
   ['purpose', { pred: `<${ODRL}purpose>`, kind: 'auto' }],
   ['client', { pred: `<${JLWS}client>`, kind: 'auto' }],
   ['mediaType', { pred: `<${JLWS}mediaType>`, kind: 'literal' }],
   ['resourceType', { pred: `<${JLWS}resourceType>`, kind: 'auto' }],
 ]);
-const contextValue = (kind, v) => (kind === 'literal' ? lit(v)
-  : (isAbsolute(v) ? `<${v}>` : lit(v)));
+const contextValue = (kind, v) => {
+  if (kind === 'instant') return instant(v);
+  if (kind === 'literal') return lit(v);
+  return isAbsolute(v) ? `<${v}>` : lit(v);
+};
 
 const toArray = (v) => (v === undefined || v === null ? [] : (Array.isArray(v) ? v : [v]));
 
@@ -117,7 +148,13 @@ const bnode = (hint) => `_:b${hint}${bnodeCounter += 1}`;
 
 function encodeGrant(grant, lines) {
   const subj = grant.uid ? iri(grant.uid) : bnode('g');
-  const type = grant['@type'] === 'Request' ? 'Request' : 'Offer';
+  // Strict: only the profile's two document types encode; a missing or
+  // unknown @type is an encode error — NEVER fabricated into an odrl:Offer
+  // (an Offer is what the permit rule keys on).
+  const type = grant['@type'];
+  if (type !== 'Offer' && type !== 'Request') {
+    throw new EncodeError(`grant record with missing/unknown @type: ${JSON.stringify(type)}`);
+  }
   lines.push(`${subj} a <${ODRL}${type}> .`);
   if (grant.profile !== undefined) lines.push(`${subj} <${ODRL}profile> ${iri(grant.profile)} .`);
   lines.push(`${subj} <https://w3id.org/jeswr/lws/authz#recordedIn> <https://w3id.org/jeswr/lws/authz#GrantStore> .`);
@@ -137,9 +174,14 @@ function encodeGrant(grant, lines) {
       for (const c of toArray(rule.constraint)) {
         const cn = bnode('c');
         lines.push(`${p} <${ODRL}constraint> ${cn} .`);
-        if (c.leftOperand !== undefined) lines.push(`${cn} <${ODRL}leftOperand> ${mapLeftOperand(c.leftOperand)} .`);
+        const left = c.leftOperand !== undefined ? mapLeftOperand(c.leftOperand) : undefined;
+        if (left !== undefined) lines.push(`${cn} <${ODRL}leftOperand> ${left} .`);
         if (c.operator !== undefined) lines.push(`${cn} <${ODRL}operator> ${mapOperator(c.operator)} .`);
-        if (c.rightOperand !== undefined) lines.push(`${cn} <${ODRL}rightOperand> ${mapRightOperand(c.rightOperand)} .`);
+        if (c.rightOperand !== undefined) {
+          const isInstantOperand = left === `<${ODRL}dateTime>`;
+          lines.push(`${cn} <${ODRL}rightOperand> ${isInstantOperand
+            ? mapDateTimeOperand(c.rightOperand) : mapRightOperand(c.rightOperand)} .`);
+        }
       }
     }
   }
@@ -175,6 +217,18 @@ function encodeCase(input) {
 export async function decide(input) {
   const data = encodeCase(input);
   const out = await n3reasoner([data, RULES], QUERY);
+  return /permittedBy/.test(out) ? 'permit' : 'deny';
+}
+
+/**
+ * Derive the decision for a RAW, already-encoded N3 input — bypassing the
+ * encoder's validation. Exported so the tests can prove the rule set ITSELF
+ * fails closed on inputs a non-oracle embedder might feed it unvalidated
+ * (e.g. a malformed dateTime bound).
+ * @returns {Promise<'permit'|'deny'>}
+ */
+export async function decideRaw(dataN3) {
+  const out = await n3reasoner([dataN3, RULES], QUERY);
   return /permittedBy/.test(out) ? 'permit' : 'deny';
 }
 

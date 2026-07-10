@@ -39,8 +39,12 @@ one-directional because no rule derives the converse edge); a non-slash-terminat
 container/storage uid earns no prefix coverage; a constraint the profile cannot evaluate —
 unsupported operand/operator pair, missing part, or a context value the request does not
 carry — derives `ax:unsatisfiedFor`, and one unsatisfied constraint vetoes the permission
-(conjunction); a grant carrying `odrl:prohibition`/`odrl:obligation` rules derives nothing
-(their decision-time composition is not defined by this profile version).
+(conjunction); a dateTime bound or request instant outside the canonical RFC 3339 UTC `Z`
+form derives `ax:unsatisfiedFor` (lexicographic order is only chronological over the
+fixed-width canonical form — without this guard a garbage bound like `"zzzz"` would sort
+after every real instant and behave as "never expires", i.e. fail OPEN); a grant carrying
+`odrl:prohibition`/`odrl:obligation` rules derives nothing (their decision-time composition
+is not defined by this profile version).
 
 ## Input encoding
 
@@ -61,14 +65,19 @@ decision function feeds the reasoner. Terms:
 | `constraint[]` `leftOperand`: `client`/`mediaType`/`resourceType` | `odrl:leftOperand jlws:<name>` |
 | `constraint[]` `operator` (`eq`, `lt`, …) | `odrl:operator odrl:<name>` |
 | `rightOperand` `{ "@value": v, "@type": t }` | the plain literal `"v"` (canonical lexical form) |
+| `rightOperand` of a `dateTime` constraint | MUST be `xsd:dateTime`-typed (or a bare string) **and** the canonical RFC 3339 UTC `Z` form (fixed width, no fractional seconds), validated against a real calendar date — anything else is an encode error; the rule set independently fails closed on non-canonical lexical forms |
 | `rightOperand` absolute `http(s)` IRI string | `<iri>` |
 | request | `[] a ax:Request ; ax:agent <> ; ax:action <> ; ax:target <> ; ax:context [ … ]` |
 | request `context` entries | the profile **left-operand IRIs are the context keys**: `odrl:dateTime "…"`, `odrl:purpose <…>`, `jlws:client <…>`, … |
 
 Absolute `http(s)` IRIs pass through everywhere; any other unrecognised action, operand,
-operator, or context key is an **encode error** (fail loud, never silently dropped).
-`xsd:dateTime` values are presented as their canonical RFC 3339 UTC (`Z`) lexical forms,
-under which chronological and lexicographic order coincide.
+operator, context key, or grant `@type` is an **encode error** (fail loud, never silently
+dropped — in particular a record with a missing/unknown `@type` is never fabricated into an
+`odrl:Offer`). `xsd:dateTime` values are presented as their canonical RFC 3339 UTC (`Z`)
+lexical forms, under which chronological and lexicographic order coincide; the encoder
+rejects non-canonical, foreign-datatyped, or calendar-invalid instants, and the rule set
+itself derives `ax:unsatisfiedFor` on any non-canonical lexical form as defence in depth for
+embedders that feed the reasoner unvalidated data.
 
 **Security invariant (untrusted input):** the mapping produces triples only for the fields
 above. Profile facts — `ax:KnownAction` membership and the `odrl:includedIn` lattice — live

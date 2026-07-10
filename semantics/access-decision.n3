@@ -208,6 +208,24 @@ odrl:dateTime     ax:supportsOperator odrl:lt .
   ?now string:notLessThan ?b .
 } => { ?c ax:unsatisfiedFor ?req . } .
 
+# K3b/K3c. Lexicographic order is chronological ONLY over the fixed-width
+#     canonical RFC 3339 UTC "Z" form (no fractional seconds, no offsets). A
+#     dateTime bound or request instant outside that form cannot be compared
+#     and therefore fails CLOSED — otherwise a malformed bound such as "zzzz"
+#     would sort after every real instant and behave as "never expires".
+{ ?p odrl:constraint ?c .
+  ?c odrl:leftOperand odrl:dateTime ; odrl:rightOperand ?b .
+  ?req a ax:Request .
+  ?b string:notMatches "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" .
+} => { ?c ax:unsatisfiedFor ?req . } .
+
+{ ?p odrl:constraint ?c .
+  ?c odrl:leftOperand odrl:dateTime .
+  ?req a ax:Request ; ax:context ?ctx .
+  ?ctx odrl:dateTime ?now .
+  ?now string:notMatches "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" .
+} => { ?c ax:unsatisfiedFor ?req . } .
+
 # K4. FAIL CLOSED on anything this profile version cannot evaluate: a
 #     (leftOperand, operator) pair outside the supported set (profile facts
 #     above) is never satisfied. An enforcement layer that cannot evaluate a
