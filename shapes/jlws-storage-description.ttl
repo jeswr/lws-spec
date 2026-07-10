@@ -129,16 +129,24 @@ jlwssh:ServiceEntryShape
     # #grant-endpoints (definitional prose, no BCP 14 keyword — same errata-candidate
     # class the statement companion catalogues): access-document containers are
     # "advertised in the storage description as services of type AccessRequestService
-    # and AccessGrantService …, each carrying conformsTo with the profile URI".
+    # and AccessGrantService …, each carrying conformsTo with THE profile URI" — the
+    # definite article names the JLWS strict-ODRL access profile
+    # (https://w3id.org/jeswr/lws/access-profile/odrl-1, the profile of #odrl-profile
+    # / JLWSC-ODRL-1). Hence sh:hasValue of that exact IRI, not merely some IRI: a
+    # service advertising the WRONG profile URI misadvertises its interface and is
+    # rejected. sh:hasValue (include) not equality — a service MAY additionally list
+    # a spec-version conformsTo, but MUST carry the access-profile URI.
     sh:or (
         [ sh:not [ sh:class jlws:AccessRequestService ] ]
-        [ sh:property [ sh:path dcterms:conformsTo ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ]
+        [ sh:property [ sh:path dcterms:conformsTo ;
+            sh:hasValue <https://w3id.org/jeswr/lws/access-profile/odrl-1> ] ]
     ) ;
     sh:or (
         [ sh:not [ sh:class jlws:AccessGrantService ] ]
-        [ sh:property [ sh:path dcterms:conformsTo ; sh:minCount 1 ; sh:nodeKind sh:IRI ] ]
+        [ sh:property [ sh:path dcterms:conformsTo ;
+            sh:hasValue <https://w3id.org/jeswr/lws/access-profile/odrl-1> ] ]
     ) ;
-    sh:message "An AccessRequestService / AccessGrantService entry carries conformsTo with the access-profile URI (#grant-endpoints)." .
+    sh:message "An AccessRequestService / AccessGrantService entry MUST carry conformsTo with the JLWS access-profile URI https://w3id.org/jeswr/lws/access-profile/odrl-1 (#grant-endpoints)." .
 
 jlwssh:VerificationMethodShape
     a sh:NodeShape ;

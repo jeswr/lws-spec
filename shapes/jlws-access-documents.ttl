@@ -28,6 +28,22 @@
 #     (constraints conjunctive) are evaluation semantics — the executable rule set
 #     (P1, semantics/access-decision.n3 on feat/access-decision-n3) and the
 #     access-grants vectors carry them.
+#
+# odrl:profile — DELIBERATE "must include, may also declare others" reading (not
+# strict equality). JLWSC-ODRL-1 reads "MUST declare profile equal to
+# https://w3id.org/jeswr/lws/access-profile/odrl-1"; its parenthetical names the
+# harm as ABSENCE only ("an UNPROFILED ODRL document is not a conforming access
+# document"), and the vector suite tests only document-missing-profile-rejected —
+# never a wrong/extra profile. Strict equality would ADD a requirement the spec does
+# not make and would contradict the spec's OWN #delegation extension, whose chains
+# "follow the delegation-chain model implemented in SOLID-ODRL" — a separate ODRL
+# profile a delegated grant may additionally declare — as well as ODRL-MODEL's
+# multi-valued odrl:profile. So sh:hasValue (the JLWS profile MUST be present;
+# additional profiles are permitted) is the spec-faithful encoding. The "equal to"
+# wording is a genuine ambiguity flagged as an errata candidate in the report
+# (spec could clarify to "includes"). Proven both ways: the missing-profile negative
+# is rejected, and pos-access-grant-extra-profile (JLWS profile + a delegation
+# profile) still conforms.
 
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -62,12 +78,16 @@ jlwssh:AccessDocumentShape
 
     # JLWSC-ODRL-1: "Documents are JSON-LD using the ODRL context plus the JLWS
     # context, and MUST declare profile equal to
-    # https://w3id.org/jeswr/lws/access-profile/odrl-1".
+    # https://w3id.org/jeswr/lws/access-profile/odrl-1". Encoded as sh:hasValue
+    # (INCLUDE), not strict equality — see the file header's odrl:profile rationale:
+    # the stated harm is absence, and the spec's own #delegation extension + ODRL's
+    # multi-valued profile permit additional profiles. The JLWS profile MUST be
+    # present; a document may also declare others (e.g. a SOLID-ODRL delegation
+    # profile). sh:hasValue implies minCount ≥ 1, so no separate minCount is needed.
     sh:property [
         sh:path odrl:profile ;
-        sh:minCount 1 ;
         sh:hasValue <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
-        sh:message "An access document MUST declare profile equal to https://w3id.org/jeswr/lws/access-profile/odrl-1 — JLWSC-ODRL-1 (#odrl-profile); an unprofiled ODRL document is not a conforming access document." ;
+        sh:message "An access document MUST declare profile including https://w3id.org/jeswr/lws/access-profile/odrl-1 — JLWSC-ODRL-1 (#odrl-profile); an unprofiled ODRL document is not a conforming access document. Additional profiles are permitted (the JLWS profile must be present)." ;
     ] ;
 
     # #odrl-profile: "A document carries ODRL rules: permission, prohibition, and

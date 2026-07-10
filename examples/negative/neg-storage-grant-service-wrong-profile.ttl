@@ -1,0 +1,21 @@
+# AUTHORED-BY Claude Fable 5
+# NEGATIVE: violates the #grant-endpoints advertisement shape (finding 1) — an
+# AccessGrantService entry that advertises the WRONG profile URI. It carries a
+# conformsTo IRI, but not the JLWS access-profile URI
+# (https://w3id.org/jeswr/lws/access-profile/odrl-1), so it misadvertises its
+# interface and must be rejected. Proves the shape checks the SPECIFIC profile URI,
+# not merely that some conformsTo IRI is present.
+@prefix jlws:    <https://w3id.org/jeswr/lws#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix did:     <https://www.w3.org/ns/did#> .
+
+<https://storage.example/alice/> a jlws:Storage ;
+    dcterms:conformsTo <https://w3id.org/jeswr/lws/protocol/core/1.0> ;
+    did:service [
+        a jlws:StorageDescription ;
+        did:serviceEndpoint <https://storage.example/alice/description>
+    ] , [
+        a jlws:AccessGrantService ;
+        did:serviceEndpoint <https://storage.example/alice/.access/grants/> ;
+        dcterms:conformsTo <https://example.org/some-other-access-profile/v1>
+    ] .

@@ -1,0 +1,21 @@
+# AUTHORED-BY Claude Fable 5
+# POSITIVE (finding 2 — proves the deliberate "must include, may also declare
+# others" reading of JLWSC-ODRL-1): a conforming access grant that declares the
+# REQUIRED JLWS access profile AND additionally a SOLID-ODRL delegation profile —
+# the composition the spec's own #delegation extension contemplates ("chains follow
+# the delegation-chain model implemented in SOLID-ODRL"). Still conforms: the shape
+# requires the JLWS profile to be PRESENT (sh:hasValue), not to be the sole profile.
+@prefix jlws: <https://w3id.org/jeswr/lws#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<https://storage.example/alice/.grants/2f6d> a odrl:Offer ;
+    odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ,
+                 <https://w3id.org/jeswr/solid-odrl/delegation-1> ;
+    odrl:assigner <https://id.example/alice> ;
+    odrl:permission [
+        odrl:assignee <https://id.example/bob> ;
+        odrl:action odrl:read ;
+        odrl:target <https://storage.example/alice/notes/a.txt>
+    ] .
+
+<https://storage.example/alice/notes/a.txt> a jlws:DataResource .
