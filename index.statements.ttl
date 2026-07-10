@@ -38,7 +38,7 @@
 <> a sc:CompanionDocument ;
     dcterms:title "JLWS Core Protocol normative-statement companion"@en ;
     sc:companionOf <https://jeswr.github.io/lws-spec/> ;
-    sc:specVersion "c933aee98f95025ee38781a399f17a0347c5633d" ;
+    sc:specVersion "895391f74b0632c7906b7265ee4abcb573df9c8a" ;
     dcterms:created "2026-07-06"^^xsd:date ;
     prov:wasAttributedTo <https://jeswr.org/#me> ;
     dcterms:description "Extracted with AI assistance (Claude Fable 5, Anthropic) from the pinned spec source; awaiting review by the human editor, like the spec itself."@en ;

@@ -41,7 +41,7 @@
   },
   "level": "MUST",
   "operation": "evaluate-access",
-  "source": "lws-spec@f2e081d core#grants-are-records (spec-derived; decision reproduced by semantics/access-decision.n3)",
+  "source": "lws-spec@895391f core#grants-are-records (spec-derived; decision reproduced by semantics/access-decision.n3)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "revocation composes structurally: with one of two covering grants revoked (its record DELETEd), the remaining recorded grant still permits"
 }

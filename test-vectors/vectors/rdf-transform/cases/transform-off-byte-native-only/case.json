@@ -53,7 +53,7 @@
   "level": "MUST",
   "notes": "A request for a non-stored type on a transform-less storage yields either 406 or the stored representation (RFC 9110 proactive negotiation) — never a transformed body.",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#content-transformation (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#content-transformation (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "absent the capability, a data resource has exactly its stored representation: no transformation is performed"
 }

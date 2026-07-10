@@ -15,7 +15,7 @@
   },
   "level": "MUST",
   "operation": "transform-representation",
-  "source": "lws-spec@f2e081d rdf#round-trip (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f rdf#round-trip (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "relative IRIs resolve against the resource URI as base, identically in every representation"
 }

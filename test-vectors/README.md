@@ -31,7 +31,7 @@ anyone.
 `agentic-solid-conformance` *extracted* its verdicts by executing pinned reference
 implementations. **No reference server implementation of JLWS exists yet**, so the expected
 outcomes here are **derived directly from the normative text** of the two specs at commit
-`f2e081d` — the commit the suite was last **reconciled** against; whenever the spec's
+`895391f` — the commit the suite was last **reconciled** against; whenever the spec's
 normative text changes, the pin is bumped and every affected vector re-derived in the same
 change (each case's `source` field records the clause it was derived from; `notes`
 records any interpretation applied where the spec leaves a code point open, e.g. the
@@ -93,7 +93,7 @@ case, and — where the suite ships shared fixtures — a `keyring/` directory.
   "expected": { … },                            // operation-specific
   "exchanges": [ … ],                           // http-exchange multi-request form
   "notes": "…",                                 // any interpretation applied
-  "source": "lws-spec@f2e081d core#rs-validation (spec-derived; …)"
+  "source": "lws-spec@895391f core#rs-validation (spec-derived; …)"
 }
 ```
 

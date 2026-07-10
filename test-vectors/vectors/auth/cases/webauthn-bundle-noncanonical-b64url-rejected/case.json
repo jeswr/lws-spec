@@ -19,7 +19,7 @@
       "suite-webauthn"
     ]
   },
-  "source": "lws-spec@f2e081d core#suite-webauthn + solid-webauthn-reauth@cf81736 src/protocol/codec.ts isBase64url (spec-derived; the wire contract is the normative shape)",
+  "source": "lws-spec@895391f core#suite-webauthn + solid-webauthn-reauth@cf81736 src/protocol/codec.ts isBase64url (spec-derived; the wire contract is the normative shape)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a bundle whose binary field carries alphabet-valid but NON-CANONICAL base64url is rejected (fail-closed decode)"
 }

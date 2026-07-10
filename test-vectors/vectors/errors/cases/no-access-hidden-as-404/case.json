@@ -48,7 +48,7 @@
   "level": "MUST",
   "notes": "A 403 to an unentitled agent is the existence oracle the error-response rule forbids. The authorized-to-know carve-out does not apply here: bob can read the parent listing, but fail-closed listings never disclose members he cannot read.",
   "operation": "http-exchange",
-  "source": "lws-spec@f2e081d core#oracle-freedom (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#oracle-freedom (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "an agent with no permitted operation on a resource (and no entitlement to learn it exists) MUST draw 404, not 403"
 }

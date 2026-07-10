@@ -16,7 +16,7 @@
   "level": "MUST",
   "notes": "The source asserts ex:Dog rdfs:subClassOf ex:Animal and types rex as ex:Dog; the output graph must contain exactly those two triples — an inferred (rex a ex:Animal) triple would break isomorphism.",
   "operation": "transform-representation",
-  "source": "lws-spec@f2e081d rdf#round-trip (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f rdf#round-trip (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "transformation adds and removes no triples: schema statements are NOT expanded"
 }

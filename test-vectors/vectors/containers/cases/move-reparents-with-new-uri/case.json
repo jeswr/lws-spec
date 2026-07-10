@@ -97,7 +97,7 @@
       "MoveResource"
     ]
   },
-  "source": "lws-spec@f2e081d core#http-move (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@895391f core#http-move (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "move (optional): PATCHing the up link under the MoveResource capability reparents, reassigns a path-aligned URI, returns it in Location"
 }
