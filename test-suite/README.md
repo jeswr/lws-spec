@@ -62,7 +62,7 @@ See [`lib/config.mjs`](./lib/config.mjs) for the schema. Everything defaults con
 
 ## What executes, what doesn't — the honesty model
 
-The report classifies every one of the companions' statements (242 today), never silently
+The report classifies every one of the companions' statements (245 today), never silently
 dropping one:
 
 | Category | Meaning |
@@ -161,7 +161,12 @@ lib/runner.mjs     run orchestration
 targets/           committed target configs
 tools/mock-as.mjs  local mock OIDC AS (stdlib-only, loopback) minting the per-run
                    controller Bearer token for the solid-server-rs reproduction
+tools/oracle-access.mjs  the access-decision oracle: executes the NORMATIVE rule set
+                   semantics/access-decision.n3 (EYE via the pinned eyereasoner dep)
+                   over every evaluate-access vector and diffs derived vs expected
+                   decision — part of the repo gate
 reports/           committed dated reports (generated — re-run, don't edit)
 test/              self-tests (node --test), incl. strict/lenient mock servers as
-                   positive/negative controls for the runner itself
+                   positive/negative controls for the runner itself and the
+                   adversarial access-decision probes (test/access-oracle.test.mjs)
 ```

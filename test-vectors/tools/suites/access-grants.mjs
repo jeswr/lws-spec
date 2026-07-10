@@ -6,7 +6,8 @@
 // (core#odrl-profile, #access-requests-grants, #grants-are-records).
 
 export default function accessGrants(ctx) {
-  const { STORAGE, CORE, ALICE, BOB, NOW } = ctx;
+  const { STORAGE, CORE, ALICE, BOB, NOW, SPEC_SOURCE } = ctx;
+  const ORACLE = (clause) => `${SPEC_SOURCE} ${clause} (spec-derived; decision reproduced by semantics/access-decision.n3)`;
   const NOTES = `${STORAGE}notes/`;
   const A = `${NOTES}a.txt`;
   const PROFILE = 'https://w3id.org/jeswr/lws/access-profile/odrl-1';
@@ -45,8 +46,12 @@ export default function accessGrants(ctx) {
       + 'evaluation — a permitting grant, a denied request, one-directional '
       + 'jlws:create/jlws:append ⊑ odrl:modify inclusion, unknown-action '
       + 'fail-closed, recursive vs non-recursive Container targets, '
-      + 'conjunctive purpose/dateTime constraints, and the foaf:Agent public '
-      + 'assignee.',
+      + 'conjunctive purpose/dateTime constraints, unsupported-constraint '
+      + 'fail-closed, the foaf:Agent public assignee, and structural '
+      + 'revocation composition over the recorded grant set. Every '
+      + 'evaluate-access decision is reproduced by the normative executable '
+      + 'rule set semantics/access-decision.n3 '
+      + '(test-suite/tools/oracle-access.mjs).',
     cases: [
       // ------------------------------------------------------------------
       // Document validation (core#odrl-profile)
@@ -318,6 +323,99 @@ export default function accessGrants(ctx) {
           request: evalRequest('read', A, { agent: 'https://id.example/carol' }),
         },
         expected: { decision: 'permit' },
+      },
+      {
+        id: 'unsupported-constraint-fail-closed',
+        title: 'a constraint the enforcement layer cannot evaluate is unsatisfied (fail closed): an extension left operand denies',
+        clauses: ['core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#odrl-profile'),
+        input: {
+          grants: [grant([{
+            assignee: BOB,
+            action: 'read',
+            target: { '@type': 'DataResource', uid: A },
+            constraint: [{
+              leftOperand: 'https://extension.example/geolocation',
+              operator: 'eq',
+              rightOperand: 'https://geo.example/eu',
+            }],
+          }])],
+          request: evalRequest('read'),
+        },
+        expected: { decision: 'deny' },
+      },
+      // ------------------------------------------------------------------
+      // Revocation composes structurally over the record
+      // (core#grants-are-records): a grant is recorded until DELETEd, the
+      // decision is permit iff ANY recorded grant covers the request, and
+      // deny is the decision-time closed-world absence of every covering
+      // grant.
+      // ------------------------------------------------------------------
+      {
+        id: 'two-covering-grants-permit',
+        title: 'two recorded grants independently cover the same request: permitted (each is a justification)',
+        clauses: ['core#grants-are-records', 'core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#grants-are-records'),
+        input: {
+          grants: [
+            grant([{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'Container', uid: NOTES, recursive: true },
+            }]),
+            grant([{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: `${NOTES}deep/nested/file.txt` },
+            }], `${STORAGE}.grants/vec-2`),
+          ],
+          request: evalRequest('read', `${NOTES}deep/nested/file.txt`),
+        },
+        expected: { decision: 'permit' },
+      },
+      {
+        id: 'revoke-one-covering-grant-still-permitted',
+        title: 'revocation composes structurally: with one of two covering grants revoked (its record DELETEd), the remaining recorded grant still permits',
+        clauses: ['core#grants-are-records', 'core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#grants-are-records'),
+        input: {
+          // vec-1 (the recursive-container grant of the previous case) was
+          // revoked: the DELETE removed its record, so it no longer appears
+          // among the recorded grants.
+          grants: [
+            grant([{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: `${NOTES}deep/nested/file.txt` },
+            }], `${STORAGE}.grants/vec-2`),
+          ],
+          request: evalRequest('read', `${NOTES}deep/nested/file.txt`),
+        },
+        expected: { decision: 'permit' },
+      },
+      {
+        id: 'revoke-all-covering-grants-denied',
+        title: 'revoking every covering grant denies: deny is the closed-world absence of any covering recorded grant at decision time',
+        clauses: ['core#grants-are-records', 'core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#grants-are-records'),
+        input: {
+          // Both covering grants revoked; an unrelated grant (another
+          // assignee, another container) remains recorded — its presence
+          // must not leak coverage.
+          grants: [
+            grant([{
+              assignee: 'https://id.example/carol',
+              action: 'read',
+              target: { '@type': 'Container', uid: `${STORAGE}inbox/`, recursive: true },
+            }], `${STORAGE}.grants/vec-3`),
+          ],
+          request: evalRequest('read', `${NOTES}deep/nested/file.txt`),
+        },
+        expected: { decision: 'deny' },
       },
       {
         id: 'storage-resource-target-covers-storage',

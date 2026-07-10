@@ -1,5 +1,5 @@
 {
-  "caseCount": 150,
+  "caseCount": 154,
   "evaluationInstant": "2026-07-01T12:00:00Z",
   "name": "jlws-conformance-test-vectors",
   "schemaVersion": 1,
@@ -59,8 +59,8 @@
       "suite": "dpop-sk"
     },
     {
-      "caseCount": 17,
-      "description": "The ODRL Access Requests & Grants interface: conforming-document validation (REQUIRED profile declaration, odrl:Request/odrl:Offer, exactly one action and one target per rule) and default-deny grant evaluation — a permitting grant, a denied request, one-directional jlws:create/jlws:append ⊑ odrl:modify inclusion, unknown-action fail-closed, recursive vs non-recursive Container targets, conjunctive purpose/dateTime constraints, and the foaf:Agent public assignee.",
+      "caseCount": 21,
+      "description": "The ODRL Access Requests & Grants interface: conforming-document validation (REQUIRED profile declaration, odrl:Request/odrl:Offer, exactly one action and one target per rule) and default-deny grant evaluation — a permitting grant, a denied request, one-directional jlws:create/jlws:append ⊑ odrl:modify inclusion, unknown-action fail-closed, recursive vs non-recursive Container targets, conjunctive purpose/dateTime constraints, unsupported-constraint fail-closed, the foaf:Agent public assignee, and structural revocation composition over the recorded grant set. Every evaluate-access decision is reproduced by the normative executable rule set semantics/access-decision.n3 (test-suite/tools/oracle-access.mjs).",
       "path": "vectors/access-grants/manifest.json",
       "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
       "suite": "access-grants"

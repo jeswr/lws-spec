@@ -50,7 +50,7 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   uploads) vs adopted defaults.
 - **`docs/DESIGN-BRIEF.md`** — the research foundation (primary-source-cited survey of the WG,
   its drafts, minutes, issues, and the maintainer's own prior LWS artifacts).
-- **`test-vectors/`** — the **conformance test-vector suite**: 150 language-neutral
+- **`test-vectors/`** — the **conformance test-vector suite**: 154 language-neutral
   (input, operation, expected-outcome) cases across 10 suites in the
   `agentic-solid-conformance` format, each pinning normative clauses by spec section id;
   JSON cases with Turtle/JSON-LD/N-Quads fixtures plus real signed EdDSA at+jwt, RFC 9421
@@ -58,9 +58,22 @@ AI-authored draft **awaiting review by the human editor**; the open questions in
   `GAPS.md` inventorying the un-vectorable normative statements. Includes the composition
   suites from `docs/alignment/`: `dpop-sk`, the WebAuthn wire-contract cases, the a2a-rdf
   `AgentInteractionService` discovery pair, and the rdf-1 advertisement contract. The
-  expected verdicts are spec-derived (no reference implementation exists yet — see the suite
-  README's provenance note); this suite is the conformance target the first implementation
-  (the planned `solid-server-rs` LWS work) builds to.
+  expected verdicts are spec-derived (no reference *server* implementation exists yet — see
+  the suite README's provenance note); the `evaluate-access` decisions are additionally
+  reproduced by executing the normative rule set `semantics/access-decision.n3` (below).
+  This suite is the conformance target the first implementation (the planned
+  `solid-server-rs` LWS work) builds to.
+- **`semantics/`** — the **executable access-decision semantics**: `access-decision.n3`, the
+  normative Notation3 rule set defining the strict ODRL profile's `evaluate-access` decision
+  function (permit-derivation over recorded grants; one-directional action inclusion;
+  trailing-slash-guarded target coverage; conjunctive, fail-closed constraint satisfaction;
+  deny = decision-time closed-world absence of a permit derivation), referenced normatively
+  from `index.html` `#odrl-profile` and linked from the affected companion statements via
+  `sc:formalModel`. Executed by EYE (`eyereasoner`): `test-suite/tools/oracle-access.mjs`
+  runs it as the definitional oracle over every `evaluate-access` vector (the vectors and
+  the rule set must never disagree), and `test-suite/test/access-oracle.test.mjs` probes it
+  adversarially (prefix escapes, widening-injection containment, malformed constraints).
+  See `semantics/README.md`.
 - **`test-suite/`** — the **executable conformance suite**: a Node runner that plays the
   committed test-vectors against a target server URL and reports **per-normative-statement**
   pass / fail / untested verdicts keyed to the companion statement IDs, honouring the
@@ -97,6 +110,9 @@ the emitted files):
 node tools/check-html.mjs index.html rdf-transform.html
 node test-vectors/tools/check.mjs
 node test-vectors/tools/generate.mjs   # regenerate; git diff must stay clean
+# the executable access-decision semantics MUST reproduce every evaluate-access
+# vector (needs `npm install` in test-suite/ once — eyereasoner):
+node test-suite/tools/oracle-access.mjs
 # statement companions (validator + shapes live in jeswr/spec-companion):
 node <spec-companion>/tools/validate.mjs index.statements.ttl --spec-html index.html
 node <spec-companion>/tools/validate.mjs rdf-transform.statements.ttl --spec-html rdf-transform.html

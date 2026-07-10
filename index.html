@@ -1323,7 +1323,19 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
         <code>odrl:purpose</code> (via <code>hasPurpose</code>-to-<code>odrl:purpose</code>
         normalisation per PR #109), <code>jlws:client</code>, <code>jlws:mediaType</code>,
         <code>jlws:resourceType</code>, and <code>odrl:dateTime</code>. When multiple constraints
-        are present, all MUST be satisfied.</li>
+        are present, all MUST be satisfied. An enforcement layer that cannot evaluate a
+        constraint MUST treat it as unsatisfied (fail closed).</li>
+      <li><strong>Decision function:</strong> the evaluation semantics of this profile is
+        defined by the executable Notation3 rule set
+        <a href="semantics/access-decision.n3"><code>semantics/access-decision.n3</code></a>,
+        which encodes the action inclusion, target matchers, public assignee, and conjunctive
+        constraint satisfaction above and runs as the definitional oracle over every
+        <code>evaluate-access</code> test vector
+        (<code>test-suite/tools/oracle-access.mjs</code>; the vectors and the rule set must
+        never disagree). A server's enforcement MUST compute access decisions equivalent to
+        the rule set: a request is permitted exactly when at least one recorded grant derives
+        a permit justification for it, and denied otherwise — deny is the closed-world absence
+        of any permit derivation at decision time (default deny).</li>
     </ul>
     <pre class="example" title="Access grant (odrl:Offer) — read access to a container for a stated purpose, expiring">
 {
@@ -1384,6 +1396,11 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
       <li>Derived views — container listings, type indexes, query results — MUST reflect
         revocation immediately (the live-authorization rule of [[LWS-SEARCHINDEX-ED]],
         generalised).</li>
+      <li>Enforcement composes over the whole record: revoking one grant MUST NOT deny a
+        request that another recorded grant still permits — deny is the closed-world absence,
+        at decision time, of every covering grant (the decision function of
+        <a href="#odrl-profile"></a>; revocation removes one justification, never the
+        composition).</li>
       <li>Grants are the authoritative interchange <em>record</em>; whether the server's policy
         engine treats them as its source of truth or as a projection is an implementation choice
         (the Working Group contention in
@@ -2043,7 +2060,7 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
   <h2>Test-vector index</h2>
   <p>
     The conformance test-vector suite ships in this repository at
-    <a href="./test-vectors/README.md"><code>test-vectors/</code></a>: 150 language-neutral
+    <a href="./test-vectors/README.md"><code>test-vectors/</code></a>: 154 language-neutral
     (input, operation, expected-outcome) cases in the format of
     <a href="https://github.com/jeswr/agentic-solid-conformance">agentic-solid-conformance</a>,
     each pinning specific normative clauses of this document or the RDF Content Transformation
