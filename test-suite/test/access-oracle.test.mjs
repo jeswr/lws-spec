@@ -124,6 +124,34 @@ test('a NON-matching prohibition (different assignee) in the same grant does not
   );
 });
 
+test('a NON-matching prohibition (different action) in the same grant does not block the permission', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { prohibition: [{ assignee: BOB, action: 'append', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('prohibition matching uses the action-inclusion lattice: prohibiting modify blocks a create request the modify permission would otherwise cover', async () => {
+  // Rule M matches a prohibition through ax:satisfiesGranted exactly like a
+  // permission (create odrl:includedIn modify), so a prohibition of the WIDE
+  // action must deny the NARROW request. If prohibition matching ever
+  // regressed to bare action equality this would silently fail open: the
+  // modify permission would still cover the create request while the modify
+  // prohibition no longer blocked it.
+  const g = grant(
+    [{ assignee: BOB, action: 'modify', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { prohibition: [{ assignee: BOB, action: 'modify', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('create', `${NOTES}a.txt`) }),
+    'deny',
+  );
+});
+
 test('a matching obligation makes the permission NOT exercisable: no discharge mechanism exists, so it is always unmet', async () => {
   const g = grant(
     [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
@@ -174,10 +202,28 @@ test('prohibition/obligation composition is PER GRANT, never global: an obligati
   );
 });
 
-test('a prohibition without an assignee never matches (fail closed like a permission without an assignee), so it does not block', async () => {
+// Assignee-less rules are inert under rule M for EVERY rule kind (rule B fires
+// only on a present assignee; the profile's explicit "everyone" form is
+// foaf:Agent). NOTE the direction honestly: for a permission, never-matching is
+// the fail-closed direction (no permit); for a blocking rule (prohibition /
+// obligation) it is the PERMISSIVE direction — the co-recorded permission
+// proceeds. That is the profile's documented matching-scoped composition
+// (DECISIONS.md D23), pinned here so any change to it is a deliberate one.
+test('a prohibition without an assignee never matches (assignee-less rules are inert; for a blocking rule that is the permissive direction), so it does not block', async () => {
   const g = grant(
     [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
     { prohibition: [{ action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('an obligation without an assignee never matches (same rule-M inertness as an assignee-less prohibition), so it does not block', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { obligation: [{ action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
   );
   assert.equal(
     await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
