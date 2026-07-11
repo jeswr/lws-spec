@@ -95,7 +95,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@0f6b80f core#presentation-pop + dpop-sk-spec@f485855 #establishment, #discovery (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#presentation-pop + dpop-sk-spec@f485855 #establishment, #discovery (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a PoP-required realm offering DPoP-SK signals it with the single dpop_bound_access_tokens_required member — no separate DPoP-SK required-member exists — and omits Bearer from its challenges"
 }

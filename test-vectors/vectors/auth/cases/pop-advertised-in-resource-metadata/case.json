@@ -66,7 +66,7 @@
       "pop-profile-dpop"
     ]
   },
-  "source": "lws-spec@0f6b80f core#presentation-pop (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#presentation-pop (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "an offered DPoP profile is advertised through RFC 9728 resource metadata (dpop_signing_alg_values_supported)"
 }

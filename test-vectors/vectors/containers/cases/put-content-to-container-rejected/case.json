@@ -64,7 +64,7 @@
   "level": "MUST",
   "notes": "The only representation of a container is the server-managed listing; a successful content PUT would (per RFC 9110) mean the enclosed representation replaced it, so the PUT cannot succeed.",
   "operation": "http-exchange",
-  "source": "lws-spec@0f6b80f core#container-vs-data (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#container-vs-data (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "client-authored content is never served as a container representation: content PUT to a container fails, the listing survives"
 }

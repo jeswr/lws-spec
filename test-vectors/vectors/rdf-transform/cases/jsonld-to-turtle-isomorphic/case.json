@@ -15,7 +15,7 @@
   },
   "level": "MUST",
   "operation": "transform-representation",
-  "source": "lws-spec@0f6b80f rdf#round-trip (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 rdf#round-trip (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "application/ld+json → text/turtle preserves the RDF graph up to isomorphism"
 }

@@ -78,7 +78,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@0f6b80f core#http-general (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#http-general (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "every 4xx response carries an RFC 9457 application/problem+json body"
 }

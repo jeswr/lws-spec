@@ -84,7 +84,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@0f6b80f rdf#round-trip (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 rdf#round-trip (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "when the stored bytes fail to parse, derived representations answer 406 unparseable-source while the stored bytes stay readable"
 }

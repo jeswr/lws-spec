@@ -20,7 +20,7 @@
       "suite-webauthn"
     ]
   },
-  "source": "lws-spec@0f6b80f core#suite-webauthn + solid-webauthn-reauth@cf81736 src/protocol/codec.ts decodeAssertionBundle (spec-derived; the wire contract is the normative shape)",
+  "source": "lws-spec@59da847 core#suite-webauthn + solid-webauthn-reauth@cf81736 src/protocol/codec.ts decodeAssertionBundle (spec-derived; the wire contract is the normative shape)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a well-formed WebAuthn assertion bundle decodes: version 1 envelope, public-key credential, canonical base64url binary fields"
 }

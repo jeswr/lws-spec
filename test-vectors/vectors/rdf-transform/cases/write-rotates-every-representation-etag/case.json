@@ -152,7 +152,7 @@
   },
   "level": "MUST",
   "operation": "http-exchange",
-  "source": "lws-spec@0f6b80f rdf#authoritative-bytes (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 rdf#authoritative-bytes (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/transform/rdf-1",
   "title": "a state change rotates the ETag of EVERY representation"
 }

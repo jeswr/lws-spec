@@ -108,7 +108,7 @@
       "pop-profile-dpop-sk"
     ]
   },
-  "source": "lws-spec@0f6b80f core#authz-discovery + dpop-sk-spec@f485855 #discovery (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#authz-discovery + dpop-sk-spec@f485855 #discovery (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a DPoP-SK-enabled realm advertises pop_session in its RFC 9728 resource metadata, beside jlws_storage_description"
 }

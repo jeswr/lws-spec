@@ -26,7 +26,7 @@
   },
   "level": "MUST",
   "operation": "validate-notification-envelope",
-  "source": "lws-spec@0f6b80f core#notification-envelope (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#notification-envelope (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a content-free Update envelope with published and an id+type-only object validates"
 }

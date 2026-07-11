@@ -45,7 +45,7 @@
   "level": "MUST",
   "notes": "Full-stack: the fixture token is time-pinned; the harness evaluates token temporal claims against state.now, not the wall clock.",
   "operation": "http-exchange",
-  "source": "lws-spec@0f6b80f core#presentation-bearer (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#presentation-bearer (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a JLWS server MUST accept Bearer presentation of a valid audience-restricted at+jwt (the PoP-off baseline)"
 }

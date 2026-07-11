@@ -37,7 +37,7 @@
 <> a sc:CompanionDocument ;
     dcterms:title "JLWS RDF Content Transformation Profile normative-statement companion"@en ;
     sc:companionOf <https://jeswr.github.io/lws-spec/rdf-transform.html> ;
-    sc:specVersion "0f6b80fb4d299da0c0fcf2d9f359dc9a838c64c5" ;
+    sc:specVersion "59da847943d8594b33f2273fea90d4256abb0b88" ;
     dcterms:created "2026-07-06"^^xsd:date ;
     prov:wasAttributedTo <https://jeswr.org/#me> ;
     dcterms:description "Extracted with AI assistance (Claude Fable 5, Anthropic) from the pinned spec source via the spec-normative-analysis lws-rdf-transform inventory; awaiting review by the human editor, like the spec itself."@en ;

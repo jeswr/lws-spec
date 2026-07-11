@@ -78,7 +78,7 @@
   "level": "MUST",
   "notes": "The term is minted and defined by the a2a-rdf extension (#AgentInteractionService): serviceEndpoint is the controller-agent's A2A Agent Card URL (the card, not the A2A endpoint); conformsTo asserts the agent declares the extension. JLWS needs no edit — extension services use absolute URIs (core#capability-registry), and consumers that do not recognise the type ignore it (core#discovery-model; already pinned by storage-description-unknown-capability-ignored).",
   "operation": "discover-service",
-  "source": "lws-spec@0f6b80f core#capability-registry + a2a-rdf-extension@d3a2773 #AgentInteractionService (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#capability-registry + a2a-rdf-extension@d3a2773 #AgentInteractionService (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "a storage description advertising the a2a-rdf AgentInteractionService extension entry yields the agent-card URL to a recognising consumer"
 }

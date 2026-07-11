@@ -11,7 +11,7 @@
 // tools/keys/ (generated on first run and committed; Ed25519 signatures are
 // deterministic, so regeneration is byte-stable).
 //
-// The expected verdicts are DERIVED FROM THE SPEC TEXT (lws-spec @ 0f6b80f —
+// The expected verdicts are DERIVED FROM THE SPEC TEXT (lws-spec @ 59da847 —
 // the commit the suite was last reconciled against; bump SPEC_SOURCE + rerun
 // a reconciliation pass whenever the spec's normative text changes), not
 // extracted from a reference implementation — none exists yet. See
@@ -36,7 +36,7 @@ const KEYDIR = join(TOOLS, 'keys');
 // Shared constants (exposed to the suite modules via ctx)
 // ---------------------------------------------------------------------------
 
-export const SPEC_SOURCE = 'lws-spec@0f6b80f';
+export const SPEC_SOURCE = 'lws-spec@59da847';
 // Companion documents whose anchors are cited in `source`/`notes` (never in
 // `clauses`, which pin only core#/rdf# section ids — see README):
 export const DPOP_SK_SOURCE = 'dpop-sk-spec@f485855';

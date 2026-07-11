@@ -70,7 +70,7 @@
   "level": "MUST",
   "notes": "The document URI is whatever the 401 challenge advertises as resource_metadata; the harness resolves it from a challenge first.",
   "operation": "http-exchange",
-  "source": "lws-spec@0f6b80f core#authz-discovery (spec-derived; no reference implementation yet)",
+  "source": "lws-spec@59da847 core#authz-discovery (spec-derived; no reference implementation yet)",
   "spec": "https://w3id.org/jeswr/lws/protocol/core/1.0",
   "title": "the RFC 9728 protected resource metadata document carries resource, authorization_servers, and jlws_storage_description"
 }
