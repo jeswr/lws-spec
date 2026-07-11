@@ -84,7 +84,14 @@ test('a hostile document field cannot inject widening facts: the encoder rejects
   );
 });
 
-test('a grant carrying a prohibition rule derives nothing (undefined composition fails closed)', async () => {
+// --- prohibition / obligation composition (semantics/access-decision.n3 M/N/O) ---
+// The committed vectors (prohibition-denies-despite-permission,
+// unmet-obligation-fail-closed, obligation-for-different-action-not-blocking)
+// pin the positive samples; these probe the composition is properly SCOPED —
+// matching-based, not a blanket "grant carries the rule kind" veto — and that
+// it composes per grant, never globally.
+
+test('a matching prohibition denies despite an otherwise-matching permission (odrl:prohibit conflict-resolution strategy)', async () => {
   const g = grant(
     [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
     { prohibition: [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
@@ -92,6 +99,89 @@ test('a grant carrying a prohibition rule derives nothing (undefined composition
   assert.equal(
     await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
     'deny',
+  );
+});
+
+test('a NON-matching prohibition (different target) in the same grant does not block the permission', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { prohibition: [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}other.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('a NON-matching prohibition (different assignee) in the same grant does not block the permission', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { prohibition: [{ assignee: 'https://id.example/carol', action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('a matching obligation makes the permission NOT exercisable: no discharge mechanism exists, so it is always unmet', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { obligation: [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'deny',
+  );
+});
+
+test('a NON-matching obligation (different action) in the same grant does not block the permission', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { obligation: [{ assignee: BOB, action: 'append', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('prohibition/obligation composition is PER GRANT, never global: a prohibition in a DIFFERENT recorded grant does not block this grant\'s permit', async () => {
+  const permitting = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
+  const prohibiting = {
+    '@type': 'Offer',
+    uid: 'https://storage.example/alice/.grants/t-2',
+    profile: PROFILE,
+    prohibition: [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+  };
+  assert.equal(
+    await decide({ grants: [permitting, prohibiting], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('prohibition/obligation composition is PER GRANT, never global: an obligation in a DIFFERENT recorded grant does not block this grant\'s permit', async () => {
+  const permitting = grant([{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }]);
+  const obligating = {
+    '@type': 'Offer',
+    uid: 'https://storage.example/alice/.grants/t-2',
+    profile: PROFILE,
+    obligation: [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+  };
+  assert.equal(
+    await decide({ grants: [permitting, obligating], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
+  );
+});
+
+test('a prohibition without an assignee never matches (fail closed like a permission without an assignee), so it does not block', async () => {
+  const g = grant(
+    [{ assignee: BOB, action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }],
+    { prohibition: [{ action: 'read', target: { '@type': 'DataResource', uid: `${NOTES}a.txt` } }] },
+  );
+  assert.equal(
+    await decide({ grants: [g], request: request('read', `${NOTES}a.txt`) }),
+    'permit',
   );
 });
 

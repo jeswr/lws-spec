@@ -7,7 +7,7 @@ profile's `evaluate-access` decision function (JLWS Core Protocol
 [`#odrl-profile`](../index.html), [`#grants-are-records`](../index.html)). The full-text spec
 references it normatively (the *Decision function* bullet of `#odrl-profile`), and the
 statement companion links every affected `spec:Requirement` to it via `sc:formalModel`
-(JLWSC-ODRL-3/4/5/6/7, JLWSC-GR-1/5).
+(JLWSC-ODRL-3/4/5/6/7/8/9, JLWSC-GR-1/5).
 
 This is the [Cedar](https://github.com/cedar-policy/cedar-spec)-style
 definitional-implementation pattern, on-stack: grants are RDF, so the definitional evaluator
@@ -45,8 +45,25 @@ minute/second 60, month 00/99) — derives `ax:unsatisfiedFor` via a fully calen
 pattern (lexicographic order is only chronological over the fixed-width canonical form of
 instants that exist — without this guard a garbage bound like `"zzzz"` or
 `"2026-99-99T99:99:99Z"` would sort after real instants and widen an `lt` bound, i.e. fail
-OPEN); a grant carrying `odrl:prohibition`/`odrl:obligation` rules derives nothing (their
-decision-time composition is not defined by this profile version).
+OPEN).
+
+**Prohibition and obligation composition** (rules M, N, O): `odrl:prohibition` and
+`odrl:obligation` rules carry the identical assignee/action/target/constraint shape as
+`odrl:permission` rules and are matched against the request the same way (`ax:matchesRequest`,
+rule M — one derivation shared by all three rule kinds). A prohibition rule of the *same*
+grant that matches the request denies it, regardless of an otherwise-matching permission of
+that grant — ODRL's `odrl:prohibit` deny-overrides Conflict Resolution strategy. An obligation
+rule of the *same* grant that matches the request makes the matching permission not
+exercisable: this profile version defines no wire representation of duty fulfilment, so a
+matching obligation is always unverifiable at decision time (fail closed until a future
+profile version defines a discharge mechanism). A prohibition/obligation rule that does *not*
+match the request — different assignee, action, target, or one of its own constraints
+unsatisfied — does not participate: an enforcement layer MUST NOT treat a grant merely
+*carrying* either rule kind as blocking every permission of that grant (the coarser prior
+behaviour). Both compose **per grant, never globally** — a prohibition/obligation recorded in
+one grant does not reach a different grant's permit derivation, mirroring the structural,
+per-grant composition of revocation. See the `DECISION-TIME COMPOSITION` header comment in
+`access-decision.n3` and DECISIONS.md D23.
 
 ## Input encoding
 
@@ -96,8 +113,8 @@ document cannot inject widening (or any other) assertions into the evaluation.
   disagree).
 - `test-suite/test/access-oracle.test.mjs` — adversarial regression probes beyond the
   vectors: prefix-escape attempts, widening-injection containment, malformed and
-  unevaluable constraints, prohibition fail-closure, revocation composition
-  (run with `cd test-suite && npm test`).
+  unevaluable constraints, prohibition/obligation matching-scope and per-grant composition,
+  revocation composition (run with `cd test-suite && npm test`).
 
 The rule set is stratified and non-recursive; the only negation is the scoped
 empty-collection check at the decision boundary (`log:collectAllIn` + `list:length 0`), so

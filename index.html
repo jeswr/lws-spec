@@ -1336,6 +1336,28 @@ WWW-Authenticate: Bearer realm="https://storage.example/alice/",
         the rule set: a request is permitted exactly when at least one recorded grant derives
         a permit justification for it, and denied otherwise — deny is the closed-world absence
         of any permit derivation at decision time (default deny).</li>
+      <li><strong>Prohibition and obligation composition:</strong> a grant's
+        <code>prohibition</code> and <code>obligation</code> rules carry the identical
+        assignee/action/target/constraint shape as <code>permission</code> rules, are matched
+        against a request the same way a permission rule is, and compose with the permission
+        rules of the <em>same</em> grant only — see the executable rules M (matching), N
+        (prohibition), and O (obligation) of
+        <a href="semantics/access-decision.n3"><code>semantics/access-decision.n3</code></a>.
+        ODRL defines three named Conflict Resolution strategies for a policy whose Permission
+        and Prohibition overlap ([[!ODRL-MODEL]]); this profile adopts <code>odrl:prohibit</code>
+        (deny overrides). A prohibition rule that matches the request MUST deny the request
+        under that grant, regardless of an otherwise-matching permission of the same
+        grant. An obligation rule that matches the request MUST make the matching permission
+        of the same grant not exercisable; this profile version defines no wire
+        representation of duty fulfilment, so a matching obligation MUST always be treated as
+        unverifiable at decision time. A prohibition or obligation rule that does not match
+        the request — a different assignee, action, or target, or one of its own constraints
+        unsatisfied — does not participate in the decision: an enforcement layer MUST NOT
+        treat a grant merely carrying a prohibition or obligation rule as blocking every
+        permission of that grant. Composition is per grant: a prohibition or obligation
+        recorded in one grant MUST NOT affect a different grant's permit derivation, matching
+        the structural, per-grant composition of revocation
+        (<a href="#grants-are-records"></a>).</li>
     </ul>
     <pre class="example" title="Access grant (odrl:Offer) — read access to a container for a stated purpose, expiring">
 {

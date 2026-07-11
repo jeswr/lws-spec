@@ -1,5 +1,5 @@
 {
-  "caseCount": 21,
+  "caseCount": 24,
   "cases": [
     {
       "id": "access-grants/grant-document-valid",
@@ -84,6 +84,18 @@
     {
       "id": "access-grants/storage-resource-target-covers-storage",
       "path": "cases/storage-resource-target-covers-storage/case.json"
+    },
+    {
+      "id": "access-grants/prohibition-denies-despite-permission",
+      "path": "cases/prohibition-denies-despite-permission/case.json"
+    },
+    {
+      "id": "access-grants/unmet-obligation-fail-closed",
+      "path": "cases/unmet-obligation-fail-closed/case.json"
+    },
+    {
+      "id": "access-grants/obligation-for-different-action-not-blocking",
+      "path": "cases/obligation-for-different-action-not-blocking/case.json"
     }
   ],
   "clauseIndex": {
@@ -114,7 +126,10 @@
       "access-grants/two-covering-grants-permit",
       "access-grants/revoke-one-covering-grant-still-permitted",
       "access-grants/revoke-all-covering-grants-denied",
-      "access-grants/storage-resource-target-covers-storage"
+      "access-grants/storage-resource-target-covers-storage",
+      "access-grants/prohibition-denies-despite-permission",
+      "access-grants/unmet-obligation-fail-closed",
+      "access-grants/obligation-for-different-action-not-blocking"
     ],
     "core#oracle-freedom": [
       "access-grants/request-denied-without-grant"

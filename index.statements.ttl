@@ -1504,7 +1504,33 @@
                   <test-vectors/vectors/access-grants/cases/storage-resource-target-covers-storage/case.json> ,
                   <test-vectors/vectors/access-grants/cases/two-covering-grants-permit/case.json> ,
                   <test-vectors/vectors/access-grants/cases/revoke-one-covering-grant-still-permitted/case.json> ,
-                  <test-vectors/vectors/access-grants/cases/revoke-all-covering-grants-denied/case.json> .
+                  <test-vectors/vectors/access-grants/cases/revoke-all-covering-grants-denied/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/prohibition-denies-despite-permission/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/unmet-obligation-fail-closed/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/obligation-for-different-action-not-blocking/case.json> .
+
+<#JLWSC-ODRL-8> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-8" ;
+    spec:statement "A prohibition rule that matches the request MUST deny the request under that grant, regardless of an otherwise-matching permission of the same grant." ;
+    rdfs:comment "Decision-time composition of a grant carrying odrl:prohibition alongside odrl:permission (semantics/access-decision.n3 rules M/N/D). Matching uses the identical assignee/action/target/constraint predicates a permission match uses (rule M), so a prohibition of a DIFFERENT assignee/action/target, or with one of its own constraints unsatisfied, does not participate — obligation-for-different-action-not-blocking pins the analogous non-matching case for obligation; the suite has no matching-scope negative case of its own for prohibition beyond the adversarial regression probes in test-suite/test/access-oracle.test.mjs (non-vectored per the harness's evaluate-access-is-oracle-reproduced discipline). Composition is per grant, never global — a prohibition recorded in a different grant does not affect this grant's permit derivation, matching the per-grant structure of revocation (JLWSC-GR-5)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/prohibition-denies-despite-permission/case.json> .
+
+<#JLWSC-ODRL-9> a spec:Requirement ;
+    dcterms:identifier "JLWSC-ODRL-9" ;
+    spec:statement "An obligation rule that matches the request MUST make the matching permission of the same grant not exercisable; this profile version defines no wire representation of duty fulfilment, so a matching obligation MUST always be treated as unverifiable at decision time." ;
+    rdfs:comment "Decision-time composition of a grant carrying odrl:obligation alongside odrl:permission (semantics/access-decision.n3 rules M/O/D); matching uses the same rule-M predicates as prohibition (JLWSC-ODRL-8) and permission. Because no field of the document shape asserts a duty was performed, EVERY matching obligation is unmet under this profile version — unmet-obligation-fail-closed pins the positive (blocking) case, obligation-for-different-action-not-blocking pins that a non-matching obligation of the same grant does not participate (composition is scoped by matching, not a blanket veto on the grant carrying the rule kind). Duty-fulfilment/discharge tracking itself remains an unrepresented gap for a future profile version (test-vectors/GAPS.md)."@en ;
+    spec:requirementLevel spec:MUST ;
+    spec:requirementSubject <#Server> ;
+    sc:testability sc:Enforceable ;
+    sc:anchor <https://jeswr.github.io/lws-spec/#odrl-profile> ;
+    sc:formalModel <semantics/access-decision.n3> ;
+    spec:testCase <test-vectors/vectors/access-grants/cases/unmet-obligation-fail-closed/case.json> ,
+                  <test-vectors/vectors/access-grants/cases/obligation-for-different-action-not-blocking/case.json> .
 
 ### Grant endpoints and records (#grant-endpoints, #grants-are-records)
 
@@ -2378,6 +2404,8 @@
         <#JLWSC-ODRL-5> ,
         <#JLWSC-ODRL-6> ,
         <#JLWSC-ODRL-7> ,
+        <#JLWSC-ODRL-8> ,
+        <#JLWSC-ODRL-9> ,
         <#JLWSC-GE-1> ,
         <#JLWSC-GR-1> ,
         <#JLWSC-GR-2> ,

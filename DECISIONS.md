@@ -342,3 +342,55 @@ un-vectorable temporal MUST families: `JlwsConditionalUpdate.tla` (lost-update f
 the strict If-Match/428 discipline; the unconditional-overwrite server is refuted) and
 `JlwsContainment.tla` (atomic containment/membership; the split-phase implementation is
 refuted, its deletion window being itself an existence oracle).
+
+## D23. Prohibition/obligation decision-time composition: `odrl:prohibit` deny-overrides, per grant, matching-scoped
+
+GAPS.md flagged this from the start: "Conflict between an applicable permission and
+prohibition — deliberately unpinned … pinning one in a vector would invent normative
+content." `semantics/access-decision.n3` correspondingly fail-closed the whole question: a
+grant carrying *any* `odrl:prohibition` or `odrl:obligation` rule derived no permit at all,
+regardless of whether that rule had anything to do with the request being decided. Safe, but
+UNDEFINED — the composition itself, not merely its absence, was the gap.
+
+**Fixed.** ODRL 2.2's Conflict Resolution mechanism names three strategies for a policy whose
+Permission and Prohibition overlap — `odrl:perm`, `odrl:prohibit`, `odrl:invalid` — and leaves
+the choice to the profile ([[ODRL-MODEL]]). This profile adopts **`odrl:prohibit`** (deny
+overrides), matching the fail-closed posture already used throughout the rule set. Obligation
+composition is not named by ODRL's Conflict Resolution mechanism at all (that section is
+about Permission/Prohibition only), so the profile fixes its own rule: an `odrl:obligation`
+this profile version cannot verify as discharged is always treated as unmet — the "unmet or
+unverifiable" case, not a general obligation-vs-permission conflict strategy.
+
+Two design questions, resolved:
+
+- **Scope: per grant, not global.** "A policy carrying `odrl:prohibition`/`odrl:obligation`
+  alongside `odrl:permission`" (the phrasing this decision was scoped against) reads as ONE
+  document — a single `odrl:Offer` — carrying multiple rule kinds, and `#grant-endpoints`
+  supports that reading structurally: grants are created/revoked as WHOLE documents (POST /
+  DELETE), never partially edited, so a prohibition or obligation meant to gate a specific
+  permission is naturally issued in the SAME grant as that permission at creation time. A
+  cross-grant reading (a later, separately-revocable prohibition-only grant overriding an
+  earlier permission grant) was considered — real-world useful, and it would let "discharging"
+  an obligation be represented by revoking the obligation-carrying grant — but rejected as
+  reading MORE into the composition than the phrase supports; it is a natural extension a
+  future profile version can adopt explicitly, not something to smuggle in silently.
+- **Matching, not carrying.** A prohibition/obligation only participates when it MATCHES the
+  request — the identical assignee/action/target/constraint matching a permission uses
+  (`semantics/access-decision.n3` rule M, one derivation, `ax:matchesRequest`, shared by
+  permission (D), prohibition (N), and obligation (O), since the three rule kinds share the
+  document shape and only the grant-level linking predicate differs). This replaces the
+  coarser "carrying the rule kind blocks everything" behaviour with a properly scoped one —
+  `obligation-for-different-action-not-blocking` is the vector proving the difference (an
+  obligation on an unrelated action of the same grant no longer blocks).
+
+**Deferred, honestly (GAPS.md).** Genuine duty **discharge** — a wire-representable fact that
+an obligation WAS fulfilled — is out of scope for this profile version: no field of the
+document shape asserts "this duty was performed," and inventing one was not this decision's
+mandate (only the composition, not new document vocabulary). Until a future profile version
+defines a discharge mechanism, every matching obligation is unconditionally unmet.
+
+New vectors: `prohibition-denies-despite-permission`, `unmet-obligation-fail-closed`,
+`obligation-for-different-action-not-blocking` (access-grants suite); adversarial regression
+probes for the matching-scope and per-grant-composition properties in
+`test-suite/test/access-oracle.test.mjs`. Statement companion: JLWSC-ODRL-8 (prohibition),
+JLWSC-ODRL-9 (obligation), both `sc:formalModel semantics/access-decision.n3`.

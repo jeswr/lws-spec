@@ -19,6 +19,33 @@
 #     deny    <=>  no such derivation exists (default deny — the closed-world
 #                  absence of a permit justification at decision time).
 #
+# DECISION-TIME COMPOSITION of a grant (policy) carrying odrl:prohibition
+# and/or odrl:obligation rules alongside odrl:permission rules (rules M, N, O,
+# D below). ODRL 2.2 names three Conflict Resolution strategies for a policy
+# whose Permission and Prohibition overlap — `odrl:perm`, `odrl:prohibit`,
+# `odrl:invalid` — and leaves the choice to the profile; this profile adopts
+# `odrl:prohibit` (deny overrides), the fail-closed choice already used
+# throughout this rule set:
+#
+#   - a PROHIBITION of the SAME grant that also matches the request (the
+#     identical assignee/action/target/constraint matching a permission
+#     uses) denies: that grant derives no permit for the request, regardless
+#     of an otherwise-matching permission of the same grant (rule N);
+#   - an OBLIGATION of the SAME grant that also matches the request makes the
+#     matching permission NOT exercisable unless the duty is discharged. This
+#     profile version defines no wire representation of duty fulfilment, so a
+#     matching obligation is always unverifiable at decision time and always
+#     blocks (fail closed — rule O);
+#   - a NON-matching prohibition/obligation (different assignee, action,
+#     target, or one of its own constraints unsatisfied) does not
+#     participate — composition is scoped by matching, not a blanket veto on
+#     the grant merely carrying the rule kind.
+#
+# Both compose PER GRANT, never globally: a prohibition/obligation recorded
+# in one grant never affects a DIFFERENT grant's permit derivation — each
+# grant is evaluated independently, exactly as revocation composes
+# structurally per grant (#grants-are-records).
+#
 # The conformance oracle `test-suite/tools/oracle-access.mjs` executes this
 # file over every `evaluate-access` test vector and diffs the derived decision
 # against the vector's expected decision; the vectors and this file must never
@@ -69,12 +96,16 @@
 #
 # TERMINATION: the rule set is stratified and non-recursive (no derived
 # predicate feeds its own derivation; the only negation — the empty-collection
-# checks below — is scoped, over input facts and the constraint stratum).
+# checks below — is scoped, over input facts and the constraint stratum). The
+# strata run: K (constraint satisfaction) -> M (rule matching, per permission/
+# prohibition/obligation) -> N, O (per-grant prohibition/obligation matches,
+# from M) -> D (permit, negating N and O for the same grant). Nothing in N, O,
+# or D feeds back into K or M.
 #
-# SCOPE: permits derive from PERMISSION rules only. A grant carrying
-# odrl:prohibition or odrl:obligation rules derives nothing under this rule
-# set (fail closed — their decision-time composition is not defined by this
-# profile version), exactly as an unknown action grants nothing.
+# SCOPE: permits derive from PERMISSION rules, subject to the prohibition
+# (deny-overrides) and obligation (fail-closed-until-discharged) composition
+# above; an unmatched prohibition/obligation is inert, exactly as an unknown
+# action grants nothing.
 
 @prefix odrl:   <http://www.w3.org/ns/odrl/2/> .
 @prefix jlws:   <https://w3id.org/jeswr/lws#> .
@@ -266,37 +297,81 @@ odrl:dateTime     ax:supportsOperator odrl:lt .
 } => { ?c ax:unsatisfiedFor ?req . } .
 
 ## ---------------------------------------------------------------------------
+## M. Rule matching (Assignee/Targets/Constraints bullets) — shared across
+##    EVERY ODRL rule kind. A permission, prohibition, and obligation rule
+##    carry the identical shape (odrl:assignee, odrl:action, odrl:target,
+##    odrl:constraint*; only the grant-level predicate linking a rule to its
+##    kind — odrl:permission / odrl:prohibition / odrl:obligation — differs),
+##    so "does this rule match this request" is one derivation reused by the
+##    permit (D), prohibition (N), and obligation (O) strata: the assignee
+##    matches, the requested action satisfies the rule's granted action, the
+##    rule's target covers the requested target, and none of the rule's own
+##    constraints is unsatisfied (conjunctive, per K).
+## ---------------------------------------------------------------------------
+
+{ ?p ax:assigneeMatches ?req ;
+     odrl:action ?granted ;
+     odrl:target ?t .
+  ?req ax:action ?a ; ax:target ?r .
+  ?a ax:satisfiesGranted ?granted .
+  ?t ax:covers ?r .
+  ( ?c { ?p odrl:constraint ?c . ?c ax:unsatisfiedFor ?req . } ?LU )
+      log:collectAllIn _:sm1 .
+  ?LU list:length 0 .
+} => { ?p ax:matchesRequest ?req . } .
+
+## ---------------------------------------------------------------------------
+## N. Prohibition composition — ODRL 2.2 `odrl:prohibit` conflict-resolution
+##    strategy (deny overrides): a prohibition rule of a grant that matches
+##    the request (rule M) makes that SAME grant prohibited for the request.
+##    Consulted only as a per-grant guard in rule D — a prohibition in one
+##    grant never reaches into a different grant's permit derivation.
+## ---------------------------------------------------------------------------
+
+{ ?g odrl:prohibition ?pr .
+  ?pr ax:matchesRequest ?req .
+} => { ?req ax:prohibitedIn ?g . } .
+
+## ---------------------------------------------------------------------------
+## O. Obligation composition — fail closed until discharged. This profile
+##    version defines no wire representation of duty fulfilment (no field of
+##    the document shape asserts "this duty was performed"), so an obligation
+##    rule of a grant that matches the request (rule M) is always
+##    unverifiable at decision time: that SAME grant's matching permission is
+##    therefore never exercisable while the obligation remains. Discharging a
+##    duty — recording that it was fulfilled — is out of scope for this
+##    profile version (test-vectors/GAPS.md).
+## ---------------------------------------------------------------------------
+
+{ ?g odrl:obligation ?ob .
+  ?ob ax:matchesRequest ?req .
+} => { ?req ax:obligationUnmetIn ?g . } .
+
+## ---------------------------------------------------------------------------
 ## D. The permit derivation — revocation composes HERE.
 ##    A grant justifies a request iff it is IN THE LIVE RECORD (revocation =
-##    the DELETE removed it, so it is absent from the input) and one of its
-##    permission rules matches with every constraint satisfied. The decision is
-##    permit <=> SOME recorded grant derives ax:permittedBy; deny is its
-##    decision-time closed-world absence. "Revoking one grant" therefore
-##    cannot deny while another recorded grant still covers — the composition
-##    is structural, not a side condition.
+##    the DELETE removed it, so it is absent from the input), one of its
+##    permission rules matches the request (rule M), no prohibition rule of
+##    THE SAME grant also matches (rule N — deny overrides), and no
+##    obligation rule of THE SAME grant also matches (rule O — fail closed
+##    until discharged). The decision is permit <=> SOME recorded grant
+##    derives ax:permittedBy; deny is its decision-time closed-world absence.
+##    "Revoking one grant" therefore cannot deny while another recorded grant
+##    still covers — the composition is structural, not a side condition.
 ## ---------------------------------------------------------------------------
 
 { ?g a odrl:Offer ;
      odrl:profile <https://w3id.org/jeswr/lws/access-profile/odrl-1> ;
      ax:recordedIn ax:GrantStore ;
      odrl:permission ?p .
-  ?p ax:assigneeMatches ?req ;
-     odrl:action ?granted ;
-     odrl:target ?t .
-  ?req ax:action ?a .
-  ?a ax:satisfiesGranted ?granted .
-  ?req ax:target ?r .
-  ?t ax:covers ?r .
-  # Scope guard: prohibition/obligation composition is undefined in this
-  # profile version — a grant carrying either derives nothing (fail closed).
-  ( true { ?g odrl:prohibition ?x1 } ?LP ) log:collectAllIn _:sd1 .
+  ?p ax:matchesRequest ?req .
+  # N. Prohibition of the SAME grant wins over this otherwise-matching
+  # permission (closed-world absence of a matching prohibition, scoped to
+  # ?g — stratified, terminating).
+  ( true { ?req ax:prohibitedIn ?g } ?LP ) log:collectAllIn _:sdp .
   ?LP list:length 0 .
-  ( true { ?g odrl:obligation ?x2 } ?LO ) log:collectAllIn _:sd2 .
+  # O. Obligation of the SAME grant that matches the request is always
+  # unmet (no discharge mechanism), so it blocks this permission too.
+  ( true { ?req ax:obligationUnmetIn ?g } ?LO ) log:collectAllIn _:sdo .
   ?LO list:length 0 .
-  # CONJUNCTIVE constraints: no constraint of the matched permission may be
-  # unsatisfied (closed-world check over the K-stratum at the decision
-  # boundary — scoped negation, stratified, terminating).
-  ( ?c { ?p odrl:constraint ?c . ?c ax:unsatisfiedFor ?req . } ?LU )
-      log:collectAllIn _:sd3 .
-  ?LU list:length 0 .
 } => { ?req ax:permittedBy ?g . } .

@@ -22,6 +22,17 @@ export default function accessGrants(ctx) {
     permission,
   });
 
+  // A grant carrying rule kinds beyond permission (prohibition/obligation) —
+  // for the decision-time composition cases below.
+  const grantWith = (rules, uid = `${STORAGE}.grants/vec-1`) => ({
+    '@context': CONTEXT,
+    '@type': 'Offer',
+    uid,
+    profile: PROFILE,
+    assigner: ALICE,
+    ...rules,
+  });
+
   const readGrantOnA = grant([{
     assignee: BOB,
     action: 'read',
@@ -429,6 +440,88 @@ export default function accessGrants(ctx) {
             target: { '@type': 'StorageResource', uid: STORAGE },
           }])],
           request: evalRequest('read', `${STORAGE}anywhere/deep.txt`),
+        },
+        expected: { decision: 'permit' },
+      },
+      // ------------------------------------------------------------------
+      // Decision-time composition of odrl:prohibition / odrl:obligation
+      // alongside odrl:permission in the SAME grant (core#odrl-profile;
+      // semantics/access-decision.n3 rules M, N, O, D). ODRL 2.2's
+      // `odrl:prohibit` conflict-resolution strategy: a matching prohibition
+      // denies despite an otherwise-matching permission. An obligation this
+      // profile version has no way to verify as discharged is always unmet
+      // at decision time, so it likewise blocks. Both compose PER GRANT and
+      // only when the rule itself MATCHES the request — a rule of the same
+      // grant that does not match (different action here) does not
+      // participate, so the veto is not a blanket "grant carries the kind"
+      // rule (that was the prior, coarser fail-closed-UNDEFINED behaviour).
+      // ------------------------------------------------------------------
+      {
+        id: 'prohibition-denies-despite-permission',
+        title: 'a matching prohibition in the same grant denies despite an otherwise-matching permission (odrl:prohibit conflict-resolution strategy)',
+        clauses: ['core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#odrl-profile'),
+        input: {
+          grants: [grantWith({
+            permission: [{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: A },
+            }],
+            prohibition: [{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: A },
+            }],
+          })],
+          request: evalRequest('read'),
+        },
+        expected: { decision: 'deny' },
+      },
+      {
+        id: 'unmet-obligation-fail-closed',
+        title: 'a matching obligation in the same grant makes the permission NOT exercisable: this profile version has no wire representation of duty fulfilment, so it is always unverifiable (fail closed)',
+        clauses: ['core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#odrl-profile'),
+        input: {
+          grants: [grantWith({
+            permission: [{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: A },
+            }],
+            obligation: [{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: A },
+            }],
+          })],
+          request: evalRequest('read'),
+        },
+        expected: { decision: 'deny' },
+      },
+      {
+        id: 'obligation-for-different-action-not-blocking',
+        title: 'an obligation for a different action in the same grant does not block a permission for the requested action: composition is scoped by matching, not a blanket veto on the grant carrying the rule kind',
+        clauses: ['core#odrl-profile'],
+        operation: 'evaluate-access',
+        source: ORACLE('core#odrl-profile'),
+        input: {
+          grants: [grantWith({
+            permission: [{
+              assignee: BOB,
+              action: 'read',
+              target: { '@type': 'DataResource', uid: A },
+            }],
+            obligation: [{
+              assignee: BOB,
+              action: 'append',
+              target: { '@type': 'DataResource', uid: A },
+            }],
+          })],
+          request: evalRequest('read'),
         },
         expected: { decision: 'permit' },
       },
